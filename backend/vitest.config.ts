@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { config as dotenvConfig } from 'dotenv';
+
+// Load environment variables BEFORE tests run
+dotenvConfig({ path: '.env.local' });
 
 export default defineConfig({
   plugins: [react()],
@@ -11,7 +15,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './'),
     },
   },
 });
