@@ -32,8 +32,7 @@ export async function uploadImage(
   generationId: string,
   fileExtension: string
 ): Promise<{ key: string; url: string }> {
-  // Construct the R2 object key (path)
-  const key = `users/${userId}/images/${generationId}.${fileExtension}`;
+  const key = getKey(userId, generationId, fileExtension);
 
   // Determine content type based on extension
   const contentType = getContentType(fileExtension);
@@ -87,6 +86,13 @@ export async function deleteImage(key: string): Promise<void> {
   });
 
   await r2Client.send(command);
+}
+
+/**
+ * Helper function to construct the R2 object key
+ */
+export function getKey(userId: string, generationId: string, fileExtension: string): string {
+  return `users/${userId}/images/${generationId}.${fileExtension}`;
 }
 
 /**

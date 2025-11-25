@@ -5,10 +5,10 @@
 
 CREATE TABLE generations (
   -- Primary identification
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid,
-  session_id uuid,
-  request_id uuid,
+  id text PRIMARY KEY,
+  user_id text,
+  session_id text,
+  request_id text,
   
   -- Prompts
   user_prompt text,
@@ -17,8 +17,7 @@ CREATE TABLE generations (
   
   -- Generation metadata
   model text,
-  image_url text,
-  file_format text,
+  file_extension text,
   file_size_bytes integer,
   
   -- Performance tracking
@@ -34,7 +33,11 @@ CREATE TABLE generations (
   shared_at timestamptz,
   
   -- Timestamps
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  generation_started_at timestamptz,
+
+  -- Comments
+  comments jsonb
 );
 
 -- =====================================================
@@ -73,3 +76,4 @@ COMMENT ON COLUMN generations.session_id IS 'Unique per keyboard session - reset
 COMMENT ON COLUMN generations.request_id IS 'Multiple images share same request_id (generated together)';
 COMMENT ON COLUMN generations.cost_usd_mills IS 'Cost in mills (15 = $0.015)';
 COMMENT ON COLUMN generations.text_in_image IS 'JSON array of text phrases to include in image';
+COMMENT ON COLUMN generations.comments IS 'Additional data for debugging';
