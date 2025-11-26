@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 import { getKey, getSignedImageUrl } from '@/lib/storage/r2';
 
 export const POST = withAuth(async (request, user) => {
+  const requestStartedAt = new Date();
   const body = await request.json();
   const { prompt, session_id, request_id } = body;
 
@@ -32,7 +33,7 @@ export const POST = withAuth(async (request, user) => {
     null,
   ];
   console.log(
-    `Will run immediately with models ${randomModel} and ${ImageModelsEnum.FLUX_SCHNELL}`
+    `${new Date().toISOString()} Will run immediately with ${randomModel} and ${ImageModelsEnum.FLUX_SCHNELL}`
   );
 
   const records: GenerationInsert[] = generationIds.map((id, idx) => ({
@@ -40,6 +41,7 @@ export const POST = withAuth(async (request, user) => {
     user_id: user.id,
     session_id,
     request_id,
+    created_at: requestStartedAt.toISOString(),
     user_prompt: prompt,
     model: imageModels[idx]?.id,
     file_extension: imageModels[idx]?.outputFormat || 'jpg', // this is hardcoded to jpg for background generations
@@ -51,6 +53,7 @@ export const POST = withAuth(async (request, user) => {
   const { error: insertError } = await supabaseAdmin.from('generations').insert(records);
 
   if (insertError) {
+    console.error(`Failed to create generations: ${insertError}`);
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 

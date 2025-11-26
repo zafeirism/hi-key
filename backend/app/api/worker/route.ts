@@ -8,7 +8,7 @@ import { GenerationStatus } from '@/lib/supabase/helpers';
 
 export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const { generationIds } = await request.json();
-  console.log(`Continuing on background for generation IDs: ${generationIds}`);
+  console.log(`${new Date().toISOString()} Worker received for generation IDs: ${generationIds}`);
 
   const { data: generations, error: fetchError } = await supabaseAdmin
     .from('generations')
@@ -16,15 +16,21 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     .in('id', generationIds);
 
   if (fetchError || !generations?.length || generations.length !== generationIds.length) {
-    // TODO: Log error
+    console.error(`Generations not found: ${generationIds} - error: ${fetchError}`);
     return NextResponse.json({ error: 'Generations not found' }, { status: 200 });
   }
 
+  const upsamplingStartedAt = Date.now();
+  console.log(`${new Date().toISOString()} Worker upsampling for generation IDs: ${generationIds}`);
   const upsampledPrompt = await upsamplePrompt(generations[0]!.user_prompt!, 2);
+  console.log(`${new Date().toISOString()} Worker upsampled for generation IDs: ${generationIds}`);
+  const upsamplingDurationMs = Date.now() - upsamplingStartedAt;
+
   const models = getAppropriateModels(upsampledPrompt);
   const prompts = upsampledPrompt.additional_prompts.concat(upsampledPrompt.improved_prompt);
 
-  console.log(`Will run background generations with models ${models[0]} and ${models[1]}`);
+  const generationStartedAt = new Date();
+  console.log(`${new Date().toISOString()} Worker posting models ${models[0]} and ${models[1]}`);
   await Promise.all(
     models.map((model, idx) =>
       generateImage(model, {
@@ -33,7 +39,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
       })
     )
   );
-
+  console.log(`${new Date().toISOString()} Worker posted models ${models[0]} and ${models[1]}`);
   const [result1, result2] = await Promise.all([
     supabaseAdmin
       .from('generations')
@@ -43,7 +49,8 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
         model: models[0]!,
         cost_usd_mills: IMAGE_MODEL_SETUPS[models[0]!].costPerImage,
         status: 'generating' as GenerationStatus,
-        generation_started_at: new Date().toISOString(),
+        upsampling_duration_ms: upsamplingDurationMs,
+        generation_started_at: generationStartedAt.toISOString(),
       })
       .eq('id', generationIds[0]!),
 
@@ -55,13 +62,14 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
         model: models[1]!,
         cost_usd_mills: IMAGE_MODEL_SETUPS[models[1]!].costPerImage,
         status: 'generating' as GenerationStatus,
-        generation_started_at: new Date().toISOString(),
+        upsampling_duration_ms: upsamplingDurationMs,
+        generation_started_at: generationStartedAt.toISOString(),
       })
       .eq('id', generationIds[1]!),
   ]);
 
   if (result1.error || result2.error) {
-    // Consider rollback logic here if one succeeded
+    console.error(`Failed to update: ${generationIds} - error: ${result1.error} ${result2.error}`);
     return NextResponse.json(
       {
         error: 'Failed to update generations',
@@ -71,6 +79,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     );
   }
 
+  console.log(`${new Date().toISOString()} Worker completed successfully: ${generationIds}`);
   return NextResponse.json({
     success: true,
   });

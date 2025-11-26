@@ -6,6 +6,7 @@
 CREATE TABLE generations (
   -- Primary identification
   id text PRIMARY KEY,
+  created_at timestamptz DEFAULT now(),
   user_id text,
   session_id text,
   request_id text,
@@ -19,11 +20,8 @@ CREATE TABLE generations (
   model text,
   file_extension text,
   file_size_bytes integer,
-  
-  -- Performance tracking
-  duration_ms integer,
   cost_usd_mills integer,
-  
+    
   -- Status tracking
   status text,
   error_message text,
@@ -32,8 +30,11 @@ CREATE TABLE generations (
   copied_at timestamptz,
   shared_at timestamptz,
   
-  -- Timestamps
-  created_at timestamptz DEFAULT now(),
+  -- Performance tracking
+  generation_duration_ms integer,
+  upsampling_duration_ms integer,
+  total_duration_ms integer,
+
   generation_started_at timestamptz,
 
   -- Comments

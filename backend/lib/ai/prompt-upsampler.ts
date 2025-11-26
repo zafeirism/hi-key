@@ -60,7 +60,7 @@ The user provides a short, free-form scene description (a few words, often fragm
 - If the scene includes visible text, include it naturally in the description but do NOT reference "text inside the image" explicitly.
 
 ## Style & safety
-- Respect user intent, main idea, style, mood etc. but be creative if they haven't specified these details.
+- Respect user style mood etc. but if they haven't specified, always include a style (e.g. "ghibli-inspired", "anime", "pixel art", "Pixar-style" etc).
 - Mild profanity is allowed; hateful or sexual content is not.
 - If unsafe content is requested, reinterpret it to a safe, non-harmful version.
 - Crude humor ("poop", "shit", "middle finger", "wtf") is allowed if aligned with user intent; hateful or explicit sexual content is never allowed.
@@ -86,7 +86,7 @@ The user provides a short, free-form scene description (a few words, often fragm
 - If the scene includes visible text, include it naturally in the description but do NOT reference "text inside the image" explicitly.
 
 ## Style & safety
-- Respect user intent, main idea, style, mood etc. but be creative if they haven't specified these details.
+- Respect user style mood etc. but if they haven't specified, always include a style (e.g. "ghibli-inspired", "anime", "pixel art", "Pixar-style" etc).
 - Mild profanity is allowed; hateful or sexual content is not.
 - If unsafe content is requested, reinterpret it to a safe, non-harmful version.
 - Crude humor ("poop", "shit", "middle finger", "wtf") is allowed if aligned with user intent; hateful or explicit sexual content is never allowed.
@@ -109,6 +109,7 @@ export async function upsamplePrompt(
   total: number = 1
 ): Promise<UpsampledPrompt> {
   const requests = [];
+  console.log(`${new Date().toISOString()} Starting upsampling...`);
   requests.push(
     openai.responses.parse({
       model: 'gpt-4.1-mini',
@@ -138,7 +139,9 @@ export async function upsamplePrompt(
       })
     );
   }
+
   const responses = await Promise.all(requests);
+  console.log(`${new Date().toISOString()} Finished upsampling...`);
   const result = responses[0]!.output_parsed as UpsampledPrompt;
   result.additional_prompts = [];
   responses.slice(1).forEach((response) => {

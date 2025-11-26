@@ -20,10 +20,10 @@ export type Database = {
           copied_at: string | null
           cost_usd_mills: number | null
           created_at: string | null
-          duration_ms: number | null
           error_message: string | null
           file_extension: string | null
           file_size_bytes: number | null
+          generation_duration_ms: number | null
           generation_started_at: string | null
           id: string
           improved_prompt: string | null
@@ -33,6 +33,8 @@ export type Database = {
           shared_at: string | null
           status: string | null
           text_in_image: Json | null
+          total_duration_ms: number | null
+          upsampling_duration_ms: number | null
           user_id: string | null
           user_prompt: string | null
         }
@@ -41,10 +43,10 @@ export type Database = {
           copied_at?: string | null
           cost_usd_mills?: number | null
           created_at?: string | null
-          duration_ms?: number | null
           error_message?: string | null
           file_extension?: string | null
           file_size_bytes?: number | null
+          generation_duration_ms?: number | null
           generation_started_at?: string | null
           id: string
           improved_prompt?: string | null
@@ -54,6 +56,8 @@ export type Database = {
           shared_at?: string | null
           status?: string | null
           text_in_image?: Json | null
+          total_duration_ms?: number | null
+          upsampling_duration_ms?: number | null
           user_id?: string | null
           user_prompt?: string | null
         }
@@ -62,10 +66,10 @@ export type Database = {
           copied_at?: string | null
           cost_usd_mills?: number | null
           created_at?: string | null
-          duration_ms?: number | null
           error_message?: string | null
           file_extension?: string | null
           file_size_bytes?: number | null
+          generation_duration_ms?: number | null
           generation_started_at?: string | null
           id?: string
           improved_prompt?: string | null
@@ -75,6 +79,8 @@ export type Database = {
           shared_at?: string | null
           status?: string | null
           text_in_image?: Json | null
+          total_duration_ms?: number | null
+          upsampling_duration_ms?: number | null
           user_id?: string | null
           user_prompt?: string | null
         }
