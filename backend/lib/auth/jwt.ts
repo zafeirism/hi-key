@@ -58,6 +58,16 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
 
       const token = authHeader.replace('Bearer ', '');
 
+      // 🔥 DEMO MODE: Allow "demo" token for testing
+      if (token === '***REMOVED***') {
+        const demoUser: AuthUser = {
+          id: `demo-${Date.now()}`, // Unique ID per request
+          email: 'demo@havingfunwith.ai',
+          role: 'authenticated',
+        };
+        return handler(request, demoUser);
+      }
+
       // Verify JWT using Supabase's JWKS endpoint
       const { payload } = await jwtVerify(token, jwks, {
         issuer: `${SUPABASE_URL}/auth/v1`,
