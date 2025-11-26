@@ -3,10 +3,10 @@
  */
 export enum ImageModelsEnum {
   FLUX_SCHNELL = 'flux-schnell',
-  FLUX_1_DEV = 'flux-1-dev',
-  FLUX_1_1_PRO = 'flux-1.1-pro',
+  FLUX_2_DEV = 'flux-2-dev',
+  FLUX_2_PRO = 'flux-2-pro',
+  FLUX_2_PRO_UPSAMPLED = 'flux-2-pro-upsampled',
   FLUX_KREA_DEV = 'flux-krea-dev',
-  FLUX_KONTEXT_MAX = 'flux-kontext-max',
   SD_3_5_LARGE_TURBO = 'sd-3.5-large-turbo',
   IMAGEN_4_FAST = 'imagen-4-fast',
 }
@@ -40,28 +40,41 @@ export const IMAGE_MODEL_SETUPS: Record<ImageModelsEnum, ImageModelSetup> = {
       output_format: 'webp',
     }),
   },
-  [ImageModelsEnum.FLUX_1_DEV]: {
-    id: ImageModelsEnum.FLUX_1_DEV,
-    model: 'black-forest-labs/flux-dev',
-    avgDuration: 2000,
-    costPerImage: 25,
-    supportsText: false,
+  [ImageModelsEnum.FLUX_2_DEV]: {
+    id: ImageModelsEnum.FLUX_2_DEV,
+    model: 'black-forest-labs/flux-2-dev',
+    avgDuration: 3000,
+    costPerImage: 12,
+    supportsText: true,
     outputFormat: 'webp',
     getInputParams: (prompt: string) => ({
       prompt: prompt,
       output_format: 'webp',
     }),
   },
-  [ImageModelsEnum.FLUX_1_1_PRO]: {
-    id: ImageModelsEnum.FLUX_1_1_PRO,
-    model: 'black-forest-labs/flux-1.1-pro',
-    avgDuration: 3700,
-    costPerImage: 40,
+  [ImageModelsEnum.FLUX_2_PRO]: {
+    id: ImageModelsEnum.FLUX_2_PRO,
+    model: 'black-forest-labs/flux-2-pro',
+    avgDuration: 9000,
+    costPerImage: 30,
     supportsText: true,
     outputFormat: 'webp',
     getInputParams: (prompt: string) => ({
       prompt: prompt,
       output_format: 'webp',
+    }),
+  },
+  [ImageModelsEnum.FLUX_2_PRO_UPSAMPLED]: {
+    id: ImageModelsEnum.FLUX_2_PRO_UPSAMPLED,
+    model: 'black-forest-labs/flux-2-pro',
+    avgDuration: 9000,
+    costPerImage: 30,
+    supportsText: true,
+    outputFormat: 'webp',
+    getInputParams: (prompt: string) => ({
+      prompt: prompt,
+      output_format: 'webp',
+      prompt_upsampling: true,
     }),
   },
   [ImageModelsEnum.FLUX_KREA_DEV]: {
@@ -75,19 +88,6 @@ export const IMAGE_MODEL_SETUPS: Record<ImageModelsEnum, ImageModelSetup> = {
       prompt: prompt,
       output_format: 'webp',
       guidance: 3,
-    }),
-  },
-  [ImageModelsEnum.FLUX_KONTEXT_MAX]: {
-    id: ImageModelsEnum.FLUX_KONTEXT_MAX,
-    model: 'black-forest-labs/flux-kontext-max',
-    avgDuration: 4000,
-    costPerImage: 80,
-    supportsText: true,
-    outputFormat: 'jpg',
-    getInputParams: (prompt: string) => ({
-      prompt: prompt,
-      output_format: 'jpg',
-      aspect_ratio: '1:1',
     }),
   },
   [ImageModelsEnum.SD_3_5_LARGE_TURBO]: {

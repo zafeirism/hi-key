@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
   const secret = process.env.REPLICATE_WEBHOOK_SIGNING_SECRET!;
   const webhookIsValid = await validateWebhook(request.clone(), secret);
   if (!webhookIsValid) {
-    console.error('Webhook is invalid');
+    console.error(`${new Date().toISOString()} Webhook is invalid`);
     return NextResponse.json({ detail: 'Webhook is invalid' }, { status: 401 });
   }
 
   const generationId = request.nextUrl.searchParams.get('id');
   console.log(`${new Date().toISOString()} Replicate validated for generation ID: ${generationId}`);
   if (!generationId) {
-    console.error('Generation ID is required');
+    console.error(`${new Date().toISOString()} Generation ID is required`);
     return NextResponse.json({ detail: 'Generation ID is required' }, { status: 200 });
   }
 
@@ -32,7 +32,9 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (fetchError || !generation) {
-    console.error(`Generation not found: ${generationId} - error: ${fetchError}`);
+    console.error(
+      `${new Date().toISOString()} Generation not found: ${generationId} - error: ${JSON.stringify(fetchError)}`
+    );
     return NextResponse.json({ error: 'Generation not found' }, { status: 200 });
   }
 
@@ -41,7 +43,9 @@ export async function POST(request: NextRequest) {
 
   const imageUrl = Array.isArray(output) ? output[0] : output;
   if (!imageUrl || status !== 'succeeded') {
-    console.error(`Replicate failed:  ${generationId}: ${status} - error: ${error}`);
+    console.error(
+      `${new Date().toISOString()} Replicate failed:  ${generationId}: ${status} - error: ${JSON.stringify(error)}`
+    );
     return NextResponse.json(
       { detail: `${generationId}: ${status} - Replicate prediction failed: ${error}` },
       { status: 200 }
@@ -70,7 +74,9 @@ export async function POST(request: NextRequest) {
     .eq('id', generationId);
 
   if (updateError) {
-    console.error(`Failed to update generation: ${generationId} - error: ${updateError}`);
+    console.error(
+      `${new Date().toISOString()} Failed to update generation: ${generationId} - error: ${JSON.stringify(updateError)}`
+    );
     return NextResponse.json({ error: 'Failed to update generation' }, { status: 200 });
   }
 

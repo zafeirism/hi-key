@@ -53,7 +53,9 @@ export const POST = withAuth(async (request, user) => {
   const { error: insertError } = await supabaseAdmin.from('generations').insert(records);
 
   if (insertError) {
-    console.error(`Failed to create generations: ${insertError}`);
+    console.error(
+      `${new Date().toISOString()} Failed to create generations: ${JSON.stringify(insertError)}`
+    );
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 

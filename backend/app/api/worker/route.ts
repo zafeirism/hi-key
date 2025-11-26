@@ -16,7 +16,9 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     .in('id', generationIds);
 
   if (fetchError || !generations?.length || generations.length !== generationIds.length) {
-    console.error(`Generations not found: ${generationIds} - error: ${fetchError}`);
+    console.error(
+      `${new Date().toISOString()} Generations not found: ${generationIds} - error: ${JSON.stringify(fetchError)}`
+    );
     return NextResponse.json({ error: 'Generations not found' }, { status: 200 });
   }
 
@@ -69,7 +71,9 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   ]);
 
   if (result1.error || result2.error) {
-    console.error(`Failed to update: ${generationIds} - error: ${result1.error} ${result2.error}`);
+    console.error(
+      `${new Date().toISOString()} Failed to update: ${generationIds} - error: ${JSON.stringify(result1.error)}\n\n\n${JSON.stringify(result2.error)}`
+    );
     return NextResponse.json(
       {
         error: 'Failed to update generations',
@@ -89,15 +93,15 @@ function getAppropriateModels(upsampledPrompt: UpsampledPrompt): ImageModelsEnum
   const result: ImageModelsEnum[] = [];
 
   if (upsampledPrompt.user_phrases.length > 0) {
-    result.push(ImageModelsEnum.FLUX_KONTEXT_MAX);
+    result.push(ImageModelsEnum.FLUX_2_PRO_UPSAMPLED);
     if (hasComplexText(upsampledPrompt.user_phrases)) {
-      result.push(ImageModelsEnum.FLUX_KONTEXT_MAX);
+      result.push(ImageModelsEnum.FLUX_2_PRO);
     } else {
       const randomModel = pickModelRandomly([
         ImageModelsEnum.FLUX_KREA_DEV,
         ImageModelsEnum.IMAGEN_4_FAST,
-        ImageModelsEnum.SD_3_5_LARGE_TURBO,
-        ImageModelsEnum.FLUX_1_1_PRO,
+        ImageModelsEnum.FLUX_2_DEV,
+        ImageModelsEnum.FLUX_2_PRO,
       ]);
       result.push(randomModel);
     }
@@ -105,18 +109,16 @@ function getAppropriateModels(upsampledPrompt: UpsampledPrompt): ImageModelsEnum
   }
 
   result.push(ImageModelsEnum.FLUX_SCHNELL);
-  if (upsampledPrompt.improved_prompt.includes('photorealistic')) {
-    result.push(ImageModelsEnum.FLUX_KREA_DEV);
-  } else {
-    const randomModel = pickModelRandomly([
-      ImageModelsEnum.FLUX_KREA_DEV,
-      ImageModelsEnum.IMAGEN_4_FAST,
-      ImageModelsEnum.SD_3_5_LARGE_TURBO,
-      ImageModelsEnum.FLUX_1_1_PRO,
-      ImageModelsEnum.FLUX_1_DEV,
-    ]);
-    result.push(randomModel);
-  }
+
+  const randomModel = pickModelRandomly([
+    ImageModelsEnum.FLUX_KREA_DEV,
+    ImageModelsEnum.IMAGEN_4_FAST,
+    ImageModelsEnum.FLUX_2_PRO_UPSAMPLED,
+    ImageModelsEnum.FLUX_2_PRO,
+    ImageModelsEnum.FLUX_2_DEV,
+  ]);
+  result.push(randomModel);
+
   return result;
 }
 
