@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // Generate session ID once per browser session
 const getSessionId = () => {
@@ -29,7 +29,7 @@ export default function DemoPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loadTimes, setLoadTimes] = useState<ImageLoadTime[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null); // Changed from selectedImage
   const generateStartTime = useRef<number>(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -148,7 +148,7 @@ export default function DemoPage() {
                   url={url}
                   index={idx}
                   onLoad={() => handleImageLoad(idx)}
-                  onClick={() => setSelectedImage(url)}
+                  onClick={() => setSelectedImageIndex(idx)} // Changed to set index instead of URL
                 />
               ))}
             </div>
@@ -157,8 +157,13 @@ export default function DemoPage() {
       </div>
 
       {/* Lightbox */}
-      {selectedImage && (
-        <ImageLightbox imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
+      {selectedImageIndex !== null && (
+        <ImageLightbox
+          images={imageUrls}
+          currentIndex={selectedImageIndex}
+          onClose={() => setSelectedImageIndex(null)}
+          onNavigate={setSelectedImageIndex}
+        />
       )}
     </div>
   );
@@ -226,34 +231,100 @@ function ImageWithRetry({
   );
 }
 
-// Lightbox for viewing full-size images
-function ImageLightbox({ imageUrl, onClose }: { imageUrl: string; onClose: () => void }) {
-  // Close on Escape key
-  useState(() => {
+// Lightbox for viewing full-size images with navigation
+function ImageLightbox({
+  images,
+  currentIndex,
+  onClose,
+  onNavigate,
+}: {
+  images: string[];
+  currentIndex: number;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      onNavigate(currentIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < images.length - 1) {
+      onNavigate(currentIndex + 1);
+    }
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrevious();
+      } else if (e.key === 'ArrowRight') {
+        handleNext();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  }, [currentIndex, images.length, onClose, onNavigate]); // Add dependencies
+
+  const currentImageUrl = images[currentIndex];
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < images.length - 1;
 
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
+      {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-white hover:text-gray-300 text-4xl font-light leading-none"
+        className="absolute top-4 right-4 text-white hover:text-gray-300 text-4xl font-light leading-none z-10"
         aria-label="Close"
       >
         ×
       </button>
+
+      {/* Previous arrow */}
+      {hasPrevious && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrevious();
+          }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 text-5xl font-light leading-none z-10 p-4"
+          aria-label="Previous image"
+        >
+          ‹
+        </button>
+      )}
+
+      {/* Next arrow */}
+      {hasNext && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 text-5xl font-light leading-none z-10 p-4"
+          aria-label="Next image"
+        >
+          ›
+        </button>
+      )}
+
+      {/* Image counter */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm z-10">
+        {currentIndex + 1} / {images.length}
+      </div>
+
+      {/* Image */}
       <img
-        src={imageUrl}
-        alt="Full size preview"
+        src={currentImageUrl}
+        alt={`Full size preview ${currentIndex + 1}`}
         className="max-w-full max-h-full object-contain"
         onClick={(e) => e.stopPropagation()}
       />
