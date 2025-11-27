@@ -7,6 +7,10 @@ export enum ImageModelsEnum {
   FLUX_2_PRO_UPSAMPLED = 'flux-2-pro-upsampled',
 }
 
+export function pickModelRandomly(models: ImageModelsEnum[]): ImageModelsEnum {
+  return models[Math.floor(Math.random() * models.length)]!;
+}
+
 /**
  * A "setup" is a complete configuration for an image generation request
  * Can be different models OR same model with different parameters
