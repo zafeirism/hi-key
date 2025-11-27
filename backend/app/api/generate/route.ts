@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/jwt';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { GenerationInsert, GenerationStatus } from '@/lib/supabase/helpers';
-import { generateImage, pickModelRandomly } from '@/lib/ai/image-generator';
+import { generateImage } from '@/lib/ai/image-generator';
 import { ImageModelsEnum, IMAGE_MODEL_SETUPS } from '@/lib/ai/image-models';
 import { continueOnBackground } from '@/lib/qstash/backgroundScheduler';
 import { randomUUID } from 'crypto';
@@ -22,19 +22,13 @@ export const POST = withAuth(async (request, user) => {
 
   // 1. Create 4 generation records in Supabase - 2 that run now and 2 on the background
   const generationIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
-  const randomModel = pickModelRandomly([
-    ImageModelsEnum.FLUX_KREA_DEV,
-    ImageModelsEnum.IMAGEN_4_FAST,
-  ]);
+
   const imageModels = [
-    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_SCHNELL],
-    IMAGE_MODEL_SETUPS[randomModel],
-    null, // We're creating the extra two that will run on the background
-    null,
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_DEV],
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_PRO],
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_PRO_UPSAMPLED],
+    null, // We're creating an extra that will run on the background
   ];
-  console.log(
-    `${new Date().toISOString()} Will run immediately with ${randomModel} and ${ImageModelsEnum.FLUX_SCHNELL}`
-  );
 
   const records: GenerationInsert[] = generationIds.map((id, idx) => ({
     id,
@@ -59,18 +53,18 @@ export const POST = withAuth(async (request, user) => {
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 
-  // 2. Start generating the 2 images immediately
+  // 2. Start generating the 3 images immediately
   await Promise.all(
-    generationIds.slice(0, 2).map((id, idx) =>
-      generateImage(imageModels[idx]!.id, {
+    imageModels.slice(0, 3).map((m, idx) =>
+      generateImage(m!.id, {
         userPrompt: prompt,
-        generationId: id,
+        generationId: generationIds[idx]!,
       })
     )
   );
 
-  // 3. Send the other 2 images to be worked on the background
-  await continueOnBackground(generationIds.slice(2));
+  // 3. Send the last image to be worked on the background
+  await continueOnBackground(generationIds.slice(3));
 
   // 4. Create signed urls for all 4 images and return to the client
   const signedUrls = await Promise.all(
