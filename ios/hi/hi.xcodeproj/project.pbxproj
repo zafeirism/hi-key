@@ -1,0 +1,829 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		33347A9D2ED89699001BD688 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33347A9C2ED89699001BD688 /* Supabase */; };
+		33347AA02ED896B7001BD688 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33347A9F2ED896B7001BD688 /* Supabase */; };
+		33347AC42ED8F204001BD688 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33347AC32ED8F204001BD688 /* KeyboardKit */; };
+		33347ACA2ED8FEB3001BD688 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33347AC92ED8FEB3001BD688 /* KeyboardKit */; };
+		33B4B5502ED877D200120BAA /* hi-keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 33B4B5492ED877D200120BAA /* hi-keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		33B4B5292ED8765300120BAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33B4B5132ED8765100120BAA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33B4B51A2ED8765100120BAA;
+			remoteInfo = hi;
+		};
+		33B4B5332ED8765300120BAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33B4B5132ED8765100120BAA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33B4B51A2ED8765100120BAA;
+			remoteInfo = hi;
+		};
+		33B4B54E2ED877D200120BAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33B4B5132ED8765100120BAA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33B4B5482ED877D200120BAA;
+			remoteInfo = "hi-keyboard";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		33B4B5552ED877D200120BAA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				33B4B5502ED877D200120BAA /* hi-keyboard.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		33B4B51B2ED8765100120BAA /* hi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		33B4B5282ED8765300120BAA /* hiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		33B4B5322ED8765300120BAA /* hiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		33B4B5492ED877D200120BAA /* hi-keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "hi-keyboard.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		33347AA42ED8989B001BD688 /* Exceptions for "hi" folder in "hi-keyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				APIClient.swift,
+				AuthManager.swift,
+				AuthTokenStorage.swift,
+				SupabaseManager.swift,
+			);
+			target = 33B4B5482ED877D200120BAA /* hi-keyboard */;
+		};
+		33B4B5512ED877D200120BAA /* Exceptions for "hi-keyboard" folder in "hi-keyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 33B4B5482ED877D200120BAA /* hi-keyboard */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		33B4B51D2ED8765100120BAA /* hi */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				33347AA42ED8989B001BD688 /* Exceptions for "hi" folder in "hi-keyboard" target */,
+			);
+			path = hi;
+			sourceTree = "<group>";
+		};
+		33B4B52B2ED8765300120BAA /* hiTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = hiTests;
+			sourceTree = "<group>";
+		};
+		33B4B5352ED8765300120BAA /* hiUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = hiUITests;
+			sourceTree = "<group>";
+		};
+		33B4B54A2ED877D200120BAA /* hi-keyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				33B4B5512ED877D200120BAA /* Exceptions for "hi-keyboard" folder in "hi-keyboard" target */,
+			);
+			path = "hi-keyboard";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		33B4B5182ED8765100120BAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				33347ACA2ED8FEB3001BD688 /* KeyboardKit in Frameworks */,
+				33347A9D2ED89699001BD688 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5252ED8765300120BAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B52F2ED8765300120BAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5462ED877D200120BAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				33347AC42ED8F204001BD688 /* KeyboardKit in Frameworks */,
+				33347AA02ED896B7001BD688 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		33347A9E2ED896B7001BD688 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		33B4B5122ED8765100120BAA = {
+			isa = PBXGroup;
+			children = (
+				33B4B51D2ED8765100120BAA /* hi */,
+				33B4B52B2ED8765300120BAA /* hiTests */,
+				33B4B5352ED8765300120BAA /* hiUITests */,
+				33B4B54A2ED877D200120BAA /* hi-keyboard */,
+				33347A9E2ED896B7001BD688 /* Frameworks */,
+				33B4B51C2ED8765100120BAA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		33B4B51C2ED8765100120BAA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				33B4B51B2ED8765100120BAA /* hi.app */,
+				33B4B5282ED8765300120BAA /* hiTests.xctest */,
+				33B4B5322ED8765300120BAA /* hiUITests.xctest */,
+				33B4B5492ED877D200120BAA /* hi-keyboard.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		33B4B51A2ED8765100120BAA /* hi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 33B4B53C2ED8765300120BAA /* Build configuration list for PBXNativeTarget "hi" */;
+			buildPhases = (
+				33B4B5172ED8765100120BAA /* Sources */,
+				33B4B5182ED8765100120BAA /* Frameworks */,
+				33B4B5192ED8765100120BAA /* Resources */,
+				33B4B5552ED877D200120BAA /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				33B4B54F2ED877D200120BAA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				33B4B51D2ED8765100120BAA /* hi */,
+			);
+			name = hi;
+			packageProductDependencies = (
+				33347A9C2ED89699001BD688 /* Supabase */,
+				33347AC92ED8FEB3001BD688 /* KeyboardKit */,
+			);
+			productName = hi;
+			productReference = 33B4B51B2ED8765100120BAA /* hi.app */;
+			productType = "com.apple.product-type.application";
+		};
+		33B4B5272ED8765300120BAA /* hiTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 33B4B53F2ED8765300120BAA /* Build configuration list for PBXNativeTarget "hiTests" */;
+			buildPhases = (
+				33B4B5242ED8765300120BAA /* Sources */,
+				33B4B5252ED8765300120BAA /* Frameworks */,
+				33B4B5262ED8765300120BAA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				33B4B52A2ED8765300120BAA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				33B4B52B2ED8765300120BAA /* hiTests */,
+			);
+			name = hiTests;
+			packageProductDependencies = (
+			);
+			productName = hiTests;
+			productReference = 33B4B5282ED8765300120BAA /* hiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		33B4B5312ED8765300120BAA /* hiUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 33B4B5422ED8765300120BAA /* Build configuration list for PBXNativeTarget "hiUITests" */;
+			buildPhases = (
+				33B4B52E2ED8765300120BAA /* Sources */,
+				33B4B52F2ED8765300120BAA /* Frameworks */,
+				33B4B5302ED8765300120BAA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				33B4B5342ED8765300120BAA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				33B4B5352ED8765300120BAA /* hiUITests */,
+			);
+			name = hiUITests;
+			packageProductDependencies = (
+			);
+			productName = hiUITests;
+			productReference = 33B4B5322ED8765300120BAA /* hiUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		33B4B5482ED877D200120BAA /* hi-keyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 33B4B5522ED877D200120BAA /* Build configuration list for PBXNativeTarget "hi-keyboard" */;
+			buildPhases = (
+				33B4B5452ED877D200120BAA /* Sources */,
+				33B4B5462ED877D200120BAA /* Frameworks */,
+				33B4B5472ED877D200120BAA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				33B4B54A2ED877D200120BAA /* hi-keyboard */,
+			);
+			name = "hi-keyboard";
+			packageProductDependencies = (
+				33347A9F2ED896B7001BD688 /* Supabase */,
+				33347AC32ED8F204001BD688 /* KeyboardKit */,
+			);
+			productName = "hi-keyboard";
+			productReference = 33B4B5492ED877D200120BAA /* hi-keyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		33B4B5132ED8765100120BAA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					33B4B51A2ED8765100120BAA = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					33B4B5272ED8765300120BAA = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 33B4B51A2ED8765100120BAA;
+					};
+					33B4B5312ED8765300120BAA = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 33B4B51A2ED8765100120BAA;
+					};
+					33B4B5482ED877D200120BAA = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 33B4B5162ED8765100120BAA /* Build configuration list for PBXProject "hi" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 33B4B5122ED8765100120BAA;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				33347A972ED893D4001BD688 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 33B4B51C2ED8765100120BAA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				33B4B51A2ED8765100120BAA /* hi */,
+				33B4B5272ED8765300120BAA /* hiTests */,
+				33B4B5312ED8765300120BAA /* hiUITests */,
+				33B4B5482ED877D200120BAA /* hi-keyboard */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		33B4B5192ED8765100120BAA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5262ED8765300120BAA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5302ED8765300120BAA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5472ED877D200120BAA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		33B4B5172ED8765100120BAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5242ED8765300120BAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B52E2ED8765300120BAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33B4B5452ED877D200120BAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		33B4B52A2ED8765300120BAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 33B4B51A2ED8765100120BAA /* hi */;
+			targetProxy = 33B4B5292ED8765300120BAA /* PBXContainerItemProxy */;
+		};
+		33B4B5342ED8765300120BAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 33B4B51A2ED8765100120BAA /* hi */;
+			targetProxy = 33B4B5332ED8765300120BAA /* PBXContainerItemProxy */;
+		};
+		33B4B54F2ED877D200120BAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 33B4B5482ED877D200120BAA /* hi-keyboard */;
+			targetProxy = 33B4B54E2ED877D200120BAA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		33B4B53A2ED8765300120BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		33B4B53B2ED8765300120BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		33B4B53D2ED8765300120BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = hi/hi.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HCU9G2XVB5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hi;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		33B4B53E2ED8765300120BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = hi/hi.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HCU9G2XVB5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hi;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		33B4B5402ED8765300120BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hiTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hi";
+			};
+			name = Debug;
+		};
+		33B4B5412ED8765300120BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hiTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hi";
+			};
+			name = Release;
+		};
+		33B4B5432ED8765300120BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hiUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = hi;
+			};
+			name = Debug;
+		};
+		33B4B5442ED8765300120BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.havingfunwith.hiUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = hi;
+			};
+			name = Release;
+		};
+		33B4B5532ED877D200120BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HCU9G2XVB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "hi-keyboard/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-keyboard";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = "ai.havingfunwith.hi.hi-keyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		33B4B5542ED877D200120BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HCU9G2XVB5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "hi-keyboard/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-keyboard";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = "ai.havingfunwith.hi.hi-keyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		33B4B5162ED8765100120BAA /* Build configuration list for PBXProject "hi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33B4B53A2ED8765300120BAA /* Debug */,
+				33B4B53B2ED8765300120BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		33B4B53C2ED8765300120BAA /* Build configuration list for PBXNativeTarget "hi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33B4B53D2ED8765300120BAA /* Debug */,
+				33B4B53E2ED8765300120BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		33B4B53F2ED8765300120BAA /* Build configuration list for PBXNativeTarget "hiTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33B4B5402ED8765300120BAA /* Debug */,
+				33B4B5412ED8765300120BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		33B4B5422ED8765300120BAA /* Build configuration list for PBXNativeTarget "hiUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33B4B5432ED8765300120BAA /* Debug */,
+				33B4B5442ED8765300120BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		33B4B5522ED877D200120BAA /* Build configuration list for PBXNativeTarget "hi-keyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33B4B5532ED877D200120BAA /* Debug */,
+				33B4B5542ED877D200120BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		33347A972ED893D4001BD688 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/KeyboardKit/KeyboardKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		33347A9C2ED89699001BD688 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33347A972ED893D4001BD688 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		33347A9F2ED896B7001BD688 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33347A972ED893D4001BD688 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		33347AC32ED8F204001BD688 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+		33347AC92ED8FEB3001BD688 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 33B4B5132ED8765100120BAA /* Project object */;
+}
