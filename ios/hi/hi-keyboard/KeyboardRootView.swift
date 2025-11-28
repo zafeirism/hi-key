@@ -2,10 +2,6 @@ import SwiftUI
 import KeyboardKit
 import Combine
 
-import SwiftUI
-import KeyboardKit
-import Combine
-
 struct KeyboardRootView: View {
     @StateObject private var viewModel = KeyboardViewModel()
     

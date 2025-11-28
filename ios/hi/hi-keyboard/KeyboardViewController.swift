@@ -6,23 +6,21 @@ class KeyboardViewController: KeyboardInputViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupKeyboardView()
+        
+        // Set up KeyboardKit with our app configuration
+        setup(for: .hi) { result in
+            switch result {
+            case .success:
+                print("KeyboardKit setup succeeded")
+            case .failure(let error):
+                print("KeyboardKit setup failed: \(error)")
+            }
+        }
     }
     
-    private func setupKeyboardView() {
-        let keyboardView = KeyboardRootView()
-        let hostingController = UIHostingController(rootView: keyboardView)
-        
-        addChild(hostingController)
-        view.addSubview(hostingController.view)
-        hostingController.didMove(toParent: self)
-        
-        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
-            hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+    override func viewWillSetupKeyboardView() {
+        setupKeyboardView { [unowned self] controller in
+            HiKeyboardView(services: controller.services)
+        }
     }
 }
