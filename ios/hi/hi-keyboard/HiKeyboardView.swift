@@ -3,19 +3,17 @@ import KeyboardKit
 
 struct HiKeyboardView: View {
     
-    /// KeyboardKit services (passed from controller)
     let services: Keyboard.Services
-    
-    @StateObject private var viewModel = HiKeyboardViewModel()
+    @ObservedObject var viewModel: HiKeyboardViewModel
     
     var body: some View {
         VStack(spacing: 0) {
-            // Your custom prompt bar at the top
+            // Custom prompt bar at the top
             promptBar
             
-            // KeyboardKit's standard keyboard view
+            // KeyboardKit's standard keyboard
             KeyboardView(
-                layout: nil,  // nil = use default layout
+                layout: nil,
                 services: services
             )
         }
@@ -25,10 +23,10 @@ struct HiKeyboardView: View {
     
     private var promptBar: some View {
         HStack(spacing: 8) {
-            // Back button (only shows when we have results)
-            if viewModel.hasResults && !viewModel.isEditing {
+            // Back button (shows when we have results and are editing)
+            if viewModel.hasResults && viewModel.isPromptFocused {
                 Button {
-                    viewModel.showResults()
+                    viewModel.unfocusPrompt()
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
@@ -37,10 +35,8 @@ struct HiKeyboardView: View {
                 .frame(width: 32)
             }
             
-            // Prompt text field
-            TextField("Describe an image...", text: $viewModel.prompt)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 15))
+            // Custom prompt display (tappable to focus)
+            promptField
             
             // Generate button
             Button {
@@ -65,5 +61,41 @@ struct HiKeyboardView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .background(Color(.systemGray6))
+    }
+    
+    // MARK: - Custom Prompt Field
+    
+    private var promptField: some View {
+        HStack {
+            // Show prompt text or placeholder
+            if viewModel.prompt.isEmpty {
+                Text("Describe an image...")
+                    .foregroundColor(.gray)
+            } else {
+                Text(viewModel.prompt)
+                    .foregroundColor(.primary)
+            }
+            
+            // Blinking cursor when focused
+            if viewModel.isPromptFocused {
+                Rectangle()
+                    .fill(Color.accentColor)
+                    .frame(width: 2, height: 20)
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(viewModel.isPromptFocused ? Color.accentColor : Color(.systemGray4), lineWidth: 1)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.focusPrompt()
+        }
     }
 }

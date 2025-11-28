@@ -4,14 +4,22 @@ import KeyboardKit
 
 class KeyboardViewController: KeyboardInputViewController {
     
+    private let hiViewModel = HiKeyboardViewModel()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Set up KeyboardKit with our app configuration
-        setup(for: .hi) { result in
+        setup(for: .hi) { [weak self] result in
+            guard let self else { return }
+            
             switch result {
             case .success:
                 print("KeyboardKit setup succeeded")
+                // Create and inject custom action handler
+                let handler = HiActionHandler(controller: self, viewModel: self.hiViewModel)
+                self.services.actionHandler = handler
+                self.hiViewModel.actionHandler = handler
+                
             case .failure(let error):
                 print("KeyboardKit setup failed: \(error)")
             }
@@ -20,7 +28,10 @@ class KeyboardViewController: KeyboardInputViewController {
     
     override func viewWillSetupKeyboardView() {
         setupKeyboardView { [unowned self] controller in
-            HiKeyboardView(services: controller.services)
+            HiKeyboardView(
+                services: controller.services,
+                viewModel: self.hiViewModel
+            )
         }
     }
 }

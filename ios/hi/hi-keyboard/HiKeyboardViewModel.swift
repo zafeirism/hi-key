@@ -7,17 +7,24 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Published State
     
     @Published var prompt = ""
+    @Published var isPromptFocused = false
     @Published var isGenerating = false
-    @Published var isEditing = false  // When text field is focused
     @Published var errorMessage: String?
     
-    // All generated images (cumulative - new ones added to the end)
+    // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
+    
+    // Reference to action handler for syncing focus state
+    weak var actionHandler: HiActionHandler?
     
     // MARK: - Computed Properties
     
     var hasResults: Bool {
         !allImages.isEmpty
+    }
+    
+    var showingResults: Bool {
+        hasResults && !isPromptFocused
     }
     
     // MARK: - Dependencies
@@ -32,6 +39,30 @@ class HiKeyboardViewModel: ObservableObject {
         self.sessionID = apiClient.newSessionID()
     }
     
+    // MARK: - Prompt Editing (called by action handler)
+    
+    func appendToPrompt(_ text: String) {
+        prompt.append(text)
+    }
+    
+    func deleteLastCharacter() {
+        if !prompt.isEmpty {
+            prompt.removeLast()
+        }
+    }
+    
+    // MARK: - Focus Management
+    
+    func focusPrompt() {
+        isPromptFocused = true
+        actionHandler?.isInterceptingInput = true
+    }
+    
+    func unfocusPrompt() {
+        isPromptFocused = false
+        actionHandler?.isInterceptingInput = false
+    }
+    
     // MARK: - Actions
     
     func generate() async {
@@ -43,6 +74,7 @@ class HiKeyboardViewModel: ObservableObject {
         }
         
         isGenerating = true
+        unfocusPrompt()  // Switch to results view
         errorMessage = nil
         
         do {
@@ -54,29 +86,19 @@ class HiKeyboardViewModel: ObservableObject {
                 accessToken: accessToken
             )
             
-            // Create new image entries (pending state)
+            // Create new image entries
             let newImages = response.signedUrls.map { url in
                 GeneratedImage(url: url, prompt: prompt)
             }
             
             // Append to all images (cumulative)
             allImages.append(contentsOf: newImages)
-            
             isGenerating = false
-            isEditing = false  // Switch to results view
             
         } catch {
             errorMessage = "Failed: \(error.localizedDescription)"
             isGenerating = false
         }
-    }
-    
-    func showResults() {
-        isEditing = false
-    }
-    
-    func startEditing() {
-        isEditing = true
     }
     
     func copyImage(_ image: GeneratedImage) {
