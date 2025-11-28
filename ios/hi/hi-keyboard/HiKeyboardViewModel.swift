@@ -57,10 +57,15 @@ class HiKeyboardViewModel: ObservableObject {
         isPromptFocused = true
         actionHandler?.isInterceptingInput = true
     }
-    
+
     func unfocusPrompt() {
         isPromptFocused = false
         actionHandler?.isInterceptingInput = false
+    }
+
+    func clearPrompt() {
+        prompt = ""
+        // Keep focus so user can start typing again
     }
     
     // MARK: - Actions

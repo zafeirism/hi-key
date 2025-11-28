@@ -8,10 +8,8 @@ struct HiKeyboardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Custom prompt bar at the top
             promptBar
             
-            // KeyboardKit's standard keyboard
             KeyboardView(
                 layout: nil,
                 services: services
@@ -23,19 +21,18 @@ struct HiKeyboardView: View {
     
     private var promptBar: some View {
         HStack(spacing: 8) {
-            // Back button (shows when we have results and are editing)
-            if viewModel.hasResults && viewModel.isPromptFocused {
+            // Back button for results
+            if viewModel.hasResults && !viewModel.isPromptFocused {
                 Button {
-                    viewModel.unfocusPrompt()
+                    // TODO: Show results view
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.accentColor)
                 }
-                .frame(width: 32)
+                .frame(width: 28)
             }
             
-            // Custom prompt display (tappable to focus)
             promptField
             
             // Generate button
@@ -60,42 +57,75 @@ struct HiKeyboardView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(Color(.systemGray6))
+        .background(Color.clear)
     }
     
-    // MARK: - Custom Prompt Field
-    
+    // MARK: - Prompt Field
+
     private var promptField: some View {
-        HStack {
-            // Show prompt text or placeholder
-            if viewModel.prompt.isEmpty {
-                Text("Describe an image...")
-                    .foregroundColor(.gray)
-            } else {
-                Text(viewModel.prompt)
-                    .foregroundColor(.primary)
+        HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Cursor at start - always reserve space
+                BlinkingCursor()
+                    .padding(.trailing, 1)
+                    .opacity(viewModel.isPromptFocused && viewModel.prompt.isEmpty ? 1 : 0)
+                
+                if viewModel.prompt.isEmpty {
+                    Text("Describe an image...")
+                        .foregroundColor(.gray)
+                } else {
+                    Text(viewModel.prompt)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.head)
+                    
+                    if viewModel.isPromptFocused {
+                        BlinkingCursor()
+                            .padding(.leading, 1)
+                    }
+                }
+                
+                Spacer(minLength: 0)
             }
             
-            // Blinking cursor when focused
-            if viewModel.isPromptFocused {
-                Rectangle()
-                    .fill(Color.accentColor)
-                    .frame(width: 2, height: 20)
+            // Clear button - lighter gray
+            Button {
+                viewModel.clearPrompt()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color(.systemGray3))
             }
-            
-            Spacer()
+            .padding(.leading, 8)
+            .opacity(viewModel.prompt.isEmpty ? 0 : 1)
+            .disabled(viewModel.prompt.isEmpty)
         }
+        .frame(height: 36)
         .padding(.horizontal, 10)
-        .padding(.vertical, 8)
         .background(Color(.systemBackground))
         .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(viewModel.isPromptFocused ? Color.accentColor : Color(.systemGray4), lineWidth: 1)
-        )
+        // Removed the .overlay with stroke
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.focusPrompt()
         }
+    }
+}
+
+// MARK: - Blinking Cursor
+
+struct BlinkingCursor: View {
+    @State private var isVisible = true
+    
+    var body: some View {
+        Rectangle()
+            .fill(Color.accentColor)
+            .frame(width: 2, height: 18)
+            .opacity(isVisible ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                    isVisible = false
+                }
+            }
     }
 }

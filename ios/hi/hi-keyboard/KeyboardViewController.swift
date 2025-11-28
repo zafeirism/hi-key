@@ -15,7 +15,6 @@ class KeyboardViewController: KeyboardInputViewController {
             switch result {
             case .success:
                 print("KeyboardKit setup succeeded")
-                // Create and inject custom action handler
                 let handler = HiActionHandler(controller: self, viewModel: self.hiViewModel)
                 self.services.actionHandler = handler
                 self.hiViewModel.actionHandler = handler
@@ -32,6 +31,21 @@ class KeyboardViewController: KeyboardInputViewController {
                 services: controller.services,
                 viewModel: self.hiViewModel
             )
+        }
+    }
+    
+    // MARK: - Detect Host App Text Interaction
+    
+    override func textWillChange(_ textInput: UITextInput?) {
+        super.textWillChange(textInput)
+        
+        // If we're intercepting input but text is changing in host app,
+        // it means user tapped on host app's text field
+        // Unfocus our prompt
+        if hiViewModel.isPromptFocused {
+            DispatchQueue.main.async { [weak self] in
+                self?.hiViewModel.unfocusPrompt()
+            }
         }
     }
 }
