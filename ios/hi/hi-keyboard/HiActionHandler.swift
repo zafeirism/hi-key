@@ -38,6 +38,8 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
         case (.release, .space):
             MainActor.assumeIsolated {
                 viewModel?.appendToPrompt(" ")
+                // "123 -> . -> space -> back to ABC" behavior
+                keyboardController?.setKeyboardType(.alphabetic)
             }
             
         case (.press, .backspace), (.repeat, .backspace):
