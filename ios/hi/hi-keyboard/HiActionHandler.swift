@@ -53,4 +53,16 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             super.handle(gesture, on: action)
         }
     }
+
+    // MARK: - Auto-Capitalization Logic
+    
+    func autoCapitalize(shouldCapitalize: Bool) {
+        MainActor.assumeIsolated {
+            if shouldCapitalize {
+                keyboardController?.setKeyboardCase(.uppercased)
+            } else {
+                keyboardController?.setKeyboardCase(.lowercased)
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var prompt = ""
     @Published var isPromptFocused = false
     @Published var isGenerating = false
+    @Published var cursorPosition = 0
     @Published var errorMessage: String?
     
     // All generated images (cumulative)
@@ -42,13 +43,29 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Prompt Editing (called by action handler)
     
     func appendToPrompt(_ text: String) {
-        prompt.append(text)
+        // Insert at cursor position instead of end
+        let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
+        prompt.insert(contentsOf: text, at: index)
+        setCursorPosition(cursorPosition + text.count)
+    }
+
+    func deleteLastCharacter() {
+        // Delete character before cursor position
+        guard cursorPosition > 0 else { return }
+        let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition - 1)
+        prompt.remove(at: index)
+        setCursorPosition(cursorPosition - 1)
     }
     
-    func deleteLastCharacter() {
-        if !prompt.isEmpty {
-            prompt.removeLast()
-        }
+    // MARK: - Cursor Management
+
+    func setCursorPosition(_ position: Int) {
+        cursorPosition = min(max(0, position), prompt.count)
+        autoCapitalizeIfNeeded()
+    }
+
+    func moveCursorToEnd() {
+        setCursorPosition(prompt.count)
     }
     
     // MARK: - Focus Management
@@ -56,6 +73,13 @@ class HiKeyboardViewModel: ObservableObject {
     func focusPrompt() {
         isPromptFocused = true
         actionHandler?.isInterceptingInput = true
+        moveCursorToEnd() 
+    }
+
+    func clearPrompt() {
+        prompt = ""
+        setCursorPosition(0)
+        // Keep focus so user can start typing again
     }
 
     func unfocusPrompt() {
@@ -63,9 +87,33 @@ class HiKeyboardViewModel: ObservableObject {
         actionHandler?.isInterceptingInput = false
     }
 
-    func clearPrompt() {
-        prompt = ""
-        // Keep focus so user can start typing again
+    // MARK: - Auto-Capitalization Logic
+
+    func autoCapitalizeIfNeeded() {
+        guard let actionHandler = actionHandler else { return }
+        
+        let shouldCapitalize = shouldAutoCapitalize()
+        actionHandler.autoCapitalize(shouldCapitalize: shouldCapitalize)
+    }
+
+    private func shouldAutoCapitalize() -> Bool {
+        guard cursorPosition > 0 else { return true}
+
+        let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
+        let promptUpToCursor = String(prompt[..<index])
+
+        let trimmed = promptUpToCursor.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return true }
+        
+        // Capitalize after sentence-ending punctuation followed by space
+        if let lastChar = trimmed.last {
+            let sentenceEnders: Set<Character> = [".", "!", "?"]
+            if sentenceEnders.contains(lastChar) && promptUpToCursor.last == " " {
+                return true
+            }
+        }
+        
+        return false
     }
     
     // MARK: - Actions

@@ -64,31 +64,56 @@ struct HiKeyboardView: View {
 
     private var promptField: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 0) {
-                // Cursor at start - always reserve space
-                BlinkingCursor()
-                    .padding(.trailing, 1)
-                    .opacity(viewModel.isPromptFocused && viewModel.prompt.isEmpty ? 1 : 0)
-                
-                if viewModel.prompt.isEmpty {
-                    Text("Describe an image...")
-                        .foregroundColor(.gray)
-                } else {
-                    Text(viewModel.prompt)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                        .truncationMode(.head)
-                    
-                    if viewModel.isPromptFocused {
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        // Cursor at start - always reserve space so that placeholder doesn't jump
                         BlinkingCursor()
-                            .padding(.leading, 1)
+                            .opacity(viewModel.isPromptFocused && viewModel.prompt.isEmpty ? 1 : 0)
+                        
+                        if viewModel.prompt.isEmpty {
+                            Text("Describe an image...")
+                                .foregroundColor(.gray)
+                        } else {
+                            ForEach(Array(viewModel.prompt.enumerated()), id: \.offset) { index, character in
+                                ZStack(alignment: .leading) {
+                                    // Show cursor before this character if position matches
+                                    if viewModel.isPromptFocused && viewModel.cursorPosition == index {
+                                        BlinkingCursor()
+                                            .id("cursor")
+                                    }
+                                    
+                                    Text(String(character))
+                                        .foregroundColor(.primary)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewModel.focusPrompt()
+                                    viewModel.setCursorPosition(index)
+                                }
+                            }
+                            // Cursor at end (after last character)
+                            if viewModel.isPromptFocused && viewModel.cursorPosition == viewModel.prompt.count {
+                                BlinkingCursor()
+                                    .id("cursor")
+                            }
+                        }
+                    }
+                    .padding(.trailing, 24) // Small buffer so text is far from clear-button
+                }
+                .onChange(of: viewModel.cursorPosition) { _, _ in
+                    withAnimation(.easeOut(duration: 0.1)) {
+                        proxy.scrollTo("cursor", anchor: .center)
                     }
                 }
-                
-                Spacer(minLength: 0)
+                .onChange(of: viewModel.prompt) { _, _ in
+                    withAnimation(.easeOut(duration: 0.1)) {
+                        proxy.scrollTo("cursor", anchor: .center)
+                    }
+                }
             }
             
-            // Clear button - lighter gray
+            // Clear button
             Button {
                 viewModel.clearPrompt()
             } label: {
@@ -104,7 +129,6 @@ struct HiKeyboardView: View {
         .padding(.horizontal, 10)
         .background(Color(.systemBackground))
         .cornerRadius(8)
-        // Removed the .overlay with stroke
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.focusPrompt()
