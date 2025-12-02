@@ -677,6 +677,7 @@
 		33B4B5532ED877D200120BAA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "hi-keyboard/hi-keyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = HCU9G2XVB5;
@@ -707,6 +708,7 @@
 		33B4B5542ED877D200120BAA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "hi-keyboard/hi-keyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = HCU9G2XVB5;

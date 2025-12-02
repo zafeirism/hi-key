@@ -1,4 +1,5 @@
 import KeyboardKit
+import os
 
 class HiActionHandler: KeyboardAction.StandardActionHandler {
     
@@ -34,6 +35,13 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             MainActor.assumeIsolated {
                 viewModel?.addToPrompt(char)
             }
+            break
+            
+        case (.release, .characterMargin(let char)):
+            MainActor.assumeIsolated {
+                viewModel?.addToPrompt(char)
+            }
+            break
             
         case (.release, .space):
             MainActor.assumeIsolated {
@@ -41,11 +49,13 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
                 // "123 -> . -> space -> back to ABC" behavior
                 keyboardController?.setKeyboardType(.alphabetic)
             }
-            
+            break
+
         case (.press, .backspace), (.repeat, .backspace):
             MainActor.assumeIsolated {
                 viewModel?.deleteCharacter()
             }
+            break
             
         case (.release, .primary):
             // Return key - do nothing, keep focus on prompt
@@ -53,6 +63,7 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             
         default:
             super.handle(gesture, on: action)
+            break
         }
     }
 

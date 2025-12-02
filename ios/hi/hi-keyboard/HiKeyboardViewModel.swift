@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import os
 
 @MainActor
 class HiKeyboardViewModel: ObservableObject {
@@ -11,6 +12,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var isGenerating = false
     @Published var cursorPosition = 0
     @Published var errorMessage: String?
+    @Published var showingResults = false
     
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
@@ -24,10 +26,6 @@ class HiKeyboardViewModel: ObservableObject {
         !allImages.isEmpty
     }
     
-    var showingResults: Bool {
-        hasResults && !isPromptFocused
-    }
-    
     // MARK: - Dependencies
     
     private let apiClient = APIClient.shared
@@ -38,6 +36,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     init() {
         self.sessionID = apiClient.newSessionID()
+        self.showingResults = false
     }
     
     // MARK: - Prompt Editing (called by action handler)
@@ -73,7 +72,8 @@ class HiKeyboardViewModel: ObservableObject {
     func focusPrompt() {
         isPromptFocused = true
         actionHandler?.isInterceptingInput = true
-        moveCursorToEnd() 
+        moveCursorToEnd()
+        showingResults = false
     }
 
     func clearPrompt() {
@@ -119,25 +119,37 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Actions
     
     func generate() async {
-        guard !prompt.isEmpty else { return }
+        HiLogger.api.info("🚀 Generate called with prompt: \(self.prompt)")
+        
+        guard !prompt.isEmpty else {
+            HiLogger.api.warning("⚠️ Generate called with empty prompt")
+            return
+        }
         
         guard let accessToken = tokenStorage.getAccessToken() else {
+            HiLogger.api.error("❌ No access token found - user not logged in")
             errorMessage = "Not logged in. Open the hi app first."
             return
         }
         
+        HiLogger.api.info("✅ Access token found, starting generation")
         isGenerating = true
         unfocusPrompt()  // Switch to results view
+        showingResults = true
         errorMessage = nil
         
         do {
             let requestID = apiClient.newRequestID()
+            HiLogger.api.info("📡 Calling API with requestID: \(requestID)")
+            
             let response = try await apiClient.generate(
                 prompt: prompt,
                 sessionID: sessionID,
                 requestID: requestID,
                 accessToken: accessToken
             )
+            
+            HiLogger.api.info("✅ Got \(response.signedUrls.count) urls back")
             
             // Create new image entries
             let newImages = response.signedUrls.map { url in
@@ -149,14 +161,62 @@ class HiKeyboardViewModel: ObservableObject {
             isGenerating = false
             
         } catch {
+            HiLogger.api.error("❌ Generate failed: \(error.localizedDescription)")
             errorMessage = "Failed: \(error.localizedDescription)"
             isGenerating = false
         }
     }
     
     func copyImage(_ image: GeneratedImage) {
-        // TODO: Implement actual copy to pasteboard
-        print("Copy image: \(image.url)")
+        HiLogger.ui.info("📋 Copying image to pasteboard: \(image.url)")
+        
+        Task {
+            guard let url = URL(string: image.url),
+                  let (data, _) = try? await URLSession.shared.data(from: url),
+                  let uiImage = UIImage(data: data) else {
+                HiLogger.ui.error("❌ Failed to load image for copy")
+                return
+            }
+            
+            await MainActor.run {
+                UIPasteboard.general.image = uiImage
+                HiLogger.ui.info("✅ Image copied to pasteboard")
+                
+                // Mark as copied for UI feedback
+                if let index = allImages.firstIndex(where: { $0.id == image.id }) {
+                    allImages[index].isCopied = true
+                }
+            }
+        }
+    }
+
+    // MARK: - Image Loading
+
+    func markImageLoaded(_ imageID: UUID, data: Data) {
+        if let index = allImages.firstIndex(where: { $0.id == imageID }) {
+            allImages[index].isLoaded = true
+            allImages[index].loadedAt = Date()
+            allImages[index].imageData = data
+            HiLogger.ui.info("✅ Image loaded: \(imageID)")
+        }
+    }
+
+    // Computed property: images sorted by load time (loaded first, then pending)
+    var sortedImages: [GeneratedImage] {
+        let loaded = allImages.filter { $0.isLoaded }.sorted { 
+            ($0.loadedAt ?? .distantPast) < ($1.loadedAt ?? .distantPast) 
+        }
+        let pending = allImages.filter { !$0.isLoaded }
+        return loaded + pending
+    }
+
+    // MARK: - Navigation
+
+    func showResults() {
+        HiLogger.ui.info("⬅️ Back button tapped - showing results")
+        isPromptFocused = false
+        actionHandler?.isInterceptingInput = false
+        showingResults = true
     }
 }
 
@@ -167,4 +227,7 @@ struct GeneratedImage: Identifiable {
     let url: String
     let prompt: String
     var isCopied = false
+    var isLoaded = false       // NEW: track load state
+    var loadedAt: Date?        // NEW: when it loaded (for ordering)
+    var imageData: Data?       // NEW: cache the loaded data
 }
