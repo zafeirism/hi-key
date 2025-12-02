@@ -58,7 +58,11 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             break
             
         case (.release, .primary):
-            // Return key - do nothing, keep focus on prompt
+            MainActor.assumeIsolated {
+                Task {
+                    await viewModel?.generate()
+                }
+            }
             break
             
         default:

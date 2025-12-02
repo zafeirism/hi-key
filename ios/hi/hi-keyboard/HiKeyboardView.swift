@@ -8,8 +8,6 @@ struct HiKeyboardView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
     
     var body: some View {
-        let _ = HiLogger.ui.debug("🔄 View state: showingResults=\(viewModel.showingResults), isGenerating=\(viewModel.isGenerating), hasResults=\(viewModel.hasResults), isPromptFocused=\(viewModel.isPromptFocused)")
-        
         VStack(spacing: 0) {
             promptBar
             
@@ -45,26 +43,6 @@ struct HiKeyboardView: View {
             }
             
             promptField
-            
-            // Generate button
-            Button {
-                Task {
-                    await viewModel.generate()
-                }
-            } label: {
-                if viewModel.isGenerating {
-                    ProgressView()
-                        .frame(width: 36, height: 36)
-                } else {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 36, height: 36)
-                        .background(viewModel.prompt.isEmpty ? Color.gray : Color.accentColor)
-                        .cornerRadius(8)
-                }
-            }
-            .disabled(viewModel.prompt.isEmpty || viewModel.isGenerating)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
