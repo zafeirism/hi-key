@@ -32,19 +32,19 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             
         case (.release, .character(let char)):
             MainActor.assumeIsolated {
-                viewModel?.appendToPrompt(char)
+                viewModel?.addToPrompt(char)
             }
             
         case (.release, .space):
             MainActor.assumeIsolated {
-                viewModel?.appendToPrompt(" ")
+                viewModel?.addToPrompt(" ")
                 // "123 -> . -> space -> back to ABC" behavior
                 keyboardController?.setKeyboardType(.alphabetic)
             }
             
         case (.press, .backspace), (.repeat, .backspace):
             MainActor.assumeIsolated {
-                viewModel?.deleteLastCharacter()
+                viewModel?.deleteCharacter()
             }
             
         case (.release, .primary):

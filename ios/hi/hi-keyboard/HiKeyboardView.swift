@@ -72,7 +72,7 @@ struct HiKeyboardView: View {
                             .opacity(viewModel.isPromptFocused && viewModel.prompt.isEmpty ? 1 : 0)
                         
                         if viewModel.prompt.isEmpty {
-                            Text("Describe an image...")
+                            Text("Describe an image")
                                 .foregroundColor(.gray)
                         } else {
                             ForEach(Array(viewModel.prompt.enumerated()), id: \.offset) { index, character in

@@ -42,14 +42,14 @@ class HiKeyboardViewModel: ObservableObject {
     
     // MARK: - Prompt Editing (called by action handler)
     
-    func appendToPrompt(_ text: String) {
+    func addToPrompt(_ text: String) {
         // Insert at cursor position instead of end
         let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
         prompt.insert(contentsOf: text, at: index)
         setCursorPosition(cursorPosition + text.count)
     }
 
-    func deleteLastCharacter() {
+    func deleteCharacter() {
         // Delete character before cursor position
         guard cursorPosition > 0 else { return }
         let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition - 1)
