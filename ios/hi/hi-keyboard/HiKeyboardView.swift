@@ -33,7 +33,7 @@ struct HiKeyboardView: View {
                     viewModel.showResults()  // Use the new function
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.accentColor)
                         .frame(width: 36, height: 36)
                         .background(Color.white.opacity(0.001)) // Essentially invisible but tappable
@@ -44,7 +44,7 @@ struct HiKeyboardView: View {
             
             promptField
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(Color.clear)
         .animation(.easeInOut(duration: 0.2), value: viewModel.showingResults)
@@ -87,7 +87,7 @@ struct HiKeyboardView: View {
     
     private var imageCarousel: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Use sortedImages (loaded first, then pending)
                 ForEach(viewModel.sortedImages) { image in
                     ImageCard(
@@ -102,7 +102,7 @@ struct HiKeyboardView: View {
                     ForEach(0..<4, id: \.self) { index in
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color(.systemGray5))
-                            .frame(width: 240, height: 240)
+                            .frame(width: 200, height: 200)
                             .overlay(
                                 ProgressView()
                                     .scaleEffect(1.2)
@@ -111,7 +111,7 @@ struct HiKeyboardView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 8)
             .animation(.easeInOut(duration: 0.3), value: viewModel.sortedImages.map { $0.id })
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -198,16 +198,17 @@ struct HiKeyboardView: View {
 struct ImageCard: View {
     let image: GeneratedImage
     let onCopy: () -> Void
-    let onLoaded: (Data) -> Void  // NEW: callback when loaded
+    let onLoaded: (Data) -> Void
     
     @State private var loadedImage: UIImage?
+    @State private var showCopiedFeedback = false
     
     var body: some View {
         ZStack {
             // Placeholder
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemGray5))
-                .frame(width: 240, height: 240)
+                .frame(width: 200, height: 200)
                 .shimmer()
                 .opacity(loadedImage == nil ? 1 : 0)
             
@@ -216,19 +217,17 @@ struct ImageCard: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 240, height: 240)
+                    .frame(width: 200, height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .transition(.opacity.animation(.easeIn(duration: 0.3)))
+                    .overlay(alignment: .topTrailing) {
+                        copyButton
+                    }
             } else {
                 ProgressView()
             }
         }
-        .frame(width: 240, height: 240)
-        .onTapGesture {
-            if loadedImage != nil {
-                onCopy()
-            }
-        }
+        .frame(width: 200, height: 200)
         .task {
             // Skip polling if already loaded (from cache)
             if let data = image.imageData, let uiImage = UIImage(data: data) {
@@ -237,6 +236,37 @@ struct ImageCard: View {
             }
             await loadImage()
         }
+    }
+    
+    private var copyButton: some View {
+        Button {
+            onCopy()
+            
+            // Haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            // Show checkmark feedback
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showCopiedFeedback = true
+            }
+            
+            // Revert after 3 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showCopiedFeedback = false
+                }
+            }
+        } label: {
+            Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white.opacity(0.8))
+                .frame(width: 36, height: 36)
+                .background(Color.black.opacity(0.3))
+                .clipShape(Circle())
+        }
+        .padding(8)
+        .contentTransition(.symbolEffect(.replace))  // Smooth icon transition
     }
     
     private func loadImage() async {
