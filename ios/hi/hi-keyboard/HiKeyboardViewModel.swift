@@ -13,6 +13,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var cursorPosition = 0
     @Published var errorMessage: String?
     @Published var showingResults = false
+    @Published var fullscreenImageIndex: Int?
     
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
@@ -24,6 +25,10 @@ class HiKeyboardViewModel: ObservableObject {
     
     var hasResults: Bool {
         !allImages.isEmpty
+    }
+
+    var isShowingFullscreen: Bool {
+        fullscreenImageIndex != nil
     }
     
     // MARK: - Dependencies
@@ -217,6 +222,23 @@ class HiKeyboardViewModel: ObservableObject {
         isPromptFocused = false
         actionHandler?.isInterceptingInput = false
         showingResults = true
+    }
+
+    func openFullscreen(image: GeneratedImage) {
+        if let index = sortedImages.firstIndex(where: { $0.id == image.id }) {
+            fullscreenImageIndex = index
+            HiLogger.ui.info("🔍 Opened fullscreen for image at index \(index)")
+        }
+    }
+
+    func closeFullscreen() {
+        fullscreenImageIndex = nil
+        HiLogger.ui.info("✖️ Closed fullscreen view")
+    }
+
+    func navigateToImage(index: Int) {
+        guard index >= 0 && index < sortedImages.count else { return }
+        fullscreenImageIndex = index
     }
 }
 
