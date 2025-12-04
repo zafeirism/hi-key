@@ -8,3 +8,4 @@ enum HiLogger {
     static let api = Logger(subsystem: subsystem, category: "api")
     static let ui = Logger(subsystem: subsystem, category: "ui")
 }
+

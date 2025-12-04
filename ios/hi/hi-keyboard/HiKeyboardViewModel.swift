@@ -2,6 +2,16 @@ import SwiftUI
 import Combine
 import os
 
+// MARK: - Keyboard Mode
+
+enum KeyboardMode: Equatable {
+    case composing              // Typing prompt, showing suggestions + keyboard
+    case browsingSuggestions    // Showing category picker instead of keyboard
+    case results                // Showing image carousel
+}
+
+// MARK: - View Model
+
 @MainActor
 class HiKeyboardViewModel: ObservableObject {
     
@@ -14,6 +24,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showingResults = false
     @Published var fullscreenImageIndex: Int?
+    @Published var mode: KeyboardMode = .composing
     
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
@@ -31,6 +42,15 @@ class HiKeyboardViewModel: ObservableObject {
         fullscreenImageIndex != nil
     }
     
+    // Computed property: images sorted by load time (loaded first, then pending)
+    var sortedImages: [GeneratedImage] {
+        let loaded = allImages.filter { $0.isLoaded }.sorted { 
+            ($0.loadedAt ?? .distantPast) < ($1.loadedAt ?? .distantPast) 
+        }
+        let pending = allImages.filter { !$0.isLoaded }
+        return loaded + pending
+    }
+    
     // MARK: - Dependencies
     
     private let apiClient = APIClient.shared
@@ -42,6 +62,7 @@ class HiKeyboardViewModel: ObservableObject {
     init() {
         self.sessionID = apiClient.newSessionID()
         self.showingResults = false
+        self.mode = .composing
     }
     
     // MARK: - Prompt Editing (called by action handler)
@@ -79,6 +100,7 @@ class HiKeyboardViewModel: ObservableObject {
         actionHandler?.isInterceptingInput = true
         moveCursorToEnd()
         showingResults = false
+        mode = .composing
     }
 
     func clearPrompt() {
@@ -102,7 +124,7 @@ class HiKeyboardViewModel: ObservableObject {
     }
 
     private func shouldAutoCapitalize() -> Bool {
-        guard cursorPosition > 0 else { return true}
+        guard cursorPosition > 0 else { return true }
 
         let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
         let promptUpToCursor = String(prompt[..<index])
@@ -121,7 +143,7 @@ class HiKeyboardViewModel: ObservableObject {
         return false
     }
     
-    // MARK: - Actions
+    // MARK: - Generation
     
     func generate() async {
         HiLogger.api.info("🚀 Generate called with prompt: \(self.prompt)")
@@ -139,8 +161,9 @@ class HiKeyboardViewModel: ObservableObject {
         
         HiLogger.api.info("✅ Access token found, starting generation")
         isGenerating = true
-        unfocusPrompt()  // Switch to results view
+        unfocusPrompt()
         showingResults = true
+        mode = .results
         errorMessage = nil
         
         do {
@@ -172,6 +195,8 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
     
+    // MARK: - Image Actions
+    
     func copyImage(_ image: GeneratedImage) {
         HiLogger.ui.info("📋 Copying image to pasteboard: \(image.url)")
         
@@ -195,8 +220,6 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Image Loading
-
     func markImageLoaded(_ imageID: UUID, data: Data) {
         if let index = allImages.firstIndex(where: { $0.id == imageID }) {
             allImages[index].isLoaded = true
@@ -206,15 +229,6 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
 
-    // Computed property: images sorted by load time (loaded first, then pending)
-    var sortedImages: [GeneratedImage] {
-        let loaded = allImages.filter { $0.isLoaded }.sorted { 
-            ($0.loadedAt ?? .distantPast) < ($1.loadedAt ?? .distantPast) 
-        }
-        let pending = allImages.filter { !$0.isLoaded }
-        return loaded + pending
-    }
-
     // MARK: - Navigation
 
     func showResults() {
@@ -222,6 +236,7 @@ class HiKeyboardViewModel: ObservableObject {
         isPromptFocused = false
         actionHandler?.isInterceptingInput = false
         showingResults = true
+        mode = .results
     }
 
     func openFullscreen(image: GeneratedImage) {
@@ -240,16 +255,14 @@ class HiKeyboardViewModel: ObservableObject {
         guard index >= 0 && index < sortedImages.count else { return }
         fullscreenImageIndex = index
     }
-}
-
-// MARK: - Models
-
-struct GeneratedImage: Identifiable {
-    let id = UUID()
-    let url: String
-    let prompt: String
-    var isCopied = false
-    var isLoaded = false       // NEW: track load state
-    var loadedAt: Date?        // NEW: when it loaded (for ordering)
-    var imageData: Data?       // NEW: cache the loaded data
+    
+    // MARK: - Mode Switching
+    
+    func toggleCategoryPicker() {
+        if mode == .browsingSuggestions {
+            mode = .composing
+        } else {
+            mode = .browsingSuggestions
+        }
+    }
 }
