@@ -10,8 +10,14 @@ struct ResultsView: View {
                     Task { await viewModel.generate() }
                 }
             } else {
-                // Future: StatusBarView goes here
-                ImageCarouselView(viewModel: viewModel)
+                ZStack{
+                    ImageCarouselView(viewModel: viewModel)
+                    
+                    VStack{
+                        StatusBarView()
+                        Spacer()
+                    }
+                }
             }
         }
         .frame(height: 264) // Same as keyboard height
