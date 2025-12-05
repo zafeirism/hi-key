@@ -34,8 +34,10 @@ struct HiKeyboardView: View {
             
             if viewModel.showingResults || viewModel.isGenerating {
                 ResultsView(viewModel: viewModel)
+            } else if viewModel.showSuggestions {
+                CategoryPickerView(viewModel: viewModel)
             } else {
-                keyboardArea
+                KeyboardArea
             }
         }
     }
@@ -43,17 +45,18 @@ struct HiKeyboardView: View {
     // MARK: - Keyboard Area
     
     @ViewBuilder
-    private var keyboardArea: some View {
+    private var KeyboardArea: some View {
         ZStack {
             // Future: Toggle between KeyboardView and CategoryPickerView
+
             // based on viewModel.mode or a toggle button
             KeyboardView(
                 layout: nil,
                 services: services
             )
-            
+                        
             VStack {
-                SuggestionBarView(viewModel: viewModel)//.border(.green)
+                SuggestionBarView(viewModel: viewModel)
                 
                 Spacer()
             }

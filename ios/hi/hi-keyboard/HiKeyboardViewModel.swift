@@ -23,6 +23,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var cursorPosition = 0
     @Published var errorMessage: String?
     @Published var showingResults = false
+    @Published var showSuggestions = true
     @Published var fullscreenImageIndex: Int?
     @Published var mode: KeyboardMode = .composing
     

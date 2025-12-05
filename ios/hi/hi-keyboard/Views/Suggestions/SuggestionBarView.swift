@@ -6,7 +6,7 @@ struct SuggestionBarView: View {
     // TODO: Replace with dynamic suggestions based on prompt
     private var suggestions: [String] {
         // Placeholder suggestions - implement AI/local suggestions logic
-        ["vibrant colors", "cinematic lighting", "4K detailed", "photorealistic"]
+        ["Vibrant colors", "Graphic novel", "Pixar-like", "Photorealistic"]
     }
     
     var body: some View {
