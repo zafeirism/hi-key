@@ -143,7 +143,7 @@ private struct CategoryButton: View {
         Button(action: onTap) {
             VStack(spacing: 6) {
                 Image(systemName: category.icon)
-                    .font(.system(size: 24))
+                    .font(.title2)
                 Text(category.name)
                     .font(.caption)
             }

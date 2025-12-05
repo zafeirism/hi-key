@@ -55,7 +55,7 @@ struct FullscreenImageView: View {
     private var closeButton: some View {
         Button { onClose() } label: {
             Image(systemName: "xmark")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(.headline, weight: .semibold))
                 .foregroundColor(.white.opacity(0.8))
                 .frame(width: 36, height: 36)
                 .background(Color.black.opacity(0.3))
@@ -77,7 +77,7 @@ struct FullscreenImageView: View {
                     .contentTransition(.symbolEffect(.replace))
                 Text(showCopiedFeedback ? "Copied" : "Copy")
             }
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(.headline, weight: .semibold))
             .foregroundColor(.white.opacity(0.8))
             .padding(.horizontal, 14)
             .padding(.vertical, 9)

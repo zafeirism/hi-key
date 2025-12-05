@@ -22,7 +22,7 @@ struct PromptBarView: View {
             viewModel.showResults()
         } label: {
             Image(systemName: "chevron.left")
-                .font(.system(size: 20, weight: .medium))
+                .font(.system(.title3, weight: .medium))
                 .foregroundColor(.accentColor)
                 .frame(width: 36, height: 36)
                 .background(Color.white.opacity(0.001))

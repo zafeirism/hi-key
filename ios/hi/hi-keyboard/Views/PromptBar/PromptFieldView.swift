@@ -9,7 +9,7 @@ struct PromptFieldView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     promptContent
                     // Add some safe space from the clear button
-                        .padding(.trailing, 80)
+                        .padding(.trailing, 60)
                 }
                 .onChange(of: viewModel.cursorPosition) { _, _ in
                     withAnimation(.easeOut(duration: 0.1)) {
@@ -44,6 +44,7 @@ struct PromptFieldView: View {
             if viewModel.prompt.isEmpty {
                 Text("Describe an image")
                     .foregroundColor(.gray)
+                    .font(.body)
             } else {
                 ForEach(Array(viewModel.prompt.enumerated()), id: \.offset) { index, character in
                     CharacterView(
@@ -65,7 +66,7 @@ struct PromptFieldView: View {
     private var clearButton: some View {
         Button { viewModel.clearPrompt() } label: {
             Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 18))
+                .font(.title3)
                 .foregroundColor(Color(.systemGray3))
         }
         .padding(.leading, 8)
@@ -90,6 +91,7 @@ private struct CharacterView: View {
             
             Text(String(character))
                 .foregroundColor(.primary)
+                .font(.body)
         }
         .contentShape(Rectangle())
         .onTapGesture {

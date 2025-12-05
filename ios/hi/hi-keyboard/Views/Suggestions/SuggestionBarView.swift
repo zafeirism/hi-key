@@ -14,14 +14,14 @@ struct SuggestionBarView: View {
             HStack(spacing: 8) {
                 ForEach(suggestions, id: \.self) { suggestion in
                     SuggestionChip(text: suggestion) {
-                        viewModel.addToPrompt(suggestion + " ")
+                        viewModel.addToPrompt(suggestion + ", ")
                     }
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
         }
-        .background(Color(.systemGray6))
+        .background(Color.clear)
     }
 }
 
@@ -34,12 +34,12 @@ struct SuggestionChip: View {
     var body: some View {
         Button(action: onTap) {
             Text(text)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundColor(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
+                .background(Color.white.opacity(0.001)) //clear but tapable
+                .cornerRadius(4)
         }
     }
 }
