@@ -47,9 +47,6 @@ struct HiKeyboardView: View {
     @ViewBuilder
     private var KeyboardArea: some View {
         ZStack {
-            // Future: Toggle between KeyboardView and CategoryPickerView
-
-            // based on viewModel.mode or a toggle button
             KeyboardView(
                 layout: nil,
                 services: services

@@ -17,9 +17,8 @@ struct FullscreenImageView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.black.ignoresSafeArea().cornerRadius(8)
             
-            // Single UIKit component handles everything
             ImageGalleryViewController(
                 images: images,
                 currentIndex: currentIndex,

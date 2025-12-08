@@ -71,7 +71,6 @@ struct PromptFieldView: View {
         }
         .padding(.leading, 8)
         .opacity(viewModel.prompt.isEmpty || !viewModel.isPromptFocused ? 0 : 1)
-        .disabled(viewModel.prompt.isEmpty || !viewModel.isPromptFocused)
     }
 }
 
