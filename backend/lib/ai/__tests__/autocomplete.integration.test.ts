@@ -16,12 +16,12 @@ describe.skipIf(!shouldRunTests)('Autocomplete tests', () => {
   it('should run in under 1.5 seconds', async () => {
     const measurements: number[] = [];
     const prompts = [
-      'Mist over mountains',
-      'Vibrant neon skyline',
-      'Cozy lantern-lit cottage',
-      'Shattered crystal temple',
-      'Steampunk airship docks',
-      'Ancient stone corridor',
+      'A man',
+      'A three-year-old girl',
+      'A living room',
+      'A colleague says hi',
+      'A white car',
+      'Two friends',
       'Underwater coral palace',
       'Moonlit castle ramparts',
       'Floating island marketplace',
