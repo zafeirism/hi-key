@@ -84,9 +84,7 @@ export default function DemoPage() {
           <h1 className="text-4xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
             hi-key Playground
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Describe anything. Spice up your chats ✨
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">Create fun visuals in your chats 🎨</p>
         </div>
 
         {/* Input Form */}

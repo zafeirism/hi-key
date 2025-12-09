@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'hi-key Playground - AI Image Generator',
-  description: 'Generate AI images instantly. Describe anything and watch the magic happen.',
+  title: 'hi-key Playground - Create fun visuals in your chats',
+  description: 'Generate images while you chat. Make your messages more fun in seconds.',
 };
 
 export default function RootLayout({

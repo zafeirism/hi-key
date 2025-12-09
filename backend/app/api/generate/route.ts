@@ -7,6 +7,9 @@ import { ImageModelsEnum, IMAGE_MODEL_SETUPS } from '@/lib/ai/image-models';
 import { continueOnBackground } from '@/lib/qstash/backgroundScheduler';
 import { randomUUID } from 'crypto';
 import { getKey, getSignedImageUrl } from '@/lib/storage/r2';
+import { hasStyle } from '@/lib/ai/detectPromptStyle';
+import { proofread } from '@/lib/ai/proofread';
+import { pickStylesRandomly } from '@/lib/ai/imageStyles';
 
 export const POST = withAuth(async (request, user) => {
   const requestStartedAt = new Date();
@@ -19,6 +22,9 @@ export const POST = withAuth(async (request, user) => {
       { status: 400 }
     );
   }
+
+  const hasStyleTask = hasStyle(prompt);
+  const proofreadTask = proofread(prompt);
 
   // 1. Create 4 generation records in Supabase - 2 that run now and 2 on the background
   const generationIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
@@ -53,11 +59,28 @@ export const POST = withAuth(async (request, user) => {
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 
+  const [hasStyleResult, proofreadResult] = await Promise.all([hasStyleTask, proofreadTask]);
+
+  const prompts: string[] = [];
+  if (hasStyleResult.has_style) {
+    prompts.push(
+      proofreadResult.improved_prompt,
+      proofreadResult.improved_prompt,
+      proofreadResult.improved_prompt
+    );
+  } else {
+    const styles = pickStylesRandomly(3);
+    for (const style of styles) {
+      prompts.push(`${style} style: ${proofreadResult.improved_prompt}`);
+      console.log(`${style} style: ${proofreadResult.improved_prompt}`);
+    }
+  }
+
   // 2. Start generating the 3 images immediately
   await Promise.all(
     imageModels.slice(0, 3).map((m, idx) =>
       generateImage(m!.id, {
-        userPrompt: prompt,
+        userPrompt: prompts[idx]!,
         generationId: generationIds[idx]!,
       })
     )
