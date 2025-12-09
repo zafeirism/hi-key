@@ -34,7 +34,7 @@ export async function generateImage(model: ImageModelsEnum, options: GenerateIma
       console.log(`${new Date().toISOString()} Posted generation: ${generationId}`);
       return;
     } catch (error) {
-      if (attempt === maxRetries || !is429error(error)) {
+      if (attempt === maxRetries) {
         throw error;
       }
       console.warn(
@@ -43,18 +43,6 @@ export async function generateImage(model: ImageModelsEnum, options: GenerateIma
       await waitSeconds(getRetryDelay(error));
     }
   }
-}
-
-function is429error(error: any): boolean {
-  return (
-    !!error &&
-    typeof error === 'object' &&
-    'response' in error &&
-    error.response &&
-    typeof error.response === 'object' &&
-    'status' in error.response &&
-    error.response.status === 429
-  );
 }
 
 function getRetryDelay(error: any): number {
