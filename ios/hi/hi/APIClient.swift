@@ -17,6 +17,16 @@ class APIClient {
         let signedUrls: [String]  // 4 signed URLs for images
     }
     
+    // ADD these new structs after GenerateResponse:
+    struct AutocompleteRequest: Codable {
+        let prompt: String
+    }
+
+    struct AutocompleteResponse: Codable {
+        let completion: String
+        let duration: Double
+    }
+    
     // Generate new session ID (call when keyboard loads)
     func newSessionID() -> String {
         return UUID().uuidString
@@ -69,6 +79,33 @@ class APIClient {
         return result
     }
 
+    /// Call /api/autocomplete endpoint
+    func autocomplete(prompt: String, accessToken: String) async throws -> AutocompleteResponse {
+        guard let url = URL(string: "\(baseURL)/api/autocomplete") else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let body = AutocompleteRequest(prompt: prompt)
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        let result = try JSONDecoder().decode(AutocompleteResponse.self, from: data)
+        return result
+    }
     
     enum APIError: LocalizedError {
         case invalidURL

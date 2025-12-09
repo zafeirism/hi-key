@@ -23,7 +23,7 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var cursorPosition = 0
     @Published var errorMessage: String?
     @Published var showingResults = false
-    @Published var showSuggestions = true
+    @Published var showSuggestions = false
     @Published var fullscreenImageIndex: Int?
     @Published var mode: KeyboardMode = .composing
     
@@ -94,6 +94,14 @@ class HiKeyboardViewModel: ObservableObject {
         setCursorPosition(prompt.count)
     }
     
+    func promptUpToCursor() -> String {
+        guard cursorPosition > 0 else { return "" }
+
+        let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
+        let promptUpToCursor = String(prompt[..<index])
+        return promptUpToCursor
+    }
+    
     // MARK: - Focus Management
     
     func focusPrompt() {
@@ -127,8 +135,7 @@ class HiKeyboardViewModel: ObservableObject {
     private func shouldAutoCapitalize() -> Bool {
         guard cursorPosition > 0 else { return true }
 
-        let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
-        let promptUpToCursor = String(prompt[..<index])
+        let promptUpToCursor = promptUpToCursor()
 
         let trimmed = promptUpToCursor.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return true }
