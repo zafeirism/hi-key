@@ -11,11 +11,14 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const [generationId] = generationIds;
   console.log(`${new Date().toISOString()} Worker received for generation IDs: ${generationIds}`);
 
+  const fetchStartedAt = Date.now();
   const { data: generation, error: fetchError } = await supabaseAdmin
     .from('generations')
     .select('*')
     .eq('id', generationId!)
     .single();
+
+  const fetchDurationMs = Date.now() - fetchStartedAt;
 
   if (fetchError || !generation) {
     console.error(
@@ -23,11 +26,10 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     );
     return NextResponse.json({ error: 'Generation not found' }, { status: 400 });
   }
+  (generation.comments as { dbTimes: number[] })!.dbTimes!.push(fetchDurationMs);
 
   const upsamplingStartedAt = Date.now();
-  console.log(`${new Date().toISOString()} Worker upsampling for generation ID: ${generationId}`);
   const upsampledPrompt = await upsamplePrompt(generation.user_prompt!);
-  console.log(`${new Date().toISOString()} Worker upsampled for generation ID: ${generationId}`);
   const upsamplingDurationMs = Date.now() - upsamplingStartedAt;
 
   const model = ImageModelsEnum.FLUX_2_DEV;
@@ -48,6 +50,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
       status: 'generating' as GenerationStatus,
       upsampling_duration_ms: upsamplingDurationMs,
       generation_started_at: generationStartedAt.toISOString(),
+      comments: generation.comments,
     })
     .eq('id', generationId);
 

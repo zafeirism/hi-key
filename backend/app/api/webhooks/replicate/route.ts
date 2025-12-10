@@ -19,17 +19,18 @@ export async function POST(request: NextRequest) {
   }
 
   const generationId = request.nextUrl.searchParams.get('id');
-  console.log(`${new Date().toISOString()} Replicate validated for generation ID: ${generationId}`);
   if (!generationId) {
     console.error(`${new Date().toISOString()} Generation ID is required`);
     return NextResponse.json({ detail: 'Generation ID is required' }, { status: 200 });
   }
 
+  const fetchStartedAt = Date.now();
   const { data: generation, error: fetchError } = await supabaseAdmin
     .from('generations')
     .select('*')
     .eq('id', generationId)
     .single();
+  const fetchDurationMs = Date.now() - fetchStartedAt;
 
   if (fetchError || !generation) {
     console.error(
@@ -37,8 +38,9 @@ export async function POST(request: NextRequest) {
     );
     return NextResponse.json({ error: 'Generation not found' }, { status: 200 });
   }
+  (generation.comments as { dbTimes: number[] })!.dbTimes!.push(fetchDurationMs);
 
-  console.log(`${new Date().toISOString()} Replicate fetched generation: ${generationId}`);
+  const replicateFetchStartedAt = Date.now();
   const { id: replicateId, output, status, metrics, error } = await request.json();
 
   const imageUrl = Array.isArray(output) ? output[0] : output;
@@ -53,9 +55,17 @@ export async function POST(request: NextRequest) {
   }
   const imageResponse = await fetch(imageUrl);
   const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-  console.log(`${new Date().toISOString()} Replicate uploading for generation: ${generationId}`);
+  const replicateFetchDurationMs = Date.now() - replicateFetchStartedAt;
+
+  const r2UploadStartedAt = Date.now();
   await uploadImage(imageBuffer, generation.user_id!, generation.id, generation.file_extension!);
-  console.log(`${new Date().toISOString()} Replicate uploaded for generation: ${generationId}`);
+  const r2UploadDurationMs = Date.now() - r2UploadStartedAt;
+
+  (generation.comments as { replicateFetchDurationMs: number })!.replicateFetchDurationMs =
+    replicateFetchDurationMs;
+  (generation.comments as { r2UploadDurationMs: number })!.r2UploadDurationMs = r2UploadDurationMs;
+  (generation.comments as { replicateTime: number })!.replicateTime = metrics?.total_time;
+  (generation.comments as { replicateId: string })!.replicateId = replicateId;
 
   const generationStartedAt = new Date(generation.generation_started_at!);
   const generationDurationMs = webhookStartedAt.getTime() - generationStartedAt.getTime();
@@ -69,7 +79,7 @@ export async function POST(request: NextRequest) {
       generation_duration_ms: generationDurationMs,
       total_duration_ms: totalDurationMs,
       status: 'ready' as GenerationStatus,
-      comments: { replicateId, replicateTime: metrics?.total_time },
+      comments: generation.comments,
     })
     .eq('id', generationId);
 

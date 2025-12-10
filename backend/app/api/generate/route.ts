@@ -23,6 +23,7 @@ export const POST = withAuth(async (request, user) => {
     );
   }
 
+  const promptAnalysisStartedAt = Date.now();
   const hasStyleTask = hasStyle(prompt);
   const proofreadTask = proofread(prompt);
 
@@ -48,9 +49,12 @@ export const POST = withAuth(async (request, user) => {
     cost_usd_mills: imageModels[idx]?.costPerImage,
     status: (imageModels[idx] ? 'generating' : 'initializing') as GenerationStatus,
     generation_started_at: imageModels[idx] ? new Date().toISOString() : null,
+    comments: { dbTimes: [] },
   }));
 
+  const dbInsertStartedAt = Date.now();
   const { error: insertError } = await supabaseAdmin.from('generations').insert(records);
+  const dbInsertDurationMs = Date.now() - dbInsertStartedAt;
 
   if (insertError) {
     console.error(
@@ -60,8 +64,10 @@ export const POST = withAuth(async (request, user) => {
   }
 
   const [hasStyleResult, proofreadResult] = await Promise.all([hasStyleTask, proofreadTask]);
+  const promptAnalysisDurationMs = Date.now() - promptAnalysisStartedAt;
 
   const prompts: string[] = [];
+  const styles = pickStylesRandomly(3);
   if (hasStyleResult.has_style) {
     prompts.push(
       proofreadResult.improved_prompt,
@@ -69,25 +75,43 @@ export const POST = withAuth(async (request, user) => {
       proofreadResult.improved_prompt
     );
   } else {
-    const styles = pickStylesRandomly(3);
     for (const style of styles) {
       prompts.push(`${style} style: ${proofreadResult.improved_prompt}`);
-      console.log(`${style} style: ${proofreadResult.improved_prompt}`);
     }
   }
 
-  // 2. Start generating the 3 images immediately
+  // Start generating the 3 images and send the last one on the background
+  const delegationStartedAt = Date.now();
   await Promise.all(
-    imageModels.slice(0, 3).map((m, idx) =>
-      generateImage(m!.id, {
-        userPrompt: prompts[idx]!,
-        generationId: generationIds[idx]!,
-      })
-    )
+    imageModels
+      .slice(0, 3)
+      .map((m, idx) =>
+        generateImage(m!.id, {
+          userPrompt: prompts[idx]!,
+          generationId: generationIds[idx]!,
+        })
+      )
+      .concat([continueOnBackground(generationIds.slice(3))])
   );
+  const delegationDurationMs = Date.now() - delegationStartedAt;
 
-  // 3. Send the last image to be worked on the background
-  await continueOnBackground(generationIds.slice(3));
+  const udpateTasks = generationIds.slice(0, 3).map((id, idx) => {
+    return supabaseAdmin
+      .from('generations')
+      .update({
+        improved_prompt: prompts[idx]!,
+        comments: { dbTimes: [dbInsertDurationMs], promptAnalysisDurationMs, delegationDurationMs },
+      })
+      .eq('id', id);
+  });
+
+  const updateErrors = await Promise.all(udpateTasks);
+
+  if (updateErrors.some(({ error }) => !!error)) {
+    console.error(
+      `${new Date().toISOString()} Failed to update generations: ${JSON.stringify(updateErrors)}`
+    );
+  }
 
   // 4. Create signed urls for all 4 images and return to the client
   const signedUrls = await Promise.all(

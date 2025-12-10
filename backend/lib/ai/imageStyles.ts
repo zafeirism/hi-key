@@ -27,7 +27,6 @@ export const IMAGE_STYLES = [
   'Low poly',
   'Pixel art',
   'Sketch',
-  '3D render',
   'Realism',
   'Hyperrealism',
   'Baroque',
