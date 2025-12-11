@@ -16,7 +16,7 @@ struct PromptCategories {
         PromptCategory(
             name: "Styles",
             icon: "paintbrush",
-            suggestions: ["Watercolor", "Oil painting", "Pastel", "Charcoal", "Comic book", "Manga", "Graphic novel", "Pixar-like", "Ghibli-like", "Disney Renaissance", "90s anime", "Impressionist", "Surrealist", "Expressionist", "Pop art", "Vaporwave", "Synthwave", "Cyberpunk", "Steampunk", "Photorealistic", "Cinematic", "Documentary", "Analog film", "Retro poster", "Minimalism", "Low poly", "Pixel art", "Sketch", "3D render", "Realism", "Hyperrealism", "Baroque", "Rococo", "Art Nouveau", "Art Deco", "Cubism", "Fauvism", "Ukiyo-e", "Noir", "Film noir", "Neon noir", "Fantasy illustration", "Matte painting", "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Street art"]
+            suggestions: ["Watercolor", "Oil painting", "Pastel", "Charcoal", "Comic book", "Manga", "Graphic novel", "Pixar-like", "Ghibli-like", "Disney Renaissance", "90s anime", "Impressionist", "Surrealist", "Expressionist", "Pop art", "Vaporwave", "Synthwave", "Cyberpunk", "Steampunk", "Photorealistic", "Cinematic", "Documentary", "Analog film", "Retro poster", "Minimalism", "Low poly", "Pixel art", "Sketch", "Realism", "Hyperrealism", "Baroque", "Rococo", "Art Nouveau", "Art Deco", "Cubism", "Fauvism", "Ukiyo-e", "Noir", "Film noir", "Neon noir", "Fantasy illustration", "Matte painting", "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Street art"]
         ),
         PromptCategory(
             name: "Angles",

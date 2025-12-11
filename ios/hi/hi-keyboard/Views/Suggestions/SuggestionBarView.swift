@@ -11,6 +11,7 @@ struct SuggestionBarView: View {
     
     private let tokenStorage = AuthTokenStorage.shared
     private let apiClient = APIClient.shared
+    private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -83,7 +84,7 @@ struct SuggestionBarView: View {
                 
                 // Show the completion as the only suggestion
                 if !response.completion.isEmpty {
-                    suggestions = [response.completion]
+                    suggestions = ["..." + response.completion]
                 } else {
                     suggestions = []
                 }
@@ -107,7 +108,11 @@ struct SuggestionBarView: View {
             viewModel.focusPrompt()
         }
         
-        viewModel.addToPrompt(suggestion + " ")
+        lightHapticGenerator.impactOccurred()
+        
+        let withoutDots = suggestion.hasPrefix("...") ? String(suggestion.dropFirst(3)) : suggestion
+        
+        viewModel.addToPrompt(withoutDots + " ")
         
         // Clear suggestions with animation
         suggestions = []
