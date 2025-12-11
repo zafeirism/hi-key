@@ -153,6 +153,8 @@ class HiKeyboardViewModel: ObservableObject {
     
     // MARK: - Generation
     
+    private let maxStoredImages = 16
+
     func generate() async {
         HiLogger.api.info("🚀 Generate called with prompt: \(self.prompt)")
         
@@ -192,7 +194,14 @@ class HiKeyboardViewModel: ObservableObject {
                 GeneratedImage(url: url, prompt: prompt)
             }
             
-            // Append to all images (cumulative)
+            // CRITICAL: Limit total images to prevent memory growth
+            let totalAfterAdd = allImages.count + newImages.count
+            if totalAfterAdd > maxStoredImages {
+                let removeCount = totalAfterAdd - maxStoredImages
+                // Remove oldest images (and their data)
+                allImages.removeFirst(removeCount)
+            }
+            
             allImages.append(contentsOf: newImages)
             isGenerating = false
             
@@ -208,6 +217,15 @@ class HiKeyboardViewModel: ObservableObject {
     func copyImage(_ image: GeneratedImage) {
         HiLogger.ui.info("📋 Copying image to pasteboard: \(image.url)")
         
+        // Use cached data if available (no re-download!)
+        if let data = image.imageData, let uiImage = UIImage(data: data) {
+            UIPasteboard.general.image = uiImage
+            HiLogger.ui.info("✅ Image copied from cache")
+            markAsCopied(image.id)
+            return
+        }
+        
+        // Fallback: download if not cached (shouldn't happen normally)
         Task {
             guard let url = URL(string: image.url),
                   let (data, _) = try? await URLSession.shared.data(from: url),
@@ -218,12 +236,8 @@ class HiKeyboardViewModel: ObservableObject {
             
             await MainActor.run {
                 UIPasteboard.general.image = uiImage
-                HiLogger.ui.info("✅ Image copied to pasteboard")
-                
-                // Mark as copied for UI feedback
-                if let index = allImages.firstIndex(where: { $0.id == image.id }) {
-                    allImages[index].isCopied = true
-                }
+                HiLogger.ui.info("✅ Image copied (downloaded)")
+                markAsCopied(image.id)
             }
         }
     }
@@ -234,6 +248,12 @@ class HiKeyboardViewModel: ObservableObject {
             allImages[index].loadedAt = Date()
             allImages[index].imageData = data
             HiLogger.ui.info("✅ Image loaded: \(imageID)")
+        }
+    }
+
+    private func markAsCopied(_ imageID: UUID) {
+        if let index = allImages.firstIndex(where: { $0.id == imageID }) {
+            allImages[index].isCopied = true
         }
     }
 

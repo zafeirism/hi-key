@@ -27,15 +27,42 @@ class ZoomableImageVC: UIViewController, UIScrollViewDelegate {
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         scrollView.addSubview(imageView)
         
-        // Load image
-        if let data = image?.imageData {
-            imageView.image = UIImage(data: data)
-        }
+        // Load image - use full resolution for fullscreen (it's OK here)
+        loadFullResolutionImage()
         
         // Double-tap gesture
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap))
         doubleTap.numberOfTapsRequired = 2
         scrollView.addGestureRecognizer(doubleTap)
+    }
+    
+    private func loadFullResolutionImage() {
+        guard let data = image?.imageData else { return }
+        
+        // For fullscreen, we DO want higher resolution, but still reasonable
+        // Downsample to screen size rather than original image size
+        let screenSize = UIScreen.main.bounds.size
+        let targetSize = CGSize(
+            width: screenSize.width * UIScreen.main.scale,
+            height: screenSize.height * UIScreen.main.scale
+        )
+        
+        // Load on background thread to avoid blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let uiImage: UIImage?
+            
+            // Only downsample if image is larger than screen
+            if let fullImage = UIImage(data: data),
+               fullImage.size.width > targetSize.width || fullImage.size.height > targetSize.height {
+                uiImage = ImageLoader.downsample(data: data, to: screenSize)
+            } else {
+                uiImage = UIImage(data: data)
+            }
+            
+            DispatchQueue.main.async {
+                self?.imageView.image = uiImage
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {
