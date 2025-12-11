@@ -44,6 +44,7 @@ class AuthManager: ObservableObject {
             )
             
             isAuthenticated = true
+            print("Tokens restored successfully!")
         } catch {
             print("Session restore failed: \(error)")
             // Clear invalid tokens

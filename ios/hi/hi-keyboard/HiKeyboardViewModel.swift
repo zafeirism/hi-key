@@ -38,7 +38,7 @@ class HiKeyboardViewModel: ObservableObject {
     var hasResults: Bool {
         !allImages.isEmpty
     }
-
+    
     var isShowingFullscreen: Bool {
         fullscreenImageIndex != nil
     }
@@ -55,7 +55,6 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Dependencies
     
     private let apiClient = APIClient.shared
-    private let tokenStorage = AuthTokenStorage.shared
     private var sessionID: String
     
     // MARK: - Init
@@ -74,7 +73,7 @@ class HiKeyboardViewModel: ObservableObject {
         prompt.insert(contentsOf: text, at: index)
         setCursorPosition(cursorPosition + text.count)
     }
-
+    
     func deleteCharacter() {
         // Delete character before cursor position
         guard cursorPosition > 0 else { return }
@@ -84,19 +83,19 @@ class HiKeyboardViewModel: ObservableObject {
     }
     
     // MARK: - Cursor Management
-
+    
     func setCursorPosition(_ position: Int) {
         cursorPosition = min(max(0, position), prompt.count)
         autoCapitalizeIfNeeded()
     }
-
+    
     func moveCursorToEnd() {
         setCursorPosition(prompt.count)
     }
     
     func promptUpToCursor() -> String {
         guard cursorPosition > 0 else { return "" }
-
+        
         let index = prompt.index(prompt.startIndex, offsetBy: cursorPosition)
         let promptUpToCursor = String(prompt[..<index])
         return promptUpToCursor
@@ -111,32 +110,32 @@ class HiKeyboardViewModel: ObservableObject {
         showingResults = false
         mode = .composing
     }
-
+    
     func clearPrompt() {
         prompt = ""
         setCursorPosition(0)
         // Keep focus so user can start typing again
     }
-
+    
     func unfocusPrompt() {
         isPromptFocused = false
         actionHandler?.isInterceptingInput = false
     }
-
+    
     // MARK: - Auto-Capitalization Logic
-
+    
     func autoCapitalizeIfNeeded() {
         guard let actionHandler = actionHandler else { return }
         
         let shouldCapitalize = shouldAutoCapitalize()
         actionHandler.autoCapitalize(shouldCapitalize: shouldCapitalize)
     }
-
+    
     private func shouldAutoCapitalize() -> Bool {
         guard cursorPosition > 0 else { return true }
-
+        
         let promptUpToCursor = promptUpToCursor()
-
+        
         let trimmed = promptUpToCursor.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return true }
         
@@ -154,7 +153,7 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Generation
     
     private let maxStoredImages = 16
-
+    
     func generate() async {
         HiLogger.api.info("🚀 Generate called with prompt: \(self.prompt)")
         
@@ -163,13 +162,6 @@ class HiKeyboardViewModel: ObservableObject {
             return
         }
         
-        guard let accessToken = tokenStorage.getAccessToken() else {
-            HiLogger.api.error("❌ No access token found - user not logged in")
-            errorMessage = "Not logged in. Open the hi app first."
-            return
-        }
-        
-        HiLogger.api.info("✅ Access token found, starting generation")
         isGenerating = true
         unfocusPrompt()
         showingResults = true
@@ -183,8 +175,7 @@ class HiKeyboardViewModel: ObservableObject {
             let response = try await apiClient.generate(
                 prompt: prompt,
                 sessionID: sessionID,
-                requestID: requestID,
-                accessToken: accessToken
+                requestID: requestID
             )
             
             HiLogger.api.info("✅ Got \(response.signedUrls.count) urls back")
@@ -194,7 +185,6 @@ class HiKeyboardViewModel: ObservableObject {
                 GeneratedImage(url: url, prompt: prompt)
             }
             
-            // CRITICAL: Limit total images to prevent memory growth
             let totalAfterAdd = allImages.count + newImages.count
             if totalAfterAdd > maxStoredImages {
                 let removeCount = totalAfterAdd - maxStoredImages
@@ -207,7 +197,7 @@ class HiKeyboardViewModel: ObservableObject {
             
         } catch {
             HiLogger.api.error("❌ Generate failed: \(error.localizedDescription)")
-            errorMessage = "Failed: \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
             isGenerating = false
         }
     }
@@ -241,7 +231,7 @@ class HiKeyboardViewModel: ObservableObject {
             }
         }
     }
-
+    
     func markImageLoaded(_ imageID: UUID, data: Data) {
         if let index = allImages.firstIndex(where: { $0.id == imageID }) {
             allImages[index].isLoaded = true
@@ -250,15 +240,15 @@ class HiKeyboardViewModel: ObservableObject {
             HiLogger.ui.info("✅ Image loaded: \(imageID)")
         }
     }
-
+    
     private func markAsCopied(_ imageID: UUID) {
         if let index = allImages.firstIndex(where: { $0.id == imageID }) {
             allImages[index].isCopied = true
         }
     }
-
+    
     // MARK: - Navigation
-
+    
     func showResults() {
         HiLogger.ui.info("⬅️ Back button tapped - showing results")
         isPromptFocused = false
@@ -266,19 +256,19 @@ class HiKeyboardViewModel: ObservableObject {
         showingResults = true
         mode = .results
     }
-
+    
     func openFullscreen(image: GeneratedImage) {
         if let index = sortedImages.firstIndex(where: { $0.id == image.id }) {
             fullscreenImageIndex = index
             HiLogger.ui.info("🔍 Opened fullscreen for image at index \(index)")
         }
     }
-
+    
     func closeFullscreen() {
         fullscreenImageIndex = nil
         HiLogger.ui.info("✖️ Closed fullscreen view")
     }
-
+    
     func navigateToImage(index: Int) {
         guard index >= 0 && index < sortedImages.count else { return }
         fullscreenImageIndex = index

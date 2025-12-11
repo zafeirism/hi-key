@@ -4,6 +4,7 @@ class APIClient {
     static let shared = APIClient()
     
     private let baseURL = "https://app.havingfunwith.ai"
+    private let tokenStorage = AuthTokenStorage.shared
     
     private init() {}
     
@@ -36,14 +37,38 @@ class APIClient {
     func newRequestID() -> String {
         return UUID().uuidString
     }
+
+    // MARK: - Public API Methods
+
+    func generate(prompt: String, sessionID: String, requestID: String) async throws -> GenerateResponse {
+        let accessToken = try await getValidAccessToken()
+        
+        do {
+            return try await performGenerate(
+                prompt: prompt,
+                sessionID: sessionID,
+                requestID: requestID,
+                accessToken: accessToken
+            )
+        } catch APIError.httpError(statusCode: 401) {
+            // Token expired during request - refresh and retry once
+            let newToken = try await refreshAndGetToken()
+            return try await performGenerate(
+                prompt: prompt,
+                sessionID: sessionID,
+                requestID: requestID,
+                accessToken: newToken
+            )
+        }
+    }
     
     // Call /api/generate endpoint
-    func generate(prompt: String, sessionID: String, requestID: String, accessToken: String) async throws -> GenerateResponse {
+    private func performGenerate(prompt: String, sessionID: String, requestID: String, accessToken: String) async throws -> GenerateResponse {
         guard let url = URL(string: "\(baseURL)/api/generate") else {
             throw APIError.invalidURL
         }
         
-        if baseURL.hasPrefix("https://") {
+        if !baseURL.hasPrefix("https://") {
             try? await Task.sleep(nanoseconds: 1_250_000_000)
             return GenerateResponse(signedUrls: [
                 "***REMOVED***",
@@ -79,8 +104,19 @@ class APIClient {
         return result
     }
 
-    /// Call /api/autocomplete endpoint
-    func autocomplete(prompt: String, accessToken: String) async throws -> AutocompleteResponse {
+    func autocomplete(prompt: String) async throws -> AutocompleteResponse {
+        let accessToken = try await getValidAccessToken()
+        
+        do {
+            return try await performAutocomplete(prompt: prompt, accessToken: accessToken)
+        } catch APIError.httpError(statusCode: 401) {
+            // Token expired during request - refresh and retry once
+            let newToken = try await refreshAndGetToken()
+            return try await performAutocomplete(prompt: prompt, accessToken: newToken)
+        }
+    }
+
+    private func performAutocomplete(prompt: String, accessToken: String) async throws -> AutocompleteResponse {
         guard let url = URL(string: "\(baseURL)/api/autocomplete") else {
             throw APIError.invalidURL
         }
@@ -106,11 +142,42 @@ class APIClient {
         let result = try JSONDecoder().decode(AutocompleteResponse.self, from: data)
         return result
     }
+
+    // MARK: - Token Management
+    
+    private func getValidAccessToken() async throws -> String {
+        guard tokenStorage.getAccessToken() != nil,
+              tokenStorage.getRefreshToken() != nil else {
+            throw APIError.notAuthenticated
+        }
+        
+        let isAuthenticated = await AuthManager.shared.isAuthenticated
+        if isAuthenticated, let token = tokenStorage.getAccessToken() {
+            return token
+        }
+        
+        return try await refreshAndGetToken()
+    }
+    
+    private func refreshAndGetToken() async throws -> String {
+        await AuthManager.shared.restoreSession()
+        
+        let isAuthenticated = await AuthManager.shared.isAuthenticated
+        guard isAuthenticated, let token = tokenStorage.getAccessToken() else {
+            throw APIError.sessionExpired
+        }
+        
+        return token
+    }
+    
+    // MARK: - Error Types
     
     enum APIError: LocalizedError {
         case invalidURL
         case invalidResponse
         case httpError(statusCode: Int)
+        case notAuthenticated
+        case sessionExpired
         
         var errorDescription: String? {
             switch self {
@@ -120,6 +187,10 @@ class APIClient {
                 return "Invalid response from server"
             case .httpError(let code):
                 return "Server error: \(code)"
+            case .notAuthenticated:
+                return "Please login in the hi app first"
+            case .sessionExpired:
+                return "Session expired. Please login again in the hi app"
             }
         }
     }

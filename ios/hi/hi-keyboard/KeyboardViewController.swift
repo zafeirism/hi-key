@@ -23,6 +23,10 @@ class KeyboardViewController: KeyboardInputViewController {
                 print("KeyboardKit setup failed: \(error)")
             }
         }
+     
+        Task {
+            await AuthManager.shared.restoreSession()
+        }
     }
     
     override func viewWillSetupKeyboardView() {

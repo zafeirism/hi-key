@@ -9,7 +9,6 @@ struct SuggestionBarView: View {
     @State private var autocompleteTask: Task<Void, Never>?
     @State private var debounceTimer: Timer?
     
-    private let tokenStorage = AuthTokenStorage.shared
     private let apiClient = APIClient.shared
     private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
     
@@ -65,19 +64,10 @@ struct SuggestionBarView: View {
     // MARK: - Autocomplete API
     
     private func fetchAutocomplete(for prompt: String) async {
-        guard let accessToken = tokenStorage.getAccessToken() else {
-            HiLogger.api.warning("⚠️ No access token for autocomplete")
-            return
-        }
-        
         autocompleteTask = Task {
             do {
-                let response = try await apiClient.autocomplete(
-                    prompt: prompt,
-                    accessToken: accessToken
-                )
+                let response = try await apiClient.autocomplete(prompt: prompt)
                 
-                // Check if task was cancelled
                 guard !Task.isCancelled else { return }
                 
                 HiLogger.api.info("✅ Autocomplete returned: \(response.completion) (took \(response.duration)s)")
