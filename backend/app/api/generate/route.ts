@@ -14,7 +14,11 @@ import { pickStylesRandomly } from '@/lib/ai/imageStyles';
 export const POST = withAuth(async (request, user) => {
   const requestStartedAt = new Date();
   const body = await request.json();
-  const { prompt, session_id, request_id } = body;
+  const { prompt, session_id, request_id, warmup } = body;
+
+  if (warmup) {
+    return NextResponse.json({ success: true });
+  }
 
   if (!prompt || !session_id || !request_id) {
     return NextResponse.json(

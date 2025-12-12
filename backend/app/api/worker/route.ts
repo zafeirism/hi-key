@@ -7,7 +7,11 @@ import { generateImage } from '@/lib/ai/image-generator';
 import { GenerationStatus } from '@/lib/supabase/helpers';
 
 export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
-  const { generationIds } = await request.json();
+  const { generationIds, warmup } = await request.json();
+  if (warmup) {
+    return NextResponse.json({ success: true });
+  }
+
   const [generationId] = generationIds;
   console.log(`${new Date().toISOString()} Worker received for generation IDs: ${generationIds}`);
 

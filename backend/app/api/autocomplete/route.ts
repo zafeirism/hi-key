@@ -4,9 +4,9 @@ import { autoComplete } from '@/lib/ai/autocomplete';
 
 export const POST = withAuth(async (request) => {
   const body = await request.json();
-  const { prompt } = body;
+  const { prompt, warmup } = body;
 
-  if (!prompt) {
+  if (warmup || !prompt) {
     return NextResponse.json({ success: true, completion: '' });
   }
 

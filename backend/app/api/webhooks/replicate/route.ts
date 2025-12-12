@@ -10,6 +10,12 @@ import { uploadImage } from '@/lib/storage/r2';
  */
 export async function POST(request: NextRequest) {
   const webhookStartedAt = new Date();
+  const generationId = request.nextUrl.searchParams.get('id');
+
+  if (generationId === 'warmup') {
+    return NextResponse.json({ status: 200 });
+  }
+
   console.log(`${new Date().toISOString()} Replicate received`);
   const secret = process.env.REPLICATE_WEBHOOK_SIGNING_SECRET!;
   const webhookIsValid = await validateWebhook(request.clone(), secret);
@@ -18,7 +24,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ detail: 'Webhook is invalid' }, { status: 401 });
   }
 
-  const generationId = request.nextUrl.searchParams.get('id');
   if (!generationId) {
     console.error(`${new Date().toISOString()} Generation ID is required`);
     return NextResponse.json({ detail: 'Generation ID is required' }, { status: 200 });

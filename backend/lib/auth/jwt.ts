@@ -66,6 +66,13 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
           role: 'authenticated',
         };
         return handler(request, demoUser);
+      } else if (token === '***REMOVED***') {
+        const warmupUser: AuthUser = {
+          id: `warmup-${Date.now()}`, // Unique ID per request
+          email: 'warmup@havingfunwith.ai',
+          role: 'authenticated',
+        };
+        return handler(request, warmupUser);
       }
 
       // Verify JWT using Supabase's JWKS endpoint
