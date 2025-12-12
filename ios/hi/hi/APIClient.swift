@@ -39,6 +39,18 @@ class APIClient {
     }
 
     // MARK: - Public API Methods
+    
+    func warmup() async throws {
+        guard let url = URL(string: "\(baseURL)/api/warmup") else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        _ = try await URLSession.shared.data(for: request)
+    }
 
     func generate(prompt: String, sessionID: String, requestID: String) async throws -> GenerateResponse {
         let accessToken = try await getValidAccessToken()

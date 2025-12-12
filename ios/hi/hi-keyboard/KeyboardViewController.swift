@@ -26,6 +26,7 @@ class KeyboardViewController: KeyboardInputViewController {
      
         Task {
             await AuthManager.shared.restoreSession()
+            try await APIClient.shared.warmup()
         }
     }
     
