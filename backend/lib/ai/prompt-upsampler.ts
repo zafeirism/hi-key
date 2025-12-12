@@ -96,20 +96,12 @@ The user provides a short, free-form scene description (a few words, often fragm
 - The improved prompt must be descriptive, vivid, and helpful for text-to-image models.
 - The improved prompt should always be in English.
 - Prioritize clarity over excessive detail.`;
-/**
- * Upsample a user's short prompt into a detailed image generation prompt
- *
- * @param userPrompt - Short user input (e.g., "cat in space")
- * @param total - Number of prompts to generate (default: 1)
- * @returns Upsampled prompt with improved_prompt and texts array
- * @throws Error if OpenAI API fails or returns invalid response
- */
+
 export async function upsamplePrompt(
   userPrompt: string,
   total: number = 1
 ): Promise<UpsampledPrompt> {
   const requests = [];
-  console.log(`${new Date().toISOString()} Starting upsampling...`);
   requests.push(
     openai.responses.parse({
       model: 'gpt-4.1-mini',
@@ -141,7 +133,6 @@ export async function upsamplePrompt(
   }
 
   const responses = await Promise.all(requests);
-  console.log(`${new Date().toISOString()} Finished upsampling...`);
   const result = responses[0]!.output_parsed as UpsampledPrompt;
   result.additional_prompts = [];
   responses.slice(1).forEach((response) => {

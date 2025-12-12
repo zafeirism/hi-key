@@ -194,27 +194,45 @@ describe.skipIf(!shouldRunTests)('Prompt Upsampler', () => {
   it('should complete within reasonable time', async () => {
     const measurements: number[] = [];
     const prompts = [
+      'A man',
+      'A three-year-old girl',
+      'A living room',
+      'A colleague says hi',
+      'A white car',
       'duck walking in a circle',
       'dog chasing a ball',
       'fish swimming in a fountain',
       'squirell riding a unicorn',
       'hog riding a horse',
+      'A big dragon floting over towns while fires bursting all wrong, gilbi style',
+      'Robot tryes fixing itself with tools that dont even working proper (like cinema image)',
+      'The knight running fastly though forest but nothing looking quite right',
+      'Anime, a magic portal opens badly and sucking everything in weird ways',
+      'Girl like cartoon, dropping her lantern while creatures watchs from bushes very closly',
+      'A cat wearing small armor pieces tries chasing giant beetle across temple ruins, but stones crumbling under them and dust flying everywhere and its making hard for either of them to run straight, plus weird chanting coming from tunnels makin situation feel much more stranger then usual, as retro poster',
+      'The airship crew was shouting orders badly coordinated while ship tilts sideways from heavy winds not supposed to be there, and tools falling off shelves hitting floor loud, and map keeps sliding off table cause nothing staying still long enough for them to understand where they even are',
+      'Two kids exploring an abandoned fairgrounds but rides keep moving even though power gone years ago, and sounds echo weirdly like they coming from wrong directions, making both confused, and cotton candy machines suddenly spinning for no reason which scare them more as they try figuring what happening',
+      'A mage tries summoning creature from old book but words printed crookedly and candles melting too fast, dripping wax onto circle lines messing everything up, while wind blow indoors for some reason, causing pages flapping arounds and spell going wrong almost immediately but he still keeps trying anyway',
+      'On a beach where sun barely rising cause clouds blocking light strange (as a retro poster), a traveler searching for lost relic but waves crashing unpredictably and sand shifting underfoot like alive, plus birds circling above making loud screech noises that throw him off, creating scene thats messy and confusing overall',
     ];
 
     for (const prompt of prompts) {
       const startTime = Date.now();
       await upsamplePrompt(prompt);
       const duration = Date.now() - startTime;
+      console.log(`Duration: ${duration}ms`);
       measurements.push(duration);
     }
 
     const avgTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+    const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
     console.log(`Average time: ${avgTime.toFixed(2)}ms`);
+    console.log(`Median time: ${medianTime!.toFixed(2)}ms`);
     console.log(`Min: ${Math.min(...measurements).toFixed(2)}ms`);
     console.log(`Max: ${Math.max(...measurements).toFixed(2)}ms`);
 
     expect(avgTime).toBeLessThan(3000); // Average should be under 3 seconds
-  }, 20000); // Longer timeout for multiple runs
+  }, 60000); // Longer timeout for multiple runs
 
   it('should run same as fast even with additional prompts', async () => {
     const measurements: number[] = [];

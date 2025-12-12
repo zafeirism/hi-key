@@ -56,7 +56,7 @@ async function autoCompleteSimple(currentPrompt: string): Promise<Autocompletion
 
 async function autoCompleteWithJson(currentPrompt: string): Promise<Autocompletion> {
   const response = await openai.responses.parse({
-    model: 'gpt-4.1',
+    model: 'gpt-5.2-2025-12-11',
     input: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: currentPrompt },
@@ -65,6 +65,7 @@ async function autoCompleteWithJson(currentPrompt: string): Promise<Autocompleti
       format,
     },
     temperature: 1.2,
+    reasoning: { effort: 'none' },
   });
 
   const result = response!.output_parsed as Autocompletion;
