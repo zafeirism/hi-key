@@ -49,7 +49,12 @@ struct HiKeyboardView: View {
                 layout: nil,
                 services: services
             )
-                        
+            .keyboardButtonStyle{params in
+                var style = params.standardStyle()
+                style.fontWeight = .regular
+                return style
+            }
+            
             VStack {
                 SuggestionBarView(viewModel: viewModel)
                 

@@ -5,7 +5,7 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
     
     private weak var viewModel: HiKeyboardViewModel?
     
-    var isInterceptingInput = false
+    private var isInterceptingInput = false
     
     init(controller: KeyboardInputViewController, viewModel: HiKeyboardViewModel) {
         self.viewModel = viewModel
@@ -79,6 +79,17 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
                 keyboardController?.setKeyboardCase(.uppercased)
             } else {
                 keyboardController?.setKeyboardCase(.lowercased)
+            }
+        }
+    }
+    
+    func interceptInput(shouldIntercept: Bool) {
+        isInterceptingInput = shouldIntercept
+        MainActor.assumeIsolated {
+            if shouldIntercept {
+                keyboardContext.returnKeyTypeOverride = .go
+            } else {
+                keyboardContext.returnKeyTypeOverride = .none
             }
         }
     }

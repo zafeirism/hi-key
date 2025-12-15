@@ -105,7 +105,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     func focusPrompt() {
         isPromptFocused = true
-        actionHandler?.isInterceptingInput = true
+        actionHandler?.interceptInput(shouldIntercept: true)
         moveCursorToEnd()
         showingResults = false
         mode = .composing
@@ -119,7 +119,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     func unfocusPrompt() {
         isPromptFocused = false
-        actionHandler?.isInterceptingInput = false
+        actionHandler?.interceptInput(shouldIntercept: false)
     }
     
     // MARK: - Auto-Capitalization Logic
@@ -252,7 +252,7 @@ class HiKeyboardViewModel: ObservableObject {
     func showResults() {
         HiLogger.ui.info("⬅️ Back button tapped - showing results")
         isPromptFocused = false
-        actionHandler?.isInterceptingInput = false
+        actionHandler?.interceptInput(shouldIntercept: false)
         showingResults = true
         mode = .results
     }

@@ -23,7 +23,10 @@ class KeyboardViewController: KeyboardInputViewController {
                 print("KeyboardKit setup failed: \(error)")
             }
         }
-     
+  
+        state.feedbackContext.settings.isAudioFeedbackEnabled = false
+        state.feedbackContext.settings.isHapticFeedbackEnabled = false
+        
         Task {
             await AuthManager.shared.restoreSession()
             try await APIClient.shared.warmup()
