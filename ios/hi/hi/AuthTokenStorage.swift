@@ -4,7 +4,6 @@ import Security
 class AuthTokenStorage {
     static let shared = AuthTokenStorage()
     
-    // Use the same App Group ID you created earlier
     private let appGroupID = "group.ai.havingfunwith.hi"
     private let accessTokenKey = "supabase_access_token"
     private let refreshTokenKey = "supabase_refresh_token"

@@ -30,6 +30,8 @@ class AuthManager: ObservableObject {
             return
         }
         
+        print("Old refresh token: \(refreshToken)")
+        print("Old access tokne: \(accessToken)")
         do {
             // Restore session - Supabase will auto-refresh if needed
             let session = try await supabase.auth.setSession(
@@ -37,6 +39,7 @@ class AuthManager: ObservableObject {
                 refreshToken: refreshToken
             )
             
+            print("New refresh token: \(session.refreshToken)")
             // Save potentially new tokens
             tokenStorage.saveTokens(
                 accessToken: session.accessToken,
@@ -48,7 +51,7 @@ class AuthManager: ObservableObject {
         } catch {
             print("Session restore failed: \(error)")
             // Clear invalid tokens
-            tokenStorage.clearTokens()
+            // tokenStorage.clearTokens()
             isAuthenticated = false
         }
     }

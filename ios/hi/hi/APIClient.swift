@@ -80,7 +80,7 @@ class APIClient {
             throw APIError.invalidURL
         }
         
-        if !baseURL.hasPrefix("https://") {
+        if baseURL.hasPrefix("https://") {
             try? await Task.sleep(nanoseconds: 1_250_000_000)
             return GenerateResponse(signedUrls: [
                 "***REMOVED***",
