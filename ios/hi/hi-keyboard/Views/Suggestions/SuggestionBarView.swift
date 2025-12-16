@@ -53,8 +53,8 @@ struct SuggestionBarView: View {
             return
         }
         
-        // Debounce 300ms before calling autocomplete
-        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
+        // Debounce 1000ms before calling autocomplete
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
             Task { @MainActor in
                 await fetchAutocomplete(for: newPrompt)
             }
