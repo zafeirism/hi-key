@@ -5,8 +5,6 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
     
     private weak var viewModel: HiKeyboardViewModel?
     
-    private var isInterceptingInput = false
-    
     init(controller: KeyboardInputViewController, viewModel: HiKeyboardViewModel) {
         self.viewModel = viewModel
         
@@ -21,14 +19,10 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             feedbackService: controller.services.feedbackService,
             spacebarDragGestureHandler: controller.services.spacebarDragGestureHandler
         )
+        keyboardContext.returnKeyTypeOverride = .go
     }
     
     override func handle(_ gesture: Keyboard.Gesture, on action: KeyboardAction) {
-        guard isInterceptingInput else {
-            super.handle(gesture, on: action)
-            return
-        }
-        
         switch (gesture, action) {
             
         case (.release, .character(let char)):
@@ -79,17 +73,6 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
                 keyboardController?.setKeyboardCase(.uppercased)
             } else {
                 keyboardController?.setKeyboardCase(.lowercased)
-            }
-        }
-    }
-    
-    func interceptInput(shouldIntercept: Bool) {
-        isInterceptingInput = shouldIntercept
-        MainActor.assumeIsolated {
-            if shouldIntercept {
-                keyboardContext.returnKeyTypeOverride = .go
-            } else {
-                keyboardContext.returnKeyTypeOverride = .none
             }
         }
     }
