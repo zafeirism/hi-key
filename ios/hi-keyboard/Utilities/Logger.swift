@@ -20,7 +20,7 @@ enum LogCategory: String {
 }
 
 enum HiLogger {
-    private static let subsystem = "ai.havingfunwith.hi"
+    private static let subsystem = "ai.hi-key"
     
     // MARK: - Initialization (call once at app launch)
     
