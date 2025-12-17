@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import os
 
 // MARK: - Keyboard Mode
 
@@ -153,10 +152,8 @@ class HiKeyboardViewModel: ObservableObject {
     private let maxStoredImages = 16
     
     func generate() async {
-        HiLogger.api.info("🚀 Generate called with prompt: \(self.prompt)")
-        
         guard !prompt.isEmpty else {
-            HiLogger.api.warning("⚠️ Generate called with empty prompt")
+            HiLogger.warning("Generate called with empty prompt", category: .keyboard)
             return
         }
         
@@ -168,7 +165,6 @@ class HiKeyboardViewModel: ObservableObject {
         
         do {
             let requestID = apiClient.newRequestID()
-            HiLogger.api.info("📡 Calling API with requestID: \(requestID)")
             
             let response = try await apiClient.generate(
                 prompt: prompt,
@@ -176,7 +172,7 @@ class HiKeyboardViewModel: ObservableObject {
                 requestID: requestID
             )
             
-            HiLogger.api.info("✅ Got \(response.signedUrls.count) urls back")
+            HiLogger.info("✅ Got \(response.signedUrls.count) urls back for requestID \(requestID)", category: .keyboard)
             
             // Create new image entries
             let newImages = response.signedUrls.map { url in
@@ -194,7 +190,7 @@ class HiKeyboardViewModel: ObservableObject {
             isGenerating = false
             
         } catch {
-            HiLogger.api.error("❌ Generate failed: \(error.localizedDescription)")
+            HiLogger.error("Generate failed!", error: error, category: .keyboard)
             errorMessage = error.localizedDescription
             isGenerating = false
         }
@@ -203,30 +199,11 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Image Actions
     
     func copyImage(_ image: GeneratedImage) {
-        HiLogger.ui.info("📋 Copying image to pasteboard: \(image.url)")
-        
-        // Use cached data if available (no re-download!)
         if let data = image.imageData, let uiImage = UIImage(data: data) {
             UIPasteboard.general.image = uiImage
-            HiLogger.ui.info("✅ Image copied from cache")
+            HiLogger.info("Image copied to pasteboard: \(image.url)")
             markAsCopied(image.id)
             return
-        }
-        
-        // Fallback: download if not cached (shouldn't happen normally)
-        Task {
-            guard let url = URL(string: image.url),
-                  let (data, _) = try? await URLSession.shared.data(from: url),
-                  let uiImage = UIImage(data: data) else {
-                HiLogger.ui.error("❌ Failed to load image for copy")
-                return
-            }
-            
-            await MainActor.run {
-                UIPasteboard.general.image = uiImage
-                HiLogger.ui.info("✅ Image copied (downloaded)")
-                markAsCopied(image.id)
-            }
         }
     }
     
@@ -235,7 +212,6 @@ class HiKeyboardViewModel: ObservableObject {
             allImages[index].isLoaded = true
             allImages[index].loadedAt = Date()
             allImages[index].imageData = data
-            HiLogger.ui.info("✅ Image loaded: \(imageID)")
         }
     }
     
@@ -248,7 +224,6 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Navigation
     
     func showResults() {
-        HiLogger.ui.info("⬅️ Back button tapped - showing results")
         isPromptFocused = false
         showingResults = true
         mode = .results
@@ -257,13 +232,11 @@ class HiKeyboardViewModel: ObservableObject {
     func openFullscreen(image: GeneratedImage) {
         if let index = sortedImages.firstIndex(where: { $0.id == image.id }) {
             fullscreenImageIndex = index
-            HiLogger.ui.info("🔍 Opened fullscreen for image at index \(index)")
         }
     }
     
     func closeFullscreen() {
         fullscreenImageIndex = nil
-        HiLogger.ui.info("✖️ Closed fullscreen view")
     }
     
     func navigateToImage(index: Int) {

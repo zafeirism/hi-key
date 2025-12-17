@@ -48,7 +48,7 @@ class APIClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+        print("Warming up...")
         _ = try await URLSession.shared.data(for: request)
     }
 
@@ -80,7 +80,7 @@ class APIClient {
             throw APIError.invalidURL
         }
         
-        if baseURL.hasPrefix("https://") {
+        if !baseURL.hasPrefix("https://") {
             try? await Task.sleep(nanoseconds: 1_250_000_000)
             return GenerateResponse(signedUrls: [
                 "***REMOVED***",
@@ -172,6 +172,7 @@ class APIClient {
     }
     
     private func refreshAndGetToken() async throws -> String {
+        print("APIClient refreshing token...")
         await AuthManager.shared.restoreSession()
         
         let isAuthenticated = await AuthManager.shared.isAuthenticated

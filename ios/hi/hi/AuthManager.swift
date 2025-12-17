@@ -14,16 +14,19 @@ class AuthManager: ObservableObject {
     private let tokenStorage = AuthTokenStorage.shared
     
     private init() {
+        print("Initializing AuthManager...")
         checkExistingAuth()
     }
     
     func checkExistingAuth() {
         Task {
+            print("Checking existin auth...")
             await restoreSession()
         }
     }
 
     func restoreSession() async {
+        print("Reading token storage...")
         guard let accessToken = tokenStorage.getAccessToken(),
               let refreshToken = tokenStorage.getRefreshToken() else {
             isAuthenticated = false
@@ -49,7 +52,7 @@ class AuthManager: ObservableObject {
             isAuthenticated = true
             print("Tokens restored successfully!")
         } catch {
-            print("Session restore failed: \(error)")
+            HiLogger.error("Session restore failed", error: error)
             // Clear invalid tokens
             // tokenStorage.clearTokens()
             isAuthenticated = false

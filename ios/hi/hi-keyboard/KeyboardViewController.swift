@@ -8,6 +8,7 @@ class KeyboardViewController: KeyboardInputViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        HiLogger.configure()
         
         setup(for: .hi) { [weak self] result in
             guard let self else { return }
@@ -20,12 +21,13 @@ class KeyboardViewController: KeyboardInputViewController {
                 self.hiViewModel.actionHandler = handler
                 
             case .failure(let error):
-                print("KeyboardKit setup failed: \(error)")
+                HiLogger.error("KeyboardKit setup failed", error: error, category: .keyboard)
             }
         }
         
         Task {
-            await AuthManager.shared.restoreSession()
+            print("KeyboardViewController calling Auth Manager...")
+            _ = AuthManager.shared.isAuthenticated
             try await APIClient.shared.warmup()
         }
     }

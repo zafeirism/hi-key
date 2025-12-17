@@ -1,5 +1,4 @@
 import KeyboardKit
-import os
 
 class HiActionHandler: KeyboardAction.StandardActionHandler {
     

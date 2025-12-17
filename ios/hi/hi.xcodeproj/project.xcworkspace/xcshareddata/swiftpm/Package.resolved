@@ -1,5 +1,5 @@
 {
-  "originHash" : "a1f0b33cd88d88217e1dce848576be2a03f709015970decf435cd439be136276",
+  "originHash" : "1964960489f83f17a9a0f6cf8835d94ded4f997ac0a36936151c1b221601ebd9",
   "pins" : [
     {
       "identity" : "keyboardkit",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "07447c37c96e81e14f7c8e5e03afb67d24aaae56",
         "version" : "10.1.2"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa/",
+      "state" : {
+        "revision" : "8627bbc0e663238d516b541d8fc7edd62a627fde",
+        "version" : "8.57.3"
       }
     },
     {

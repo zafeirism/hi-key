@@ -1,5 +1,4 @@
 import SwiftUI
-import os
 
 struct ImageCardView: View {
     let image: GeneratedImage

@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import os
 
 struct SuggestionBarView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
@@ -70,7 +69,7 @@ struct SuggestionBarView: View {
                 
                 guard !Task.isCancelled else { return }
                 
-                HiLogger.api.info("✅ Autocomplete returned: \(response.completion) (took \(response.duration)s)")
+                print("Autocomplete returned: \(response.completion) (took \(response.duration)s)")
                 
                 // Show the completion as the only suggestion
                 if !response.completion.isEmpty {
@@ -81,7 +80,7 @@ struct SuggestionBarView: View {
                 
             } catch {
                 guard !Task.isCancelled else { return }
-                HiLogger.api.error("❌ Autocomplete failed: \(error.localizedDescription)")
+                HiLogger.error("Autocomplete failed", error: error, category: .keyboard)
                 // On error, keep current suggestions or clear
                 suggestions = []
             }
