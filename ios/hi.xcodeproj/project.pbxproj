@@ -580,6 +580,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-key";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -617,6 +618,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-key";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -729,7 +731,7 @@
 				DEVELOPMENT_TEAM = HCU9G2XVB5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "hi-keyboard/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "hi-keyboard";
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-key";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -760,7 +762,7 @@
 				DEVELOPMENT_TEAM = HCU9G2XVB5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "hi-keyboard/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "hi-keyboard";
+				INFOPLIST_KEY_CFBundleDisplayName = "hi-key";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
