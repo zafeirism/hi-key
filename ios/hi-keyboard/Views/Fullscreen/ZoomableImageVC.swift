@@ -39,25 +39,9 @@ class ZoomableImageVC: UIViewController, UIScrollViewDelegate {
     private func loadFullResolutionImage() {
         guard let data = image?.imageData else { return }
         
-        // For fullscreen, we DO want higher resolution, but still reasonable
-        // Downsample to screen size rather than original image size
-        let screenSize = UIScreen.main.bounds.size
-        let targetSize = CGSize(
-            width: screenSize.width * UIScreen.main.scale,
-            height: screenSize.height * UIScreen.main.scale
-        )
-        
         // Load on background thread to avoid blocking
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let uiImage: UIImage?
-            
-            // Only downsample if image is larger than screen
-            if let fullImage = UIImage(data: data),
-               fullImage.size.width > targetSize.width || fullImage.size.height > targetSize.height {
-                uiImage = ImageLoader.downsample(data: data, to: screenSize)
-            } else {
-                uiImage = UIImage(data: data)
-            }
+            let uiImage = Watermark.add(to: data)
             
             DispatchQueue.main.async {
                 self?.imageView.image = uiImage

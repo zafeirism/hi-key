@@ -199,12 +199,12 @@ class HiKeyboardViewModel: ObservableObject {
     // MARK: - Image Actions
     
     func copyImage(_ image: GeneratedImage) {
-        if let data = image.imageData, let uiImage = UIImage(data: data) {
-            UIPasteboard.general.image = uiImage
-            HiLogger.info("Image copied to pasteboard: \(image.url)")
-            markAsCopied(image.id)
-            return
-        }
+        guard let data = image.imageData, let watermarkedImage = Watermark.add(to: data)
+        else { return }
+        
+        UIPasteboard.general.image = watermarkedImage
+        HiLogger.info("Image copied to pasteboard: \(image.url)")
+        markAsCopied(image.id)
     }
     
     func markImageLoaded(_ imageID: UUID, data: Data) {
