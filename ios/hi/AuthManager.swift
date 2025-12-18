@@ -11,51 +11,18 @@ class AuthManager: ObservableObject {
     @Published var errorMessage: String?
     
     private let supabase = SupabaseManager.shared.client
-    private let tokenStorage = AuthTokenStorage.shared
     
-    private init() {
-        print("Initializing AuthManager...")
-        checkExistingAuth()
-    }
-    
-    func checkExistingAuth() {
-        Task {
-            print("Checking existin auth...")
-            await restoreSession()
-        }
-    }
-
-    func restoreSession() async {
-        print("Reading token storage...")
-        guard let accessToken = tokenStorage.getAccessToken(),
-              let refreshToken = tokenStorage.getRefreshToken() else {
-            isAuthenticated = false
-            return
-        }
-        
-        print("Old refresh token: \(refreshToken)")
-        print("Old access tokne: \(accessToken)")
+    func getAccessToken() async -> String? {
         do {
-            // Restore session - Supabase will auto-refresh if needed
-            let session = try await supabase.auth.setSession(
-                accessToken: accessToken,
-                refreshToken: refreshToken
-            )
-            
-            print("New refresh token: \(session.refreshToken)")
-            // Save potentially new tokens
-            tokenStorage.saveTokens(
-                accessToken: session.accessToken,
-                refreshToken: session.refreshToken
-            )
-            
+            print("Reading session...")
+            let session = try await supabase.auth.session
+            print("Session returned successfully")
             isAuthenticated = true
-            print("Tokens restored successfully!")
+            return session.accessToken
         } catch {
             HiLogger.error("Session restore failed", error: error)
-            // Clear invalid tokens
-            // tokenStorage.clearTokens()
             isAuthenticated = false
+            return nil
         }
     }
     
@@ -68,12 +35,6 @@ class AuthManager: ObservableObject {
             let session = try await supabase.auth.signIn(
                 email: email,
                 password: password
-            )
-            
-            // Save tokens
-            tokenStorage.saveTokens(
-                accessToken: session.accessToken,
-                refreshToken: session.refreshToken
             )
             
             isAuthenticated = true
@@ -94,8 +55,6 @@ class AuthManager: ObservableObject {
             print("Sign out error: \(error)")
         }
         
-        // Clear stored tokens
-        tokenStorage.clearTokens()
         isAuthenticated = false
         isLoading = false
     }

@@ -12,7 +12,8 @@ class SupabaseManager {
         
         self.client = SupabaseClient(
             supabaseURL: supabaseURL,
-            supabaseKey: supabasePublishableKey
+            supabaseKey: supabasePublishableKey,
+            options: SupabaseClientOptions(auth: SupabaseClientOptions.AuthOptions(storage: AuthKeychainStorage()))
         )
     }
 }

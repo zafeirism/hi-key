@@ -69,8 +69,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				APIClient.swift,
+				AuthKeychainStorage.swift,
 				AuthManager.swift,
-				AuthTokenStorage.swift,
 				"hi-key-app-icon.icon",
 				KeyboardAppHi.swift,
 				SupabaseManager.swift,

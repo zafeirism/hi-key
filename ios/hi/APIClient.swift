@@ -4,7 +4,6 @@ class APIClient {
     static let shared = APIClient()
     
     private let baseURL = "https://app.havingfunwith.ai"
-    private let tokenStorage = AuthTokenStorage.shared
     
     private init() {}
     
@@ -64,7 +63,7 @@ class APIClient {
             )
         } catch APIError.httpError(statusCode: 401) {
             // Token expired during request - refresh and retry once
-            let newToken = try await refreshAndGetToken()
+            let newToken = try await getValidAccessToken()
             return try await performGenerate(
                 prompt: prompt,
                 sessionID: sessionID,
@@ -123,7 +122,7 @@ class APIClient {
             return try await performAutocomplete(prompt: prompt, accessToken: accessToken)
         } catch APIError.httpError(statusCode: 401) {
             // Token expired during request - refresh and retry once
-            let newToken = try await refreshAndGetToken()
+            let newToken = try await getValidAccessToken()
             return try await performAutocomplete(prompt: prompt, accessToken: newToken)
         }
     }
@@ -158,31 +157,13 @@ class APIClient {
     // MARK: - Token Management
     
     private func getValidAccessToken() async throws -> String {
-        guard tokenStorage.getAccessToken() != nil,
-              tokenStorage.getRefreshToken() != nil else {
+        guard let token = await AuthManager.shared.getAccessToken() else {
             throw APIError.notAuthenticated
-        }
-        
-        let isAuthenticated = await AuthManager.shared.isAuthenticated
-        if isAuthenticated, let token = tokenStorage.getAccessToken() {
-            return token
-        }
-        
-        return try await refreshAndGetToken()
-    }
-    
-    private func refreshAndGetToken() async throws -> String {
-        print("APIClient refreshing token...")
-        await AuthManager.shared.restoreSession()
-        
-        let isAuthenticated = await AuthManager.shared.isAuthenticated
-        guard isAuthenticated, let token = tokenStorage.getAccessToken() else {
-            throw APIError.sessionExpired
         }
         
         return token
     }
-    
+        
     // MARK: - Error Types
     
     enum APIError: LocalizedError {
