@@ -3,7 +3,7 @@ import UIKit
 enum Watermark {
     static let badge: UIImage? = UIImage(named: "watermark")
 
-    static func add(to imageData: Data, padding: CGFloat = 28) -> UIImage? {
+    static func add(to imageData: Data, padding: CGFloat = 32) -> UIImage? {
         guard let badge = badge, let originalImage = UIImage(data: imageData) else {
             return nil
         }
