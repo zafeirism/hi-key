@@ -7,27 +7,37 @@ struct ImageCarouselView: View {
         VStack {
             Spacer()
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    // Use sortedImages (loaded first, then pending)
-                    ForEach(viewModel.sortedImages) { image in
-                        ImageCardView(
-                            image: image,
-                            onCopy: { viewModel.copyImage(image) },
-                            onLoaded: { data in viewModel.markImageLoaded(image.id, data: data) },
-                            onTap: { viewModel.openFullscreen(image: image) }
-                        )
-                        .id(image.id)
-                    }
-                    
-                    if viewModel.isGenerating {
-                        ForEach(0..<4, id: \.self) { _ in
-                            LoadingPlaceholderView()
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // Use sortedImages (loaded first, then pending)
+                        ForEach(viewModel.sortedImages) { image in
+                            ImageCardView(
+                                image: image,
+                                onCopy: { viewModel.copyImage(image) },
+                                onLoaded: { data in viewModel.markImageLoaded(image.id, data: data) },
+                                onTap: { viewModel.openFullscreen(image: image) }
+                            )
+                            .id(image.id)
+                        }
+                        
+                        if viewModel.isGenerating {
+                            ForEach(0..<4, id: \.self) { index in
+                                LoadingPlaceholderView()
+                                    .id("placeholder-\(index)")
+                            }
                         }
                     }
+                    .padding(.horizontal, 8)
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.sortedImages.map { $0.id })
                 }
-                .padding(.horizontal, 8)
-                .animation(.easeInOut(duration: 0.3), value: viewModel.sortedImages.map { $0.id })
+                .task{
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        // Scroll to first placeholder, positioned ~20% from left
+                        // This keeps part of the previous batch visible
+                        proxy.scrollTo("placeholder-0", anchor: UnitPoint(x: 0.2, y: 0))
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
