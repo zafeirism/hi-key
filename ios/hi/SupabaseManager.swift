@@ -13,7 +13,9 @@ class SupabaseManager {
         self.client = SupabaseClient(
             supabaseURL: supabaseURL,
             supabaseKey: supabasePublishableKey,
-            options: SupabaseClientOptions(auth: SupabaseClientOptions.AuthOptions(storage: AuthKeychainStorage()))
+            options: SupabaseClientOptions(
+                auth: SupabaseClientOptions.AuthOptions(
+                    storage: AuthKeychainStorage(), emitLocalSessionAsInitialSession: true))
         )
     }
 }

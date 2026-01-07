@@ -12,6 +12,23 @@ class AuthManager: ObservableObject {
     
     private let supabase = SupabaseManager.shared.client
     
+    private init(){
+        Task{
+            do{
+                print("Initializing AuthManager")
+                let session = try await supabase.auth.session
+                if session.isExpired {
+                    _ = try await supabase.auth.refreshSession()
+                }
+                isAuthenticated = true
+                print("AuthManager initialized successfully")
+            } catch {
+                HiLogger.error("No session found", error: error)
+                isAuthenticated = false
+            }
+        }
+    }
+    
     func getAccessToken() async -> String? {
         do {
             print("Reading session...")
