@@ -80,7 +80,15 @@
 		3388FD902EF2A72F001B2AA4 /* Exceptions for "hi-keyboard" folder in "hi" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Models/GeneratedImage.swift,
+				Models/PromptCategories.swift,
+				Utilities/ImageLoader.swift,
 				Utilities/Logger.swift,
+				Utilities/Watermark.swift,
+				Views/Common/ErrorView.swift,
+				Views/Common/ShimmerModifier.swift,
+				Views/Results/ImageCardView.swift,
+				Views/Results/StatusBarView.swift,
 			);
 			target = 33B4B51A2ED8765100120BAA /* hi */;
 		};

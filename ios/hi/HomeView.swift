@@ -21,7 +21,7 @@ struct HomeView: View {
                     SettingRow(
                         icon: "⌨️",
                         title: "Enable the keyboard",
-                        description: "Go to Settings → Keyboard → Add hi keyboard"
+                        description: "Go to Settings → Keyboard → Add hi-key"
                     )
                     
                     SettingRow(
