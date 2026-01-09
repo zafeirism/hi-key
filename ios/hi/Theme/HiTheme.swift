@@ -1,30 +1,13 @@
 import SwiftUI
 
 // MARK: - Hi Theme
+// iOS 26 Liquid Glass design language with Dynamic Type support
 
 enum HiTheme {
-    // MARK: - Colors
+    // MARK: - Brand Colors
     
+    /// Primary mint color from app icon background
     static let mint = Color(hex: "CEF0C4")
-    static let mintDark = Color(hex: "A8D99C")
-    
-    // MARK: - Fonts
-    
-    static func title(_ size: CGFloat = 32) -> Font {
-        .system(size: size, weight: .bold, design: .rounded)
-    }
-    
-    static func subtitle(_ size: CGFloat = 18) -> Font {
-        .system(size: size, weight: .medium, design: .rounded)
-    }
-    
-    static func body(_ size: CGFloat = 16) -> Font {
-        .system(size: size, weight: .regular, design: .rounded)
-    }
-    
-    static func caption(_ size: CGFloat = 14) -> Font {
-        .system(size: size, weight: .regular, design: .rounded)
-    }
     
     // MARK: - Spacing
     
@@ -48,11 +31,17 @@ enum HiTheme {
     static let animationFast: Animation = .easeInOut(duration: 0.2)
     static let animationNormal: Animation = .easeInOut(duration: 0.3)
     static let animationSlow: Animation = .easeInOut(duration: 0.5)
+    static let animationSpring: Animation = .spring(response: 0.4, dampingFraction: 0.8)
+}
+
+// MARK: - Scaled Metric for Logo
+
+/// Use this for the "hi" logo text to scale with Dynamic Type
+struct ScaledLogo {
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 72
     
-    // MARK: - Shadows
-    
-    static func cardShadow() -> some View {
-        Color.black.opacity(0.08)
+    var font: Font {
+        .system(size: size, weight: .bold, design: .rounded)
     }
 }
 
@@ -87,31 +76,138 @@ extension Color {
 // MARK: - View Extensions
 
 extension View {
-    func hiButtonStyle(isEnabled: Bool = true) -> some View {
+    /// Primary action button style - full width, prominent
+    func hiPrimaryButtonStyle() -> some View {
         self
-            .font(HiTheme.subtitle())
-            .foregroundColor(.black)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isEnabled ? HiTheme.mint : HiTheme.mint.opacity(0.5))
-            .cornerRadius(HiTheme.radiusFull)
+            .frame(height: 50)
+            .background(Color.accentColor)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
     }
     
+    /// Secondary button style - full width, subtle
     func hiSecondaryButtonStyle() -> some View {
         self
-            .font(HiTheme.body())
-            .foregroundColor(.primary)
+            .font(.body.weight(.medium))
+            .foregroundStyle(.primary)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(Color(.systemGray6))
-            .cornerRadius(HiTheme.radiusFull)
+            .frame(height: 50)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
     }
     
+    /// Card style with Liquid Glass material background
     func hiCardStyle() -> some View {
         self
-            .background(Color(.systemBackground))
-            .cornerRadius(HiTheme.radiusLG)
-            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
+    }
+    
+    /// Standard content padding
+    func hiPadding() -> some View {
+        self.padding(.horizontal, HiTheme.spacingMD)
     }
 }
 
+// MARK: - Button Styles
+
+/// Primary button style for main CTAs
+struct HiPrimaryButtonStyle: ButtonStyle {
+    var isEnabled: Bool = true
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+/// Secondary button style for less prominent actions
+struct HiSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.medium))
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Card Component
+
+/// Reusable card view for home screen sections
+struct HiCard<Content: View>: View {
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        content
+            .padding(HiTheme.spacingMD)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
+    }
+}
+
+// MARK: - Logo View
+
+/// Scalable "hi" logo that respects Dynamic Type
+struct HiLogoView: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var fontSize: CGFloat = 72
+    
+    var body: some View {
+        Text("hi")
+            .font(.system(size: fontSize, weight: .bold, design: .rounded))
+            .foregroundStyle(.primary)
+    }
+}
+
+// MARK: - Preview
+
+#Preview("Theme Components") {
+    ScrollView {
+        VStack(spacing: HiTheme.spacingLG) {
+            HiLogoView()
+            
+            Text("Large Title")
+                .font(.largeTitle)
+            
+            Text("Body Text")
+                .font(.body)
+            
+            Button("Primary Button") {}
+                .buttonStyle(HiPrimaryButtonStyle())
+            
+            Button("Secondary Button") {}
+                .buttonStyle(HiSecondaryButtonStyle())
+            
+            HiCard {
+                VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                    Text("Card Title")
+                        .font(.headline)
+                    Text("Card description goes here")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding()
+    }
+}

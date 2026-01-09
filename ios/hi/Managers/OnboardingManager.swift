@@ -5,8 +5,8 @@ import Combine
 
 enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
-    case demo = 1
-    case proofPoints = 2
+    case keyboardExplain = 1
+    case referralCredits = 2
     case paywall = 3
     case complete = 4
 }
@@ -25,14 +25,13 @@ class OnboardingManager: ObservableObject {
     // MARK: - Published State
     
     @Published var currentStep: OnboardingStep = .welcome
-    @Published var demoGenerationsUsed: Int = 0
     
     // MARK: - Keys
     
     private enum Keys {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
-        static let demoGenerationsUsed = "demoGenerationsUsed"
-        static let hasSubscribed = "hasSubscribed"
+        static let referrerCode = "referrerCode"
+        static let referralApplied = "referralApplied"
     }
     
     // MARK: - Computed Properties
@@ -45,47 +44,39 @@ class OnboardingManager: ObservableObject {
         }
     }
     
-    var hasSubscribed: Bool {
-        get { userDefaults?.bool(forKey: Keys.hasSubscribed) ?? false }
-        set { 
-            userDefaults?.set(newValue, forKey: Keys.hasSubscribed)
+    /// The referral code entered by this user (from a friend)
+    var referrerCode: String? {
+        get { userDefaults?.string(forKey: Keys.referrerCode) }
+        set {
+            userDefaults?.set(newValue, forKey: Keys.referrerCode)
             objectWillChange.send()
         }
     }
     
-    var canGenerateDemo: Bool {
-        demoGenerationsUsed < 3
-    }
-    
-    var hasGeneratedAtLeastOnce: Bool {
-        demoGenerationsUsed > 0
+    /// Whether the user successfully applied a friend's referral code
+    var referralApplied: Bool {
+        get { userDefaults?.bool(forKey: Keys.referralApplied) ?? false }
+        set {
+            userDefaults?.set(newValue, forKey: Keys.referralApplied)
+            objectWillChange.send()
+        }
     }
     
     // MARK: - Init
     
     private init() {
-        resetOnboarding() // remove after debugging
+        // Uncomment for debugging - resets onboarding each launch
+        // resetOnboarding()
         loadState()
     }
     
     private func loadState() {
-        demoGenerationsUsed = userDefaults?.integer(forKey: Keys.demoGenerationsUsed) ?? 0
-        
-        // Determine current step based on saved state
         if hasCompletedOnboarding {
             currentStep = .complete
-        } else if demoGenerationsUsed > 0 {
-            // User has done demo, continue from proof points
-            currentStep = .proofPoints
         }
     }
     
     // MARK: - Actions
-    
-    func incrementDemoGeneration() {
-        demoGenerationsUsed += 1
-        userDefaults?.set(demoGenerationsUsed, forKey: Keys.demoGenerationsUsed)
-    }
     
     func goToNextStep() {
         guard let nextStep = OnboardingStep(rawValue: currentStep.rawValue + 1) else {
@@ -104,17 +95,37 @@ class OnboardingManager: ObservableObject {
     
     func completeOnboarding() {
         hasCompletedOnboarding = true
-        currentStep = .complete
+        withAnimation(HiTheme.animationNormal) {
+            currentStep = .complete
+        }
+    }
+    
+    /// Apply a referral code from a friend
+    func applyReferralCode(_ code: String) -> Bool {
+        // Validate format: NAME-CODE (NAME up to 6 chars, CODE is 6 chars Crockford Base32)
+        guard isValidReferralCodeFormat(code) else {
+            return false
+        }
+        
+        referrerCode = code.uppercased()
+        referralApplied = true
+        return true
+    }
+    
+    /// Validate referral code format (client-side only)
+    func isValidReferralCodeFormat(_ code: String) -> Bool {
+        let pattern = "^[A-Z0-9]{1,6}-[0-9A-HJKMNP-TV-Z]{6}$"
+        let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let range = NSRange(code.startIndex..., in: code)
+        return regex?.firstMatch(in: code, options: [], range: range) != nil
     }
     
     // MARK: - Debug
     
     func resetOnboarding() {
         userDefaults?.removeObject(forKey: Keys.hasCompletedOnboarding)
-        userDefaults?.removeObject(forKey: Keys.demoGenerationsUsed)
-        userDefaults?.removeObject(forKey: Keys.hasSubscribed)
-        demoGenerationsUsed = 0
+        userDefaults?.removeObject(forKey: Keys.referrerCode)
+        userDefaults?.removeObject(forKey: Keys.referralApplied)
         currentStep = .welcome
     }
 }
-

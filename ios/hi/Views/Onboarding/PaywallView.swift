@@ -2,37 +2,76 @@ import SwiftUI
 
 struct PaywallView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    @State private var selectedPlan: SubscriptionPlan = .pro
-    @State private var isProcessing = false
-    @State private var showTerms = false
+    @ObservedObject var creditsManager = CreditsManager.shared
+    
+    @State private var selectedOption: PaywallOption = .liteSubscription
+    @State private var isProcessing: Bool = false
+    @State private var showAllOptions: Bool = false
+    @State private var showTerms: Bool = false
+    
+    // For AllOptionsSheet
+    @State private var allOptionsSubscription: SubscriptionTier? = nil
+    @State private var allOptionsPack: CreditPack? = nil
+    
+    enum PaywallOption {
+        case liteSubscription
+        case miniPack
+    }
     
     var body: some View {
-        ZStack {
-            // Background
-            Color(.systemBackground)
-                .ignoresSafeArea()
-            
-            VStack(spacing: HiTheme.spacingLG) {
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                Spacer()
+                
                 // Header
                 headerSection
                 
-                // Plan cards
-                planCardsSection
-                
                 Spacer()
                 
-                // Subscribe button
-                subscribeButton
+                // Option cards
+                optionCards
+                
+                // View all options link
+                Button {
+                    showAllOptions = true
+                } label: {
+                    Text("View all options")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.accentColor)
+                }
+                .padding(.top, HiTheme.spacingMD)
+                
+                Spacer()
+                Spacer()
+                
+                // Purchase button
+                purchaseButton
                 
                 // Footer links
                 footerLinks
             }
-            .padding(.horizontal, HiTheme.spacingLG)
-            .padding(.top, HiTheme.spacingXL)
-            .padding(.bottom, HiTheme.spacingMD)
+            .padding(.horizontal, HiTheme.spacingMD)
+            .padding(.bottom, HiTheme.spacingLG)
+            
+            // Dismiss button (soft paywall)
+            Button {
+                onboardingManager.completeOnboarding()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(HiTheme.spacingMD)
+        }
+        .background(Color(.systemBackground))
+        .sheet(isPresented: $showAllOptions) {
+            AllOptionsSheet(
+                selectedSubscription: $allOptionsSubscription,
+                selectedPack: $allOptionsPack
+            )
         }
         .sheet(isPresented: $showTerms) {
-            TermsView()
+            TermsSheet()
         }
     }
     
@@ -42,263 +81,157 @@ struct PaywallView: View {
         VStack(spacing: HiTheme.spacingMD) {
             Image(systemName: "sparkles")
                 .font(.system(size: 48))
-                .foregroundColor(HiTheme.mint)
+                .foregroundStyle(Color.accentColor)
             
-            Text("Unlock hi-key")
-                .font(HiTheme.title(32))
-                .foregroundColor(.primary)
+            Text("Get more from hi-key")
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
             
             Text("Start creating amazing images\nin all your conversations")
-                .font(HiTheme.body())
-                .foregroundColor(.secondary)
+                .font(.body)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
         }
     }
     
-    // MARK: - Plan Cards
+    // MARK: - Option Cards
     
-    private var planCardsSection: some View {
+    private var optionCards: some View {
         VStack(spacing: HiTheme.spacingMD) {
-            PlanCard(
-                plan: .starter,
-                isSelected: selectedPlan == .starter,
-                onSelect: { selectedPlan = .starter }
+            // Lite subscription
+            PaywallOptionCard(
+                title: "Lite",
+                subtitle: "25 prompts per month",
+                price: "$4.99/mo",
+                isSelected: selectedOption == .liteSubscription,
+                onSelect: { selectedOption = .liteSubscription }
             )
             
-            PlanCard(
-                plan: .pro,
-                isSelected: selectedPlan == .pro,
-                onSelect: { selectedPlan = .pro }
+            // Mini pack
+            PaywallOptionCard(
+                title: "Mini Pack",
+                subtitle: "10 credits • One-time",
+                price: "$2.99",
+                isSelected: selectedOption == .miniPack,
+                onSelect: { selectedOption = .miniPack }
             )
         }
     }
     
-    // MARK: - Subscribe Button
+    // MARK: - Purchase Button
     
-    private var subscribeButton: some View {
+    private var purchaseButton: some View {
         Button {
-            subscribe()
+            processPurchase()
         } label: {
-            HStack {
-                if isProcessing {
-                    ProgressView()
-                        .tint(.black)
-                } else {
-                    Text("Subscribe for \(selectedPlan.priceString)/month")
-                }
+            if isProcessing {
+                ProgressView()
+                    .tint(.white)
+            } else {
+                Text(purchaseButtonText)
             }
-            .hiButtonStyle(isEnabled: !isProcessing)
         }
+        .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
         .disabled(isProcessing)
     }
     
-    // MARK: - Footer Links
+    private var purchaseButtonText: String {
+        switch selectedOption {
+        case .liteSubscription:
+            return "Subscribe for $4.99/month"
+        case .miniPack:
+            return "Buy for $2.99"
+        }
+    }
+    
+    // MARK: - Footer
     
     private var footerLinks: some View {
         HStack(spacing: HiTheme.spacingXL) {
-            Button("Restore Purchase") {
-                restorePurchase()
+            Button("Restore Purchases") {
+                restorePurchases()
             }
-            .font(HiTheme.caption())
-            .foregroundColor(.secondary)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
             
-            Button("Terms & Privacy") {
+            Button("Terms") {
                 showTerms = true
             }
-            .font(HiTheme.caption())
-            .foregroundColor(.secondary)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
+        .padding(.top, HiTheme.spacingMD)
     }
     
     // MARK: - Actions
     
-    private func subscribe() {
+    private func processPurchase() {
         isProcessing = true
         
-        // TODO: Implement RevenueCat purchase flow
-        // For now, simulate a successful purchase
+        // TODO: Implement StoreKit purchase
+        // For now, simulate purchase
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            switch selectedOption {
+            case .liteSubscription:
+                creditsManager.setSubscription(.lite)
+                creditsManager.addCredits(SubscriptionTier.lite.monthlyPrompts)
+            case .miniPack:
+                creditsManager.addCredits(CreditPack.mini.credits)
+            }
             isProcessing = false
-            onboardingManager.hasSubscribed = true
             onboardingManager.completeOnboarding()
         }
     }
     
-    private func restorePurchase() {
+    private func restorePurchases() {
         isProcessing = true
         
-        // TODO: Implement RevenueCat restore
+        // TODO: Implement StoreKit restore
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isProcessing = false
-            // Show message if nothing to restore
         }
     }
 }
 
-// MARK: - Subscription Plan
+// MARK: - Paywall Option Card
 
-enum SubscriptionPlan {
-    case starter
-    case pro
-    
-    var title: String {
-        switch self {
-        case .starter: return "Starter"
-        case .pro: return "Pro"
-        }
-    }
-    
-    var priceString: String {
-        switch self {
-        case .starter: return "$2.99"
-        case .pro: return "$6.99"
-        }
-    }
-    
-    var generations: String {
-        switch self {
-        case .starter: return "30 generations"
-        case .pro: return "90 generations"
-        }
-    }
-    
-    var features: [String] {
-        switch self {
-        case .starter:
-            return [
-                "30 generations per month",
-                "4 images per generation",
-                "Standard quality",
-            ]
-        case .pro:
-            return [
-                "90 generations per month",
-                "4 images per generation",
-                "No watermark",
-                "Priority support",
-            ]
-        }
-    }
-    
-    var badge: String? {
-        switch self {
-        case .starter: return nil
-        case .pro: return "BEST VALUE"
-        }
-    }
-}
-
-// MARK: - Plan Card
-
-private struct PlanCard: View {
-    let plan: SubscriptionPlan
+private struct PaywallOptionCard: View {
+    let title: String
+    let subtitle: String
+    let price: String
     let isSelected: Bool
     let onSelect: () -> Void
     
     var body: some View {
         Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-                // Header row
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(plan.title)
-                            .font(HiTheme.subtitle(20))
-                            .foregroundColor(.primary)
-                        
-                        Text(plan.generations)
-                            .font(HiTheme.caption())
-                            .foregroundColor(.secondary)
-                    }
+            HStack(spacing: HiTheme.spacingMD) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
                     
-                    Spacer()
-                    
-                    if let badge = plan.badge {
-                        Text(badge)
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.black)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(HiTheme.mint)
-                            .cornerRadius(HiTheme.radiusSM)
-                    }
-                    
-                    Text(plan.priceString)
-                        .font(HiTheme.title(24))
-                        .foregroundColor(.primary)
-                    
-                    Text("/mo")
-                        .font(HiTheme.caption())
-                        .foregroundColor(.secondary)
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 
-                // Features
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(plan.features, id: \.self) { feature in
-                        HStack(spacing: 8) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(HiTheme.mint)
-                            
-                            Text(feature)
-                                .font(HiTheme.caption())
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
+                Spacer()
+                
+                Text(price)
+                    .font(.headline)
+                
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .font(.title2)
             }
-            .padding(HiTheme.spacingLG)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSelected ? HiTheme.mint.opacity(0.15) : Color(.systemGray6))
-            .cornerRadius(HiTheme.radiusLG)
+            .padding(HiTheme.spacingMD)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusLG)
-                    .stroke(isSelected ? HiTheme.mint : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Terms View
-
-private struct TermsView: View {
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: HiTheme.spacingLG) {
-                    Text("Terms of Service")
-                        .font(HiTheme.title(24))
-                    
-                    Text("""
-                    By subscribing to hi-key, you agree to the following terms:
-                    
-                    • Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.
-                    • Your account will be charged for renewal within 24 hours prior to the end of the current period.
-                    • You can manage and cancel subscriptions by going to your Account Settings on the App Store after purchase.
-                    • Any unused portion of a free trial period will be forfeited when you purchase a subscription.
-                    
-                    Privacy Policy:
-                    • We collect only the data necessary to provide our service.
-                    • Your prompts are processed to generate images and are not stored.
-                    • We do not sell your personal data to third parties.
-                    """)
-                    .font(HiTheme.body())
-                    .foregroundColor(.secondary)
-                }
-                .padding(HiTheme.spacingLG)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -3,69 +3,108 @@ import SwiftUI
 struct KeyboardSetupSheet: View {
     @Environment(\.dismiss) private var dismiss
     
-    @State private var step1Completed = false
-    @State private var step2Completed = false
+    @State private var step1Completed: Bool = false
+    @State private var step2Completed: Bool = false
+    @State private var showCelebration: Bool = false
+    
+    private var bothStepsComplete: Bool {
+        step1Completed && step2Completed
+    }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
+        NavigationStack {
+            VStack(spacing: HiTheme.spacingLG) {
+                // Header
+                headerSection
                 
-                VStack(spacing: HiTheme.spacingXL) {
-                    // Header
-                    headerSection
+                // Steps
+                VStack(spacing: HiTheme.spacingMD) {
+                    SetupStepCard(
+                        stepNumber: 1,
+                        title: "Add hi-key Keyboard",
+                        instructions: [
+                            "Open Settings → General → Keyboard",
+                            "Tap \"Keyboards\"",
+                            "Tap \"Add New Keyboard...\"",
+                            "Select \"hi-key\""
+                        ],
+                        isCompleted: step1Completed
+                    )
                     
-                    // Steps
-                    VStack(spacing: HiTheme.spacingLG) {
-                        SetupStepCard(
-                            stepNumber: 1,
-                            title: "Add hi-key Keyboard",
-                            instructions: [
-                                "Open Settings → General → Keyboard",
-                                "Tap \"Keyboards\"",
-                                "Tap \"Add New Keyboard...\"",
-                                "Select \"hi-key\"",
-                            ],
-                            isCompleted: step1Completed
-                        )
-                        
-                        SetupStepCard(
-                            stepNumber: 2,
-                            title: "Allow Full Access",
-                            instructions: [
-                                "In Keyboards, tap \"hi-key\"",
-                                "Enable \"Allow Full Access\"",
-                                "Tap \"Allow\" in the popup",
-                            ],
-                            isCompleted: step2Completed
-                        )
-                    }
-                    
-                    Spacer()
-                    
-                    // Open Settings button
-                    openSettingsButton
-                    
-                    // Done button
-                    doneButton
+                    SetupStepCard(
+                        stepNumber: 2,
+                        title: "Allow Full Access",
+                        instructions: [
+                            "In Keyboards, tap \"hi-key\"",
+                            "Enable \"Allow Full Access\"",
+                            "Tap \"Allow\" in the popup"
+                        ],
+                        isCompleted: step2Completed
+                    )
                 }
-                .padding(HiTheme.spacingLG)
+                
+                Spacer()
+                
+                // Buttons
+                if bothStepsComplete {
+                    // Success state
+                    VStack(spacing: HiTheme.spacingMD) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.green)
+                        
+                        Text("All set!")
+                            .font(.title2.bold())
+                        
+                        Text("You can now use hi-key in any app")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                        }
+                        .buttonStyle(HiPrimaryButtonStyle())
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    // Setup state
+                    VStack(spacing: HiTheme.spacingMD) {
+                        Button {
+                            openKeyboardSettings()
+                        } label: {
+                            HStack {
+                                Image(systemName: "gear")
+                                Text("Open Keyboard Settings")
+                            }
+                        }
+                        .buttonStyle(HiPrimaryButtonStyle())
+                        
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("I'll do this later")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
+            .padding(HiTheme.spacingMD)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
-                    .font(HiTheme.body())
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+        .onAppear {
             checkSetupStatus()
         }
-        .onAppear {
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             checkSetupStatus()
         }
     }
@@ -76,42 +115,15 @@ struct KeyboardSetupSheet: View {
         VStack(spacing: HiTheme.spacingMD) {
             Image(systemName: "keyboard.fill")
                 .font(.system(size: 48))
-                .foregroundColor(HiTheme.mint)
+                .foregroundStyle(Color.accentColor)
             
             Text("Set up your keyboard")
-                .font(HiTheme.title(24))
-                .foregroundColor(.primary)
+                .font(.title2.bold())
             
             Text("Follow these steps to start using\nhi-key in all your apps")
-                .font(HiTheme.body())
-                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-        }
-    }
-    
-    // MARK: - Open Settings Button
-    
-    private var openSettingsButton: some View {
-        Button {
-            openKeyboardSettings()
-        } label: {
-            HStack {
-                Image(systemName: "gear")
-                Text("Open Keyboard Settings")
-            }
-            .hiButtonStyle()
-        }
-    }
-    
-    // MARK: - Done Button
-    
-    private var doneButton: some View {
-        Button {
-            dismiss()
-        } label: {
-            Text("I'll do this later")
-                .font(HiTheme.body())
-                .foregroundColor(.secondary)
         }
     }
     
@@ -126,25 +138,33 @@ struct KeyboardSetupSheet: View {
             }
         }
         
-        // Fallback to general settings
+        // Fallback to app settings
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
     }
     
     private func checkSetupStatus() {
-        let keyboardBundleID = "ai.hi-key.keyboard"
+        let keyboardBundleID = "ai.hi-key.hi.hi-keyboard"
         let activeInputModes = UITextInputMode.activeInputModes
         
         let isKeyboardEnabled = activeInputModes.contains { mode in
-            mode.value(forKey: "identifier") as? String == keyboardBundleID
+            (mode.value(forKey: "identifier") as? String) == keyboardBundleID
         }
+        
+        let wasComplete = bothStepsComplete
         
         withAnimation(HiTheme.animationNormal) {
             step1Completed = isKeyboardEnabled
             // We assume full access is granted if keyboard is enabled
-            // In practice, you might need app group UserDefaults to verify this
+            // In practice, you might verify via app group UserDefaults
             step2Completed = isKeyboardEnabled
+        }
+        
+        // Show celebration if just completed
+        if !wasComplete && bothStepsComplete {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
         }
     }
 }
@@ -157,57 +177,72 @@ private struct SetupStepCard: View {
     let instructions: [String]
     let isCompleted: Bool
     
+    @State private var isExpanded: Bool = true
+    
     var body: some View {
-        HStack(alignment: .top, spacing: HiTheme.spacingMD) {
-            // Step indicator
-            ZStack {
-                Circle()
-                    .fill(isCompleted ? Color.green : Color(.systemGray5))
-                    .frame(width: 36, height: 36)
-                
-                if isCompleted {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                } else {
-                    Text("\(stepNumber)")
-                        .font(HiTheme.subtitle())
-                        .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
+            // Header row
+            HStack(spacing: HiTheme.spacingMD) {
+                // Step indicator
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ? Color.green : Color(.systemGray5))
+                        .frame(width: 36, height: 36)
+                    
+                    if isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                    } else {
+                        Text("\(stepNumber)")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                    }
                 }
-            }
-            
-            VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                
                 Text(title)
-                    .font(HiTheme.subtitle())
-                    .foregroundColor(isCompleted ? .secondary : .primary)
+                    .font(.headline)
                     .strikethrough(isCompleted)
+                    .foregroundStyle(isCompleted ? .secondary : .primary)
+                
+                Spacer()
                 
                 if !isCompleted {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ForEach(Array(instructions.enumerated()), id: \.offset) { index, instruction in
-                            HStack(alignment: .top, spacing: 8) {
-                                Text("•")
-                                    .font(HiTheme.caption())
-                                    .foregroundColor(.secondary)
-                                
-                                Text(instruction)
-                                    .font(HiTheme.caption())
-                                    .foregroundColor(.secondary)
-                            }
+                    Button {
+                        withAnimation {
+                            isExpanded.toggle()
                         }
+                    } label: {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
             
-            Spacer()
+            // Instructions (expandable)
+            if !isCompleted && isExpanded {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(instructions.enumerated()), id: \.offset) { index, instruction in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("•")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            Text(instruction)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.leading, 44) // Align with title
+            }
         }
-        .padding(HiTheme.spacingLG)
-        .background(Color(.systemGray6))
-        .cornerRadius(HiTheme.radiusLG)
+        .padding(HiTheme.spacingMD)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
     }
 }
 
 #Preview {
     KeyboardSetupSheet()
 }
-

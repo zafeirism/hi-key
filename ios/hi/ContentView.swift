@@ -1,23 +1,18 @@
 import SwiftUI
 
 struct ContentView: View {
-    @ObservedObject var authManager = AuthManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
     
     var body: some View {
         Group {
-            if !authManager.isAuthenticated {
-                // User is not logged in - show login
-                LoginView()
-            } else if onboardingManager.hasCompletedOnboarding {
+            if onboardingManager.hasCompletedOnboarding {
                 // User completed onboarding - show home
-                NewHomeView()
+                HomeView()
             } else {
-                // User is logged in but hasn't completed onboarding
+                // User hasn't completed onboarding
                 OnboardingFlowView()
             }
         }
-        .animation(HiTheme.animationNormal, value: authManager.isAuthenticated)
         .animation(HiTheme.animationNormal, value: onboardingManager.hasCompletedOnboarding)
     }
 }
@@ -37,15 +32,15 @@ struct OnboardingFlowView: View {
                         removal: .opacity.combined(with: .offset(x: -50))
                     ))
                 
-            case .demo:
-                DemoGenerationView()
+            case .keyboardExplain:
+                KeyboardExplainView()
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .offset(x: 50)),
                         removal: .opacity.combined(with: .offset(x: -50))
                     ))
                 
-            case .proofPoints:
-                ProofPointsView()
+            case .referralCredits:
+                ReferralCreditsView()
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .offset(x: 50)),
                         removal: .opacity.combined(with: .offset(x: -50))
@@ -60,7 +55,7 @@ struct OnboardingFlowView: View {
                 
             case .complete:
                 // This shouldn't show, but just in case
-                NewHomeView()
+                HomeView()
                     .transition(.opacity)
             }
         }
