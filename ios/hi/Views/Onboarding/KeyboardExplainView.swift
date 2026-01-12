@@ -52,7 +52,6 @@ struct KeyboardExplainView: View {
             .padding(.horizontal, HiTheme.spacingMD)
             .padding(.bottom, HiTheme.spacingXL)
         }
-        .background(Color(.systemBackground))
     }
     
     // MARK: - Mock Keyboard Visual

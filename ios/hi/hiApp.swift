@@ -17,6 +17,9 @@ struct hiApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
+                HiTheme.onboardingGradient
+                    .ignoresSafeArea()
+            
                 ContentView()
                     .opacity(showSplash ? 0 : 1)
                 

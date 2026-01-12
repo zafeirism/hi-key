@@ -63,7 +63,6 @@ struct PaywallView: View {
             }
             .padding(HiTheme.spacingMD)
         }
-        .background(Color(.systemBackground))
         .sheet(isPresented: $showAllOptions) {
             AllOptionsSheet(
                 selectedSubscription: $allOptionsSubscription,

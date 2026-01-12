@@ -5,20 +5,11 @@ struct SplashView: View {
     
     @State private var scale: CGFloat = 0.8
     @State private var opacity: Double = 0
-    @State private var backgroundOpacity: Double = 1
     
     var body: some View {
-        ZStack {
-            // Mint background that fades out
-            HiTheme.mint
-                .ignoresSafeArea()
-                .opacity(backgroundOpacity)
-            
-            // Logo
-            HiLogoView()
-                .scaleEffect(scale)
-                .opacity(opacity)
-        }
+        HiLogoView()
+            .scaleEffect(scale)
+            .opacity(opacity)
         .onAppear {
             startAnimation()
         }
@@ -35,7 +26,6 @@ struct SplashView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             withAnimation(.easeOut(duration: 0.5)) {
                 opacity = 0
-                backgroundOpacity = 0
             }
             
             // Dismiss after animation completes

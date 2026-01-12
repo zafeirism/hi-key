@@ -41,7 +41,6 @@ struct ReferralCreditsView: View {
             .padding(.horizontal, HiTheme.spacingMD)
             .padding(.bottom, HiTheme.spacingXL)
         }
-        .background(Color(.systemBackground))
         .onAppear {
             requestReview()
         }

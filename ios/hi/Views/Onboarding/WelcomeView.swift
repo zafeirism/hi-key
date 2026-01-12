@@ -6,21 +6,18 @@ struct WelcomeView: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            
-            // Logo section
-            VStack(spacing: HiTheme.spacingLG) {
-                HiLogoView()
-                    .padding(.bottom, HiTheme.spacingMD)
-                
-                Image(systemName: "wand.and.sparkles")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.secondary)
-            }
-            
+            Spacer()
+            Spacer()
+            Spacer()
             Spacer()
             
-            // Title section
+            // Title section with app icon
             VStack(spacing: HiTheme.spacingMD) {
+                Image("watermark")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 60, height: 60)
+                
                 Text("Create images while you chat")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
@@ -33,7 +30,6 @@ struct WelcomeView: View {
             .padding(.horizontal, HiTheme.spacingLG)
             
             Spacer()
-            Spacer()
             
             // CTA Button
             Button {
@@ -45,10 +41,14 @@ struct WelcomeView: View {
             .padding(.horizontal, HiTheme.spacingMD)
             .padding(.bottom, HiTheme.spacingXL)
         }
-        .background(Color(.systemBackground))
     }
 }
 
 #Preview {
-    WelcomeView()
+    ZStack {
+        HiTheme.onboardingGradient
+            .ignoresSafeArea()
+        
+        WelcomeView()
+    }
 }

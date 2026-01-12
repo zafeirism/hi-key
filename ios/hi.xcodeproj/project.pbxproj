@@ -80,6 +80,7 @@
 		3388FD902EF2A72F001B2AA4 /* Exceptions for "hi-keyboard" folder in "hi" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
 				Models/GeneratedImage.swift,
 				Models/PromptCategories.swift,
 				Utilities/ImageLoader.swift,

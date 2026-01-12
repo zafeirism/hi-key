@@ -9,6 +9,30 @@ enum HiTheme {
     /// Primary mint color from app icon background
     static let mint = Color(hex: "CEF0C4")
     
+    // MARK: - Onboarding Gradient Colors
+    
+    /// Soft blush pink for onboarding gradient
+    static let gradientBlushPink = Color(hex: "F9D8E6")
+    
+    /// Soft lavender for onboarding gradient
+    static let gradientLavender = Color(hex: "E6DDF6")
+    
+    /// Warm peach for onboarding gradient
+    static let gradientPeach = Color(hex: "FFE6D1")
+    
+    /// Onboarding gradient background
+    static var onboardingGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                gradientBlushPink,
+                gradientLavender,
+                gradientPeach
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    
     // MARK: - Spacing
     
     static let spacingXS: CGFloat = 4
@@ -123,8 +147,8 @@ struct HiPrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .background(isEnabled ? Color(hex: "#6C63FF") : Color(hex: "#6C63FF").opacity(0.5))
+            .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
@@ -140,7 +164,7 @@ struct HiSecondaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .frame(height: 50)
             .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
@@ -182,32 +206,38 @@ struct HiLogoView: View {
 // MARK: - Preview
 
 #Preview("Theme Components") {
-    ScrollView {
-        VStack(spacing: HiTheme.spacingLG) {
-            HiLogoView()
-            
-            Text("Large Title")
-                .font(.largeTitle)
-            
-            Text("Body Text")
-                .font(.body)
-            
-            Button("Primary Button") {}
-                .buttonStyle(HiPrimaryButtonStyle())
-            
-            Button("Secondary Button") {}
-                .buttonStyle(HiSecondaryButtonStyle())
-            
-            HiCard {
-                VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
-                    Text("Card Title")
-                        .font(.headline)
-                    Text("Card description goes here")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+    ZStack {
+        // Soft gradient background
+        HiTheme.onboardingGradient
+            .ignoresSafeArea()
+        
+        ScrollView {
+            VStack(spacing: HiTheme.spacingLG) {
+                HiLogoView()
+                
+                Text("Large Title")
+                    .font(.largeTitle)
+                
+                Text("Body Text")
+                    .font(.body)
+                
+                Button("Primary Button") {}
+                    .buttonStyle(HiPrimaryButtonStyle())
+                
+                Button("Secondary Button") {}
+                    .buttonStyle(HiSecondaryButtonStyle())
+                
+                HiCard {
+                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                        Text("Card Title")
+                            .font(.headline)
+                        Text("Card description goes here")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .padding()
         }
-        .padding()
     }
 }
