@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 
 struct ReferralCreditsView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
@@ -8,80 +7,53 @@ struct ReferralCreditsView: View {
     @State private var referralCode: String = ""
     @State private var codeApplied: Bool = false
     @State private var showError: Bool = false
-    @State private var hasRequestedReview: Bool = false
-    
-    private var currentCredits: Int {
-        codeApplied ? 10 : 5
-    }
     
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
             
-            // Credits display section
-            creditsSection
-            
-            Spacer()
-            
-            // Referral entry section
-            referralSection
-            
-            Spacer()
-            Spacer()
-            
-            // Continue button
-            Button {
-                // Grant credits based on referral status
-                creditsManager.grantInitialCredits(withReferral: codeApplied)
-                onboardingManager.goToNextStep()
-            } label: {
-                Text("Continue")
-            }
-            .buttonStyle(HiPrimaryButtonStyle())
-            .padding(.horizontal, HiTheme.spacingMD)
-            .padding(.bottom, HiTheme.spacingXL)
-        }
-        .onAppear {
-            requestReview()
-        }
-    }
-    
-    // MARK: - Credits Section
-    
-    private var creditsSection: some View {
-        VStack(spacing: HiTheme.spacingMD) {
-            // Large credits number with animation
-            Text("\(currentCredits)")
-                .font(.system(size: 72, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.accentColor)
-                .contentTransition(.numericText())
-                .animation(.spring(response: 0.4), value: currentCredits)
-            
-            Text("free credits")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-            
-            Text("Each credit = 1 prompt = 4 images")
-                .font(.footnote)
-                .foregroundStyle(.tertiary)
-        }
-    }
-    
-    // MARK: - Referral Section
-    
-    private var referralSection: some View {
-        VStack(spacing: HiTheme.spacingMD) {
-            // Section header
-            VStack(spacing: HiTheme.spacingSM) {
-                Text("Got a friend code?")
-                    .font(.headline)
+            Text("Got a friend code? Enter it and you'll both get 5 free credits.")
+                .font(.title.bold())
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Text("Enter it and you both get 5 bonus credits")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
             
-            // Code entry field
+            // Middle space - input field and Apply button
+            referralInputSection
+                .padding(.vertical, HiTheme.spacingLG)
+            
+            Spacer()
+            
+            Group {
+                if codeApplied {
+                    Button {
+                        // Grant credits and continue
+                        creditsManager.grantInitialCredits(withReferral: true)
+                        onboardingManager.goToNextStep()
+                    } label: {
+                        Text("Continue")
+                    }
+                    .buttonStyle(HiPrimaryButtonStyle())
+                } else {
+                    Button {
+                        // Skip referral
+                        creditsManager.grantInitialCredits(withReferral: false)
+                        onboardingManager.goToNextStep()
+                    } label: {
+                        Text("I don't have a code")
+                    }
+                    .buttonStyle(HiSecondaryButtonStyle())
+                }
+            }
+            .padding(.bottom, HiTheme.spacingXXL)
+        }
+        .padding(.horizontal, HiTheme.spacingLG)
+    }
+    
+    // MARK: - Referral Input Section
+    
+    private var referralInputSection: some View {
+        VStack(spacing: HiTheme.spacingMD) {
             if codeApplied {
                 // Success state
                 HStack(spacing: HiTheme.spacingSM) {
@@ -105,7 +77,6 @@ struct ReferralCreditsView: View {
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                         .onChange(of: referralCode) { _, newValue in
-                            // Auto-format: uppercase and add dash after 6 chars
                             referralCode = formatReferralCode(newValue)
                             showError = false
                         }
@@ -131,11 +102,6 @@ struct ReferralCreditsView: View {
                 }
             }
         }
-        .padding(.horizontal, HiTheme.spacingLG)
-        .padding(.vertical, HiTheme.spacingLG)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
-        .padding(.horizontal, HiTheme.spacingMD)
     }
     
     // MARK: - Helpers
@@ -166,20 +132,13 @@ struct ReferralCreditsView: View {
             showError = true
         }
     }
-    
-    private func requestReview() {
-        guard !hasRequestedReview else { return }
-        hasRequestedReview = true
-        
-        // Request review after short delay (user just received free credits)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-                SKStoreReviewController.requestReview(in: scene)
-            }
-        }
-    }
 }
 
 #Preview {
-    ReferralCreditsView()
+    ZStack {
+        HiTheme.onboardingGradient
+            .ignoresSafeArea()
+        
+        ReferralCreditsView()
+    }
 }

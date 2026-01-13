@@ -118,7 +118,7 @@ extension View {
             .foregroundStyle(.primary)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
     }
     
@@ -147,7 +147,7 @@ struct HiPrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(isEnabled ? Color(hex: "#6C63FF") : Color(hex: "#6C63FF").opacity(0.5))
+            .background(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.5))
             .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -159,14 +159,25 @@ struct HiPrimaryButtonStyle: ButtonStyle {
 struct HiSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.body.weight(.medium))
-            .foregroundStyle(.primary)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+/// Tertiary button style for text-only actions (Skip, Not now, etc.)
+struct HiTertiaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .opacity(configuration.isPressed ? 0.6 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -185,7 +196,7 @@ struct HiCard<Content: View>: View {
         content
             .padding(HiTheme.spacingMD)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
     }
 }
@@ -226,6 +237,9 @@ struct HiLogoView: View {
                 
                 Button("Secondary Button") {}
                     .buttonStyle(HiSecondaryButtonStyle())
+                
+                Button("Tertiary Button") {}
+                    .buttonStyle(HiTertiaryButtonStyle())
                 
                 HiCard {
                     VStack(alignment: .leading, spacing: HiTheme.spacingSM) {

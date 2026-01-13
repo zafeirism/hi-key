@@ -36,10 +36,9 @@ struct PaywallView: View {
                     showAllOptions = true
                 } label: {
                     Text("View all options")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.accentColor)
                 }
-                .padding(.top, HiTheme.spacingMD)
+                .buttonStyle(HiTertiaryButtonStyle())
+                .padding(.top, HiTheme.spacingLG)
                 
                 Spacer()
                 Spacer()
@@ -50,7 +49,7 @@ struct PaywallView: View {
                 // Footer links
                 footerLinks
             }
-            .padding(.horizontal, HiTheme.spacingMD)
+            .padding(.horizontal, HiTheme.spacingLG)
             .padding(.bottom, HiTheme.spacingLG)
             
             // Dismiss button (soft paywall)
@@ -59,7 +58,7 @@ struct PaywallView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title)
-                    .foregroundStyle(.secondary)
+                    //.foregroundStyle(.secondary)
             }
             .padding(HiTheme.spacingMD)
         }
@@ -146,20 +145,20 @@ struct PaywallView: View {
     // MARK: - Footer
     
     private var footerLinks: some View {
-        HStack(spacing: HiTheme.spacingXL) {
+        HStack(spacing: HiTheme.spacingXXL) {
             Button("Restore Purchases") {
                 restorePurchases()
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
             
-            Button("Terms") {
+            Button("Terms & Privacy") {
                 showTerms = true
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
         }
-        .padding(.top, HiTheme.spacingMD)
+        .padding(.top, HiTheme.spacingLG)
     }
     
     // MARK: - Actions

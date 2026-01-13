@@ -32,6 +32,13 @@ struct OnboardingFlowView: View {
                         removal: .opacity.combined(with: .offset(x: -50))
                     ))
                 
+            case .hiKeyPresenter:
+                HiKeyPresenterView()
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(x: 50)),
+                        removal: .opacity.combined(with: .offset(x: -50))
+                    ))
+                
             case .keyboardExplain:
                 KeyboardExplainView()
                     .transition(.asymmetric(
@@ -41,6 +48,13 @@ struct OnboardingFlowView: View {
                 
             case .referralCredits:
                 ReferralCreditsView()
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(x: 50)),
+                        removal: .opacity.combined(with: .offset(x: -50))
+                    ))
+                
+            case .review:
+                ReviewView()
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .offset(x: 50)),
                         removal: .opacity.combined(with: .offset(x: -50))

@@ -131,7 +131,7 @@ struct KeyboardSetupSheet: View {
     
     private func openKeyboardSettings() {
         // Try to open keyboard settings directly
-        if let url = URL(string: "App-prefs:General&path=Keyboard/KEYBOARDS") {
+        if let url = URL(string: "App-prefs:root=General&path=Keyboard/KEYBOARDS") {
             if UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
                 return

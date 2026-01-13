@@ -35,7 +35,6 @@ struct HomeView: View {
                 }
                 .padding(HiTheme.spacingMD)
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("hi-key")
             .navigationBarTitleDisplayMode(.inline)
         }

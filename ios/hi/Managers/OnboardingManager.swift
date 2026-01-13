@@ -5,10 +5,12 @@ import Combine
 
 enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
-    case keyboardExplain = 1
-    case referralCredits = 2
-    case paywall = 3
-    case complete = 4
+    case hiKeyPresenter = 1
+    case keyboardExplain = 2
+    case referralCredits = 3
+    case review = 4
+    case paywall = 5
+    case complete = 6
 }
 
 // MARK: - Onboarding Manager

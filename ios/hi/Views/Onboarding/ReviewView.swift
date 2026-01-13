@@ -1,12 +1,15 @@
 import SwiftUI
+import StoreKit
 
-struct WelcomeView: View {
+struct ReviewView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
+    
+    @State private var hasRequestedReview: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
             // Title at top
-            Text("Picture this: instant AI images in all your apps.")
+            Text("Send hi-key to the stars.")
                 .font(.title.bold())
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -22,12 +25,29 @@ struct WelcomeView: View {
             Button {
                 onboardingManager.goToNextStep()
             } label: {
-                Text("Go on...")
+                Text("Continue")
             }
             .buttonStyle(HiPrimaryButtonStyle())
             .padding(.bottom, HiTheme.spacingXXL)
         }
         .padding(.horizontal, HiTheme.spacingLG)
+        .onAppear {
+            requestReview()
+        }
+    }
+    
+    // MARK: - Review Request
+    
+    private func requestReview() {
+        guard !hasRequestedReview else { return }
+        hasRequestedReview = true
+        
+        // Request review after short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: scene)
+            }
+        }
     }
 }
 
@@ -36,6 +56,6 @@ struct WelcomeView: View {
         HiTheme.onboardingGradient
             .ignoresSafeArea()
         
-        WelcomeView()
+        ReviewView()
     }
 }
