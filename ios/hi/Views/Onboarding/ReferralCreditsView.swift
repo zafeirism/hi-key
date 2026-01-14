@@ -7,6 +7,7 @@ struct ReferralCreditsView: View {
     @State private var referralCode: String = ""
     @State private var codeApplied: Bool = false
     @State private var showError: Bool = false
+    @State private var isProcessing: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -54,33 +55,35 @@ struct ReferralCreditsView: View {
     
     private var referralInputSection: some View {
         VStack(spacing: HiTheme.spacingMD) {
-            if codeApplied {
-                // Success state
-                HStack(spacing: HiTheme.spacingSM) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Code applied! +5 credits")
-                        .foregroundStyle(.green)
-                }
-                .font(.body.weight(.medium))
-                .padding(.vertical, HiTheme.spacingMD)
-            } else {
-                // Entry state
-                HStack(spacing: HiTheme.spacingSM) {
+            HStack(spacing: HiTheme.spacingSM) {
+                HStack {
                     TextField("FRIEND-CODE", text: $referralCode)
                         .textFieldStyle(.plain)
                         .font(.body.monospaced())
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
-                        .padding(.horizontal, HiTheme.spacingMD)
-                        .padding(.vertical, HiTheme.spacingSM)
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-                        .onChange(of: referralCode) { _, newValue in
-                            referralCode = formatReferralCode(newValue)
-                            showError = false
-                        }
+                        .disabled(codeApplied) //.disabled(codeApplied || isProcessing)
                     
+                    if codeApplied {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .transition(.scale.combined(with: .opacity))
+                    } else if isProcessing {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .padding(.horizontal, HiTheme.spacingMD)
+                .padding(.vertical, HiTheme.spacingSM)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+                .onChange(of: referralCode) { _, newValue in
+                    referralCode = formatReferralCode(newValue)
+                    showError = false
+                }
+                
+                if !codeApplied && !isProcessing {
                     Button {
                         applyCode()
                     } label: {
@@ -94,13 +97,12 @@ struct ReferralCreditsView: View {
                     }
                     .disabled(!isValidFormat)
                 }
-                
-                if showError {
-                    Text("Invalid code format. Try again.")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
             }
+            
+            Text("Invalid code. Try again.")
+                .font(.caption)
+                .foregroundStyle(.red)
+                .opacity(showError ? 1.0 : 0.001)
         }
     }
     
@@ -124,12 +126,25 @@ struct ReferralCreditsView: View {
     }
     
     private func applyCode() {
-        if onboardingManager.applyReferralCode(referralCode) {
-            withAnimation(.spring(response: 0.4)) {
-                codeApplied = true
+        guard isValidFormat else { return }
+        
+        isProcessing = true
+        showError = false
+        
+        let generator = UINotificationFeedbackGenerator()
+        // Fake API call - 2 seconds delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            if onboardingManager.applyReferralCode(referralCode) {
+                generator.notificationOccurred(.success)
+                withAnimation(.spring(response: 0.4)) {
+                    isProcessing = false
+                    codeApplied = true
+                }
+            } else {
+                generator.notificationOccurred(.error)
+                isProcessing = false
+                showError = true
             }
-        } else {
-            showError = true
         }
     }
 }

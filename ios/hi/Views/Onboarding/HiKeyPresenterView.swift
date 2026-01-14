@@ -8,11 +8,18 @@ struct HiKeyPresenterView: View {
     @State private var isAnimationComplete: Bool = false
     @State private var textChangeTasks: [DispatchWorkItem] = []
     
-    private let textStates = [
-        "Meet hi-key.",
-        "It lives behind the globe, so you can use it in any app.",
-        "Describe a scene. Get multiple images. Paste instantly.",
-        "Oh, and it's fast. So you can capture the moment."
+//    private let textStates = [
+//        "Meet hi-key.",
+//        "It lives behind the globe, so you can use it in any app.",
+//        "Describe a scene. Get multiple images. Paste instantly.",
+//        "Oh, and it's fast. So you can capture the moment."
+//    ]
+    
+    private let textStates: [(startWith: String, startWithAccent: Bool, endWith: String, endWithAccent: Bool)] = [
+        (startWith: "Meet ", startWithAccent: false, endWith: "hi-key.", endWithAccent: true),
+        (startWith: "It lives behind the globe", startWithAccent: true, endWith: ", so you can use it in any app.", endWithAccent: false),
+        (startWith: "Describe a scene. Get multiple images. ", startWithAccent: false, endWith: "Paste instantly.", endWithAccent: true),
+        (startWith: "Oh, and it's fast", startWithAccent: true, endWith: ". So you can capture the moment.", endWithAccent: false),
     ]
     
     private let animationDuration: TimeInterval = 16.0
@@ -25,18 +32,20 @@ struct HiKeyPresenterView: View {
     }
     
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.1)) { timeline in
+        TimelineView(.periodic(from: .now, by: 0.03)) { timeline in
             VStack(spacing: 0) {
-                // Progress bar at top center
+                
                 progressBar
                     .padding(.top, HiTheme.spacingXL)
                 
-                // Title text (under progress bar)
-                Text(textStates[currentTextIndex])
-                    .font(.title.bold())
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingXXL)
+                (Text(textStates[currentTextIndex].startWith)
+                    .foregroundColor(textStates[currentTextIndex].startWithAccent ? .accent : .primary) +
+                 Text(textStates[currentTextIndex].endWith)
+                    .foregroundColor(textStates[currentTextIndex].endWithAccent ? .accent : .primary))
+                .font(.title.bold())
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, HiTheme.spacingXXL)
                 
                 Spacer()
                 
@@ -94,7 +103,7 @@ struct HiKeyPresenterView: View {
                 
                 // Progress fill
                 Capsule()
-                    .fill(Color.accentColor)
+                    .fill(Color.primary.opacity(0.1))
                     .frame(width: width * progress, height: 4)
             }
             .frame(maxWidth: .infinity)

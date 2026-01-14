@@ -42,15 +42,6 @@ struct KeyboardExplainView: View {
     // MARK: - Actions
     
     private func openKeyboardSettings() {
-        // Try to open keyboard settings directly
-        if let url = URL(string: "App-prefs:root=General&path=Keyboard/KEYBOARDS") {
-            if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url)
-                return
-            }
-        }
-        
-        // Fallback to app settings
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }

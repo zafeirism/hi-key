@@ -6,7 +6,7 @@ struct WelcomeView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Title at top
-            Text("Picture this: instant AI images in all your apps.")
+            (Text("Picture this: instant AI images ") + Text("in all your apps.").foregroundColor(.accentColor))
                 .font(.title.bold())
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
