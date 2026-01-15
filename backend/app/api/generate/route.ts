@@ -120,7 +120,7 @@ export const POST = withAuth(async (request, user) => {
   // 4. Create signed urls for all 4 images and return to the client
   const signedUrls = await Promise.all(
     generationIds.map((id, idx) =>
-      getSignedImageUrl(getKey(user.id, id, imageModels[idx]?.outputFormat || 'jpg'))
+      getSignedImageUrl(getKey(user.id, id, imageModels[idx]?.outputFormat || 'webp'))
     )
   );
 
