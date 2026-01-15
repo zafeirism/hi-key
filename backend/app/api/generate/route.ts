@@ -49,7 +49,7 @@ export const POST = withAuth(async (request, user) => {
     created_at: requestStartedAt.toISOString(),
     user_prompt: prompt,
     model: imageModels[idx]?.id,
-    file_extension: imageModels[idx]?.outputFormat || 'jpg', // this is hardcoded to jpg for background generations
+    file_extension: imageModels[idx]?.outputFormat,
     cost_usd_mills: imageModels[idx]?.costPerImage,
     status: (imageModels[idx] ? 'generating' : 'initializing') as GenerationStatus,
     generation_started_at: imageModels[idx] ? new Date().toISOString() : null,

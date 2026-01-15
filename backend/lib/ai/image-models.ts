@@ -5,6 +5,7 @@ export enum ImageModelsEnum {
   FLUX_2_DEV = 'flux-2-dev',
   FLUX_2_PRO = 'flux-2-pro',
   FLUX_2_PRO_UPSAMPLED = 'flux-2-pro-upsampled',
+  FLUX_2_KLEIN = 'flux-2-klein',
 }
 
 export function pickModelRandomly(models: ImageModelsEnum[]): ImageModelsEnum {
@@ -63,6 +64,18 @@ export const IMAGE_MODEL_SETUPS: Record<ImageModelsEnum, ImageModelSetup> = {
       prompt: prompt,
       output_format: 'webp',
       prompt_upsampling: true,
+    }),
+  },
+  [ImageModelsEnum.FLUX_2_KLEIN]: {
+    id: ImageModelsEnum.FLUX_2_KLEIN,
+    model: 'black-forest-labs/flux-2-klein-4b',
+    avgDuration: 1000,
+    costPerImage: 1,
+    supportsText: false,
+    outputFormat: 'webp',
+    getInputParams: (prompt: string) => ({
+      prompt: prompt,
+      output_format: 'webp',
     }),
   },
 };

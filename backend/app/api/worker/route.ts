@@ -36,7 +36,15 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const upsampledPrompt = await upsamplePrompt(generation.user_prompt!);
   const upsamplingDurationMs = Date.now() - upsamplingStartedAt;
 
-  const model = ImageModelsEnum.FLUX_2_DEV;
+  const model =
+    upsampledPrompt.user_phrases.length > 0
+      ? ImageModelsEnum.FLUX_2_DEV
+      : ImageModelsEnum.FLUX_2_KLEIN;
+  if (model === ImageModelsEnum.FLUX_2_KLEIN) {
+    upsampledPrompt.improved_prompt = upsampledPrompt.improved_prompt.concat(
+      '. Do not include any text in the image.'
+    );
+  }
 
   const generationStartedAt = new Date();
   await generateImage(model, {
@@ -50,6 +58,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
       improved_prompt: upsampledPrompt.improved_prompt,
       text_in_image: upsampledPrompt.user_phrases,
       model,
+      file_extension: IMAGE_MODEL_SETUPS[model].outputFormat,
       cost_usd_mills: IMAGE_MODEL_SETUPS[model].costPerImage,
       status: 'generating' as GenerationStatus,
       upsampling_duration_ms: upsamplingDurationMs,
