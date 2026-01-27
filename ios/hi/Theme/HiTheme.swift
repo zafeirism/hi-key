@@ -56,6 +56,7 @@ enum HiTheme {
     static let animationNormal: Animation = .easeInOut(duration: 0.3)
     static let animationSlow: Animation = .easeInOut(duration: 0.5)
     static let animationSpring: Animation = .spring(response: 0.4, dampingFraction: 0.8)
+    //static let animationFadeIn: Animation = .
 }
 
 // MARK: - Scaled Metric for Logo
