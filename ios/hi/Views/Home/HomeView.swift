@@ -3,40 +3,75 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    
+
     @State private var showKeyboardSetup: Bool = false
     @State private var showReferralCode: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showSettings: Bool = false
     @State private var keyboardStatus: KeyboardStatus = .checking
-    
+
     // For AllOptionsSheet
     @State private var selectedSubscription: SubscriptionTier? = nil
     @State private var selectedPack: CreditPack? = nil
-    
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: HiTheme.spacingMD) {
-                    // Credits header
-                    creditsHeader
-                    
-                    // Share & Earn card
-                    shareAndEarnCard
-                    
-                    // Keyboard status card
-                    keyboardStatusCard
-                    
-                    // Subscription status card
-                    subscriptionStatusCard
-                    
-                    // Settings card
-                    settingsCard
+        ZStack {
+            HiTheme.backgroundRoot
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header row with settings and help
+                headerRow
+                    .padding(.horizontal, HiTheme.spacingMD)
+                    .padding(.top, HiTheme.spacingMD)
+                    .padding(.bottom, HiTheme.spacingMD)
+
+                // Main scrollable content
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Welcome title
+                        Text("Welcome to hi-key")
+                            .font(.system(.title, design: .rounded, weight: .semibold))
+                            .foregroundStyle(HiTheme.textPrimary)
+                            .padding(.top, HiTheme.spacingXS)
+                            .padding(.horizontal, HiTheme.spacingSM)
+
+                        // Credits card
+                        creditsCard
+                            .padding(.top, HiTheme.spacingXL)
+
+                        // Invite friends card
+                        inviteFriendsCard
+                            .padding(.top, HiTheme.spacingLG)
+                    }
+                    .padding(.horizontal, HiTheme.spacingMD)
+
+                    Spacer(minLength: HiTheme.spacingXL * 2)
+
+                    Text("Open any chat or app, switch \nkeyboards and send a hi.")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(HiTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+
+                    Spacer(minLength: HiTheme.spacingXL)
                 }
-                .padding(HiTheme.spacingMD)
+
+                // Bottom footer (fixed outside scroll)
+                Button {
+                    showKeyboardSetup = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("How to enable hi-key")
+                            .font(.subheadline.weight(.medium))
+                        Image(systemName: "arrow.right")
+                            .font(.caption.weight(.medium))
+                    }
+                    .foregroundStyle(HiTheme.textSecondary)
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.vertical, HiTheme.spacingMD)
             }
-            .navigationTitle("hi-key")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .sheet(isPresented: $showKeyboardSetup) {
             KeyboardSetupSheet()
@@ -53,252 +88,175 @@ struct HomeView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
-        .onAppear {
-            checkKeyboardStatus()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            checkKeyboardStatus()
-        }
     }
-    
-    // MARK: - Credits Header
-    
-    private var creditsHeader: some View {
-        HiCard {
-            VStack(spacing: HiTheme.spacingSM) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("\(creditsManager.credits)")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.accentColor)
-                    
-                    Text("credits")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Text("1 credit = 1 prompt = 4 images")
-                    .font(.footnote)
-                    .foregroundStyle(.tertiary)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
-    
-    // MARK: - Share & Earn Card
-    
-    private var shareAndEarnCard: some View {
-        HiCard {
-            if let code = creditsManager.referralCode {
-                // Has code - show it
-                VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-                    HStack {
-                        Image(systemName: "gift.fill")
-                            .foregroundStyle(Color.accentColor)
-                        Text("Your referral code")
-                            .font(.headline)
-                    }
-                    
-                    HStack {
-                        Text(code)
-                            .font(.body.monospaced().bold())
-                        
-                        Spacer()
-                        
-                        Button {
-                            copyCode(code)
-                        } label: {
-                            Image(systemName: "doc.on.doc")
-                                .foregroundStyle(Color.accentColor)
-                        }
-                        
-                        ShareLink(item: shareText(code: code)) {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundStyle(Color.accentColor)
-                        }
-                    }
-                    
-                    Text("You earn 5 credits when friends use your code")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                // No code - prompt to create
-                VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-                    HStack {
-                        Image(systemName: "gift.fill")
-                            .foregroundStyle(Color.accentColor)
-                        Text("Invite friends, earn credits")
-                            .font(.headline)
-                    }
-                    
-                    Text("Get 5 free credits for each friend who joins")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    Button {
-                        showReferralCode = true
-                    } label: {
-                        Text("Get Started")
-                            .font(.subheadline.weight(.medium))
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
-        }
-    }
-    
-    // MARK: - Keyboard Status Card
-    
-    private var keyboardStatusCard: some View {
-        Button {
-            if keyboardStatus != .ready {
-                showKeyboardSetup = true
-            }
-        } label: {
-            HiCard {
-                HStack(spacing: HiTheme.spacingMD) {
-                    // Status icon
-                    Group {
-                        switch keyboardStatus {
-                        case .checking:
-                            ProgressView()
-                        case .notInstalled, .noFullAccess:
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                        case .ready:
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        }
-                    }
+
+    // MARK: - Header Row
+
+    private var headerRow: some View {
+        HStack {
+            // Settings button (left)
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
                     .font(.title2)
-                    .frame(width: 32)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Keyboard")
-                            .font(.headline)
-                        Text(keyboardStatus.description)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if keyboardStatus != .ready {
-                        Text("Setup")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.accentColor)
-                        Image(systemName: "chevron.right")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                    .foregroundStyle(HiTheme.iconDefault)
+                    .frame(width: 40, height: 40)
+                    .background(HiTheme.divider)
+                    .clipShape(Circle())
+            }
+
+            Spacer()
+
+            // Help button (right)
+            Button {
+                showKeyboardSetup = true
+            } label: {
+                Image(systemName: "questionmark.circle")
+                    .font(.title2)
+                    .foregroundStyle(HiTheme.iconDefault)
+                    .frame(width: 40, height: 40)
+                    .background(HiTheme.divider)
+                    .clipShape(Circle())
             }
         }
-        .buttonStyle(.plain)
     }
-    
-    // MARK: - Subscription Status Card
-    
-    private var subscriptionStatusCard: some View {
+
+    // MARK: - Credits Card
+
+    private var creditsCard: some View {
+        HiCard {
+            VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                // Top row: icon + credits + badge
+                HStack(spacing: HiTheme.spacingSM) {
+                    Image(systemName: "creditcard")
+                        .font(.title2.weight(.medium))
+                        .foregroundStyle(HiTheme.iconDefault)
+
+                    Text("You've got ")
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(HiTheme.textPrimary)
+                    +
+                    Text("\(creditsManager.credits) credits")
+                        .font(.body.weight(.heavy))
+                        .foregroundStyle(HiTheme.textPrimary)
+
+                    Spacer()
+
+                    // Plan badge
+                    Text(creditsManager.subscriptionTier.displayName.uppercased())
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(HiTheme.textPrimary)
+                        .padding(.horizontal, HiTheme.spacingSM)
+                        .padding(.vertical, HiTheme.spacingXS)
+                        .background(creditsManager.subscriptionTier == .none ? HiTheme.surfaceSecondary : HiTheme.accentSecondary.opacity(0.7))
+                        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                                .stroke(creditsManager.subscriptionTier == .none ? HiTheme.divider : Color.clear, lineWidth: 1)
+                        )
+                }
+
+                // Subtitle
+                Text("Buy one-time credit packs or \nsubscribe for auto-renew")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(HiTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    
+                    
+                // Top-up button
+                Button {
+                    showAllOptions = true
+                } label: {
+                    Text("Top-up credits")
+                }
+                .buttonStyle(HiSecondaryButtonStyle())
+                .padding(.top, HiTheme.spacingLG)
+            }
+        }
+    }
+
+    // MARK: - Invite Friends Card
+
+    private var inviteFriendsCard: some View {
         Button {
-            showAllOptions = true
+            showReferralCode = true
         } label: {
             HiCard {
-                HStack(spacing: HiTheme.spacingMD) {
-                    Image(systemName: subscriptionIcon)
-                        .font(.title2)
-                        .foregroundStyle(Color.accentColor)
-                        .frame(width: 32)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(subscriptionTitle)
-                            .font(.headline)
-                        Text(subscriptionSubtitle)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                HStack{
+                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                        HStack(spacing: HiTheme.spacingSM) {
+                            Image(systemName: "person.2")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(HiTheme.iconDefault)
+                            
+                            Text("Invite friends")
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(HiTheme.textPrimary)
+                        }
+                        
+                        Text("Get 5 free credits for \nevery friend who joins")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
-                    
                     Spacer()
                     
+                    // Chevron in circular background
                     Image(systemName: "chevron.right")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.body)
+                        .foregroundStyle(HiTheme.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(HiTheme.divider)
+                        .clipShape(Circle())
                 }
             }
         }
         .buttonStyle(.plain)
     }
-    
-    private var subscriptionIcon: String {
-        creditsManager.subscriptionTier == .none ? "star" : "star.fill"
-    }
-    
-    private var subscriptionTitle: String {
-        creditsManager.subscriptionTier == .none ? "Free tier" : creditsManager.subscriptionTier.displayName
-    }
-    
-    private var subscriptionSubtitle: String {
-        creditsManager.subscriptionTier == .none ? "Tap to view plans" : "Tap to manage"
-    }
-    
-    // MARK: - Settings Card
-    
-    private var settingsCard: some View {
-        Button {
-            showSettings = true
-        } label: {
-            HiCard {
-                HStack(spacing: HiTheme.spacingMD) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 32)
-                    
-                    Text("Settings")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+
+    // MARK: - Bottom Instructions
+
+    private var bottomInstructions: some View {
+        VStack(spacing: HiTheme.spacingSM) {
+            Text("Open any chat or app, switch keyboards and send a hi.")
+                .font(.subheadline)
+                .foregroundStyle(HiTheme.textSecondary)
+                .multilineTextAlignment(.center)
+
+            Button {
+                showKeyboardSetup = true
+            } label: {
+                HStack(spacing: 4) {
+                    Text("How to enable hi-key")
+                        .font(.subheadline.weight(.medium))
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
                 }
+                .foregroundStyle(HiTheme.accentPrimary)
             }
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
-    
+
     // MARK: - Helpers
-    
+
     private func checkKeyboardStatus() {
         keyboardStatus = .checking
-        
+
         let keyboardBundleID = "ai.hi-key.hi.hi-keyboard"
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             let activeInputModes = UITextInputMode.activeInputModes
             let isKeyboardEnabled = activeInputModes.contains { mode in
                 (mode.value(forKey: "identifier") as? String) == keyboardBundleID
             }
-            
+
             if isKeyboardEnabled {
                 keyboardStatus = .ready
             } else {
                 keyboardStatus = .notInstalled
-                // Auto-show setup if not installed
-                showKeyboardSetup = true
             }
         }
-    }
-    
-    private func copyCode(_ code: String) {
-        UIPasteboard.general.string = code
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-    }
-    
-    private func shareText(code: String) -> String {
-        "Try hi-key! Generate AI images right from your keyboard. Use my code \(code) and we both get 5 free credits!"
     }
 }
 
@@ -309,7 +267,7 @@ enum KeyboardStatus {
     case notInstalled
     case noFullAccess
     case ready
-    
+
     var description: String {
         switch self {
         case .checking:

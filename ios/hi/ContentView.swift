@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    
+
     var body: some View {
         Group {
             if onboardingManager.hasCompletedOnboarding {

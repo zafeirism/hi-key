@@ -10,10 +10,10 @@ struct HiKeyPresenterView: View {
     @State private var isLottieFinished = false
     
     private let textStates: [(startWith: String, startWithAccent: Bool, endWith: String, endWithAccent: Bool)] = [
-        (startWith: "Meet ", startWithAccent: false, endWith: "hi-key.", endWithAccent: true),
-        (startWith: "It lives behind the globe", startWithAccent: true, endWith: " so you can use it in any app.", endWithAccent: false),
-        (startWith: "Describe a scene and get a few images ", startWithAccent: false, endWith: "instantly.", endWithAccent: true),
-        (startWith: "So the moment ", startWithAccent: false, endWith: "hits right.", endWithAccent: true),
+        (startWith: "Meet ", startWithAccent: false, endWith: "hi-key", endWithAccent: true),
+        (startWith: "It's a keyboard and", startWithAccent: false, endWith: " it works in any app", endWithAccent: true),
+        (startWith: "Describe a scene and get a few images ", startWithAccent: false, endWith: "instantly", endWithAccent: true),
+        (startWith: "Images fast enough to", startWithAccent: false, endWith: " send in the moment", endWithAccent: true),
     ]
     
     private let textAlignment: [Alignment] = [.center, .leading, .leading, .leading]
@@ -33,7 +33,7 @@ struct HiKeyPresenterView: View {
         TextCue(at: 13, stateIndex: nil), // another gap
         TextCue(at: 14, stateIndex: 2),
         TextCue(at: 19.5, stateIndex: nil),
-        TextCue(at: 23.3, stateIndex: 3)
+        TextCue(at: 23, stateIndex: 3)
     ]
 
     private var progress: Double {
@@ -61,10 +61,11 @@ struct HiKeyPresenterView: View {
                     
                     if let index = currentTextIndex {
                         (Text(textStates[index].startWith)
-                            .foregroundColor(textStates[index].startWithAccent ? .accent : .primary) +
+                            .foregroundColor(textStates[index].startWithAccent ? HiTheme.accentSecondary : HiTheme.textPrimary) +
                          Text(textStates[index].endWith)
-                            .foregroundColor(textStates[index].endWithAccent ? .accent : .primary))
-                        .font(.title.bold())
+                            .foregroundColor(textStates[index].endWithAccent ? HiTheme.accentSecondary : HiTheme.textPrimary) +
+                         Text(".").foregroundColor(HiTheme.textPrimary))
+                        .font(.system(.title, design: .rounded, weight: .semibold))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: textAlignment[index])
                         .padding(.top, HiTheme.spacingXL)
@@ -83,7 +84,7 @@ struct HiKeyPresenterView: View {
                             Button {
                                 onboardingManager.goToNextStep()
                             } label: {
-                                Text("Try it")
+                                Text("Try it now")
                             }
                             .buttonStyle(HiPrimaryButtonStyle())
                             .transition(.opacity.combined(with: .scale))
@@ -163,7 +164,7 @@ struct HiKeyPresenterView: View {
 
 #Preview {
     ZStack {
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
         
         HiKeyPresenterView()

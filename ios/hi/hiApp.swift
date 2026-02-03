@@ -17,7 +17,7 @@ struct hiApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                HiTheme.onboardingGradient
+                HiTheme.backgroundRoot
                     .ignoresSafeArea()
             
                 ContentView()
@@ -29,6 +29,7 @@ struct hiApp: App {
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: showSplash)
+            .preferredColorScheme(.dark)
         }
     }
     

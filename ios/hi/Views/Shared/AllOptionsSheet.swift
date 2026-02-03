@@ -16,21 +16,21 @@ struct AllOptionsSheet: View {
                 VStack(spacing: HiTheme.spacingLG) {
                     // Subscriptions section
                     subscriptionsSection
-                    
+
                     // One-time packs section
                     packsSection
-                    
+
                     // Purchase button
                     if selectedSubscription != nil || selectedPack != nil {
                         purchaseButton
                     }
-                    
+
                     // Footer links
                     footerLinks
                 }
                 .padding(HiTheme.spacingMD)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(HiTheme.backgroundRoot)
             .navigationTitle("All Plans")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -38,6 +38,7 @@ struct AllOptionsSheet: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
         }
@@ -47,13 +48,13 @@ struct AllOptionsSheet: View {
     }
     
     // MARK: - Subscriptions Section
-    
+
     private var subscriptionsSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
             Text("Subscriptions")
                 .font(.headline)
-                .foregroundStyle(.secondary)
-            
+                .foregroundStyle(HiTheme.textSecondary)
+
             VStack(spacing: HiTheme.spacingSM) {
                 ForEach(SubscriptionTier.allCases.filter { $0 != .none }, id: \.self) { tier in
                     SubscriptionOptionCard(
@@ -69,15 +70,15 @@ struct AllOptionsSheet: View {
             }
         }
     }
-    
+
     // MARK: - Packs Section
-    
+
     private var packsSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
             Text("Credit Packs")
                 .font(.headline)
-                .foregroundStyle(.secondary)
-            
+                .foregroundStyle(HiTheme.textSecondary)
+
             VStack(spacing: HiTheme.spacingSM) {
                 ForEach(CreditPack.allCases, id: \.self) { pack in
                     PackOptionCard(
@@ -120,20 +121,20 @@ struct AllOptionsSheet: View {
     }
     
     // MARK: - Footer Links
-    
+
     private var footerLinks: some View {
         HStack(spacing: HiTheme.spacingXL) {
             Button("Restore Purchases") {
                 restorePurchases()
             }
             .font(.footnote)
-            .foregroundStyle(.secondary)
-            
+            .foregroundStyle(HiTheme.textSecondary)
+
             Button("Terms & Privacy") {
                 showTerms = true
             }
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(HiTheme.textSecondary)
         }
         .padding(.top, HiTheme.spacingMD)
     }
@@ -174,7 +175,7 @@ private struct SubscriptionOptionCard: View {
     let isSelected: Bool
     let isCurrent: Bool
     let onSelect: () -> Void
-    
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: HiTheme.spacingMD) {
@@ -182,54 +183,56 @@ private struct SubscriptionOptionCard: View {
                     HStack {
                         Text(tier.displayName)
                             .font(.headline)
-                        
+                            .foregroundStyle(HiTheme.textPrimary)
+
                         if tier == .pro {
                             Text("BEST")
                                 .font(.caption2.bold())
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HiTheme.backgroundRoot)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.accentColor)
+                                .background(HiTheme.accentPrimary)
                                 .clipShape(Capsule())
                         }
-                        
+
                         if isCurrent {
                             Text("CURRENT")
                                 .font(.caption2.bold())
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(HiTheme.textSecondary)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemGray5))
+                                .background(HiTheme.surfaceSecondary)
                                 .clipShape(Capsule())
                         }
                     }
-                    
+
                     Text("\(tier.monthlyPrompts) prompts/month")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
+                        .foregroundStyle(HiTheme.textSecondary)
+
                     if tier == .pro {
                         Text("No watermark • Early features")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textTertiary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Text(tier.price)
                     .font(.headline)
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
                     .font(.title2)
             }
             .padding(HiTheme.spacingMD)
-            .background(Color(.systemBackground))
+            .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? HiTheme.accentPrimary : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -244,34 +247,36 @@ private struct PackOptionCard: View {
     let pack: CreditPack
     let isSelected: Bool
     let onSelect: () -> Void
-    
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: HiTheme.spacingMD) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(pack.displayName)
                         .font(.headline)
-                    
+                        .foregroundStyle(HiTheme.textPrimary)
+
                     Text("\(pack.credits) credits • One-time")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(HiTheme.textSecondary)
                 }
-                
+
                 Spacer()
-                
+
                 Text(pack.price)
                     .font(.headline)
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
                     .font(.title2)
             }
             .padding(HiTheme.spacingMD)
-            .background(Color(.systemBackground))
+            .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? HiTheme.accentPrimary : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -282,31 +287,34 @@ private struct PackOptionCard: View {
 
 struct TermsSheet: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: HiTheme.spacingLG) {
                     Text("Terms of Service")
                         .font(.title2.bold())
-                    
+                        .foregroundStyle(HiTheme.textPrimary)
+
                     Text(termsText)
                         .font(.body)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(HiTheme.textSecondary)
                 }
                 .padding(HiTheme.spacingLG)
             }
+            .background(HiTheme.backgroundRoot)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
         }
     }
-    
+
     private var termsText: String {
         """
         By subscribing to hi-key, you agree to the following terms:

@@ -1,37 +1,55 @@
 import SwiftUI
 
 // MARK: - Hi Theme
-// iOS 26 Liquid Glass design language with Dynamic Type support
+// Dark-first, accent-sparse design system with Dynamic Type support
 
 enum HiTheme {
-    // MARK: - Brand Colors
-    
+    // MARK: - Brand Colors (Legacy - for keyboard extension compatibility)
+
     /// Primary mint color from app icon background
     static let mint = Color(hex: "CEF0C4")
-    
-    // MARK: - Onboarding Gradient Colors
-    
-    /// Soft blush pink for onboarding gradient
-    static let gradientBlushPink = Color(hex: "F9D8E6")
-    
-    /// Soft lavender for onboarding gradient
-    static let gradientLavender = Color(hex: "E6DDF6")
-    
-    /// Warm peach for onboarding gradient
-    static let gradientPeach = Color(hex: "FFE6D1")
-    
-    /// Onboarding gradient background
-    static var onboardingGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                gradientBlushPink,
-                gradientLavender,
-                gradientPeach
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
+
+    // MARK: - Base/Surface Colors (Dark Mode)
+
+    /// App background - darkest
+    static let backgroundRoot = Color(hex: "0F1115")
+
+    /// Cards, sheets, modals
+    static let surfacePrimary = Color(hex: "171A20")
+
+    /// Grouped items, nested cards
+    static let surfaceSecondary = Color(hex: "1E222B")
+
+    /// Separators, outlines
+    static let divider = Color(hex: "2A2F3A")
+
+    // MARK: - Text & Icon Colors
+
+    /// Titles, main copy
+    static let textPrimary = Color(hex: "E6E8EC")
+
+    /// Descriptions, hints
+    static let textSecondary = Color(hex: "9AA1AD")
+
+    /// Disabled states
+    static let textTertiary = Color(hex: "6E7482")
+
+    /// Icon default color
+    static let iconDefault = Color(hex: "C7CBD4")
+
+    // MARK: - Accent Colors
+
+    /// CTA, success - lime/yellow-green
+    static let accentPrimary = Color(hex: "E4FF97")
+
+    /// AI/creative moments - purple
+    static let accentSecondary = Color(hex: "B48CFF")
+
+    // MARK: - Status Colors
+
+    static let statusError = Color(hex: "FF6B6B")
+    static let statusWarning = Color(hex: "FFB86B")
+    static let statusInfo = Color(hex: "6EA8FF")
     
     // MARK: - Spacing
     
@@ -101,35 +119,39 @@ extension Color {
 // MARK: - View Extensions
 
 extension View {
-    /// Primary action button style - full width, prominent
+    /// Primary action button style - full width, solid accent background
     func hiPrimaryButtonStyle() -> some View {
         self
             .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(HiTheme.backgroundRoot)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(Color.accentColor)
+            .background(HiTheme.accentPrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
     }
-    
-    /// Secondary button style - full width, subtle
+
+    /// Secondary button style - full width, outlined with accent border
     func hiSecondaryButtonStyle() -> some View {
         self
-            .font(.body.weight(.medium))
-            .foregroundStyle(.primary)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(HiTheme.accentPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(.regularMaterial)
+            .background(Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .overlay(
+                RoundedRectangle(cornerRadius: HiTheme.radiusMD)
+                    .stroke(HiTheme.accentPrimary, lineWidth: 1.5)
+            )
     }
-    
-    /// Card style with Liquid Glass material background
+
+    /// Card style with dark surface background
     func hiCardStyle() -> some View {
         self
-            .background(.ultraThinMaterial)
+            .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
     }
-    
+
     /// Standard content padding
     func hiPadding() -> some View {
         self.padding(.horizontal, HiTheme.spacingMD)
@@ -138,17 +160,17 @@ extension View {
 
 // MARK: - Button Styles
 
-/// Primary button style for main CTAs
+/// Primary button style for main CTAs - solid accent background with dark text
 struct HiPrimaryButtonStyle: ButtonStyle {
     var isEnabled: Bool = true
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(HiTheme.backgroundRoot)
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(isEnabled ? Color.accentColor : Color.accentColor.opacity(0.5))
+            .frame(height: 48)
+            .background(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
             .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -156,17 +178,23 @@ struct HiPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// Secondary button style for less prominent actions
+/// Secondary button style - outlined with accent border
 struct HiSecondaryButtonStyle: ButtonStyle {
+    var isEnabled: Bool = true
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(.regularMaterial)
+            .frame(height: 48)
+            .background(Color.clear)
             .clipShape(Capsule())
-            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .overlay(
+                Capsule()
+                    .stroke(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5), lineWidth: 1)
+            )
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
@@ -177,7 +205,7 @@ struct HiTertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(HiTheme.accentPrimary)
             .opacity(configuration.isPressed ? 0.6 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
@@ -188,17 +216,18 @@ struct HiTertiaryButtonStyle: ButtonStyle {
 /// Reusable card view for home screen sections
 struct HiCard<Content: View>: View {
     let content: Content
-    
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
-    
+
     var body: some View {
         content
             .padding(HiTheme.spacingMD)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial)
+            .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
+            .overlay(RoundedRectangle(cornerRadius: HiTheme.radiusLG).stroke(HiTheme.divider, lineWidth: 1))
     }
 }
 
@@ -217,40 +246,70 @@ struct HiLogoView: View {
 
 // MARK: - Preview
 
-#Preview("Theme Components") {
+#Preview("Theme Components - Dark") {
     ZStack {
-        // Soft gradient background
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
-        
+
         ScrollView {
             VStack(spacing: HiTheme.spacingLG) {
                 HiLogoView()
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Text("Large Title")
                     .font(.largeTitle)
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Text("Body Text")
                     .font(.body)
-                
+                    .foregroundStyle(HiTheme.textSecondary)
+
                 Button("Primary Button") {}
                     .buttonStyle(HiPrimaryButtonStyle())
-                
+
                 Button("Secondary Button") {}
                     .buttonStyle(HiSecondaryButtonStyle())
-                
+
                 Button("Tertiary Button") {}
                     .buttonStyle(HiTertiaryButtonStyle())
-                
+
                 HiCard {
                     VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
                         Text("Card Title")
                             .font(.headline)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Text("Card description goes here")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
+            }
+            .padding()
+        }
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Theme Components - Onboarding") {
+    ZStack {
+        HiTheme.backgroundRoot
+            .ignoresSafeArea()
+
+        ScrollView {
+            VStack(spacing: HiTheme.spacingLG) {
+                HiLogoView()
+
+                Text("Large Title")
+                    .font(.largeTitle)
+
+                Text("Body Text")
+                    .font(.body)
+
+                Button("Primary Button") {}
+                    .buttonStyle(HiPrimaryButtonStyle())
+
+                Button("Secondary Button") {}
+                    .buttonStyle(HiSecondaryButtonStyle())
             }
             .padding()
         }

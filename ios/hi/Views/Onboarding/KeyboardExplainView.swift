@@ -50,7 +50,7 @@ struct KeyboardExplainView: View {
 
 #Preview {
     ZStack {
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
         
         KeyboardExplainView()

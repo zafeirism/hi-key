@@ -2,14 +2,20 @@ import SwiftUI
 
 struct SplashView: View {
     @Binding var isPresented: Bool
-    
+
     @State private var scale: CGFloat = 0.8
     @State private var opacity: Double = 0
-    
+
     var body: some View {
-        HiLogoView()
-            .scaleEffect(scale)
-            .opacity(opacity)
+        ZStack {
+            HiTheme.backgroundRoot
+                .ignoresSafeArea()
+
+            HiLogoView()
+                .foregroundStyle(HiTheme.textPrimary)
+                .scaleEffect(scale)
+                .opacity(opacity)
+        }
         .onAppear {
             startAnimation()
         }

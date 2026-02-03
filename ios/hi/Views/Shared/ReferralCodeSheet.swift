@@ -11,24 +11,25 @@ struct ReferralCodeSheet: View {
         NavigationStack {
             VStack(spacing: HiTheme.spacingLG) {
                 Spacer()
-                
+
                 // Icon
                 Image(systemName: "gift.fill")
                     .font(.system(size: 48))
-                    .foregroundStyle(Color.accentColor)
-                
+                    .foregroundStyle(HiTheme.accentPrimary)
+
                 // Title
                 Text("Create your referral code")
                     .font(.title2.bold())
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Text("Earn 5 credits for each friend who joins using your code")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(HiTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
-                
+
                 Spacer()
-                
+
                 // Name input or generated code
                 if let code = generatedCode ?? creditsManager.referralCode {
                     // Show generated code
@@ -37,17 +38,19 @@ struct ReferralCodeSheet: View {
                     // Name entry
                     nameEntry
                 }
-                
+
                 Spacer()
                 Spacer()
             }
             .padding(HiTheme.spacingMD)
+            .background(HiTheme.backgroundRoot)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
         }
@@ -57,25 +60,27 @@ struct ReferralCodeSheet: View {
     }
     
     // MARK: - Name Entry
-    
+
     private var nameEntry: some View {
         VStack(spacing: HiTheme.spacingMD) {
             Text("Enter your name")
                 .font(.headline)
-            
+                .foregroundStyle(HiTheme.textPrimary)
+
             TextField("Your name", text: $name)
                 .textFieldStyle(.plain)
                 .font(.body)
+                .foregroundStyle(HiTheme.textPrimary)
                 .padding(HiTheme.spacingMD)
-                .background(Color(.systemGray6))
+                .background(HiTheme.surfacePrimary)
                 .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                 .textInputAutocapitalization(.words)
-            
+
             Text("Your name will appear in your referral code and be shown to friends who use it")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(HiTheme.textSecondary)
                 .multilineTextAlignment(.center)
-            
+
             Button {
                 generateCode()
             } label: {
@@ -86,42 +91,43 @@ struct ReferralCodeSheet: View {
         }
         .padding(.horizontal)
     }
-    
+
     // MARK: - Code Display
-    
+
     private func codeDisplay(code: String) -> some View {
         VStack(spacing: HiTheme.spacingMD) {
             Text("Your referral code")
                 .font(.headline)
-            
+                .foregroundStyle(HiTheme.textPrimary)
+
             HStack {
                 Text(code)
                     .font(.title2.monospaced().bold())
-                    .foregroundStyle(.primary)
-                
+                    .foregroundStyle(HiTheme.textPrimary)
+
                 Spacer()
-                
+
                 Button {
                     copyCode(code)
                 } label: {
                     Image(systemName: "doc.on.doc")
                         .font(.title2)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(HiTheme.accentPrimary)
                 }
-                
+
                 ShareLink(item: shareText(code: code)) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.title2)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
             .padding(HiTheme.spacingMD)
-            .background(.ultraThinMaterial)
+            .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-            
+
             Text("Share this code with friends. You both get 5 credits!")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(HiTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal)

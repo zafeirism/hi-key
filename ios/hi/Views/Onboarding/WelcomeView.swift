@@ -11,11 +11,13 @@ struct WelcomeView: View {
             
             VStack(spacing: 0) {
                 // Title at top
-                (Text("Picture this: instant AI images ") + Text("in all your apps.").foregroundColor(.accentColor))
-                    .font(.title.bold())
+                (Text("Picture this: instant AI images ").foregroundColor(HiTheme.textPrimary) +
+                 Text("wherever you type").foregroundColor(HiTheme.accentSecondary) +
+                 Text(".").foregroundColor(HiTheme.textPrimary))
+                    .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingXXL)
+                    .padding(.top, HiTheme.spacingXL)
                 
                 Spacer()
                 
@@ -28,14 +30,14 @@ struct WelcomeView: View {
                 .buttonStyle(HiPrimaryButtonStyle())
                 .padding(.bottom, HiTheme.spacingXXL)
             }
-            .padding(.horizontal, HiTheme.spacingLG)
+            .padding(.horizontal, HiTheme.spacingMD)
         }
     }
 }
 
 #Preview {
     ZStack {
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
         
         WelcomeView()

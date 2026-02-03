@@ -74,17 +74,17 @@ struct PaywallView: View {
     }
     
     // MARK: - Header
-    
+
     private var headerSection: some View {
         VStack(spacing: HiTheme.spacingMD) {
             Image(systemName: "sparkles")
                 .font(.system(size: 48))
-                .foregroundStyle(Color.accentColor)
-            
+                .foregroundStyle(HiTheme.accentPrimary)
+
             Text("Get more from hi-key")
-                .font(.largeTitle.bold())
+                .font(.system(.title, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.center)
-            
+
             Text("Start creating amazing images\nin all your conversations")
                 .font(.body)
                 .foregroundStyle(.secondary)
@@ -199,26 +199,26 @@ private struct PaywallOptionCard: View {
     let price: String
     let isSelected: Bool
     let onSelect: () -> Void
-    
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: HiTheme.spacingMD) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                    
+
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 Text(price)
                     .font(.headline)
-                
+
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : .secondary)
                     .font(.title2)
             }
             .padding(HiTheme.spacingMD)
@@ -226,7 +226,7 @@ private struct PaywallOptionCard: View {
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusLG)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? HiTheme.accentPrimary : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)

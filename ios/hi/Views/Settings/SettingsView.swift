@@ -16,24 +16,26 @@ struct SettingsView: View {
             List {
                 // Profile section
                 profileSection
-                
+
                 // Image generation section
                 imageGenerationSection
-                
+
                 // Subscription section
                 subscriptionSection
-                
+
                 // Support section
                 supportSection
-                
+
                 // Legal section
                 legalSection
-                
+
                 #if DEBUG
                 // Debug section (development only)
                 debugSection
                 #endif
             }
+            .scrollContentBackground(.hidden)
+            .background(HiTheme.backgroundRoot)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -41,6 +43,7 @@ struct SettingsView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
             .sheet(isPresented: $showStylePicker) {
@@ -49,9 +52,9 @@ struct SettingsView: View {
             .alert("Edit Name", isPresented: $showNameEditor) {
                 TextField("Your name", text: $editedName)
                     .textInputAutocapitalization(.words)
-                
+
                 Button("Cancel", role: .cancel) { }
-                
+
                 Button("Save") {
                     saveName()
                 }

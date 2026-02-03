@@ -24,7 +24,7 @@ struct StylePickerView: View {
                 } footer: {
                     Text("Enable the styles you want to be randomly applied to your images")
                 }
-                
+
                 // Custom styles section
                 Section {
                     ForEach(settingsManager.customStyles, id: \.self) { style in
@@ -36,33 +36,36 @@ struct StylePickerView: View {
                             onDelete: { settingsManager.removeCustomStyle(style) }
                         )
                     }
-                    
+
                     // Add custom style
                     Button {
                         showAddStyle = true
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(HiTheme.accentPrimary)
                             Text("Add custom style")
                         }
                     }
                 } header: {
                     Text("Custom Styles")
                 }
-                
+
                 // Quick actions section
                 Section {
                     Button("Enable All") {
                         settingsManager.enableAllStyles()
                     }
-                    
+                    .foregroundStyle(HiTheme.accentPrimary)
+
                     Button("Disable All") {
                         settingsManager.disableAllStyles()
                     }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(HiTheme.statusError)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(HiTheme.backgroundRoot)
             .navigationTitle("Manage Styles")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -70,16 +73,17 @@ struct StylePickerView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
             .alert("Add Custom Style", isPresented: $showAddStyle) {
                 TextField("Style name", text: $newStyleText)
                     .textInputAutocapitalization(.words)
-                
+
                 Button("Cancel", role: .cancel) {
                     newStyleText = ""
                 }
-                
+
                 Button("Add") {
                     addCustomStyle()
                 }
@@ -106,7 +110,7 @@ private struct StyleRow: View {
     var isCustom: Bool = false
     let onToggle: () -> Void
     var onDelete: (() -> Void)? = nil
-    
+
     var body: some View {
         HStack {
             Button {
@@ -114,22 +118,22 @@ private struct StyleRow: View {
             } label: {
                 HStack {
                     Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isEnabled ? Color.accentColor : .secondary)
-                    
+                        .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.textSecondary)
+
                     Text(style)
-                        .foregroundStyle(.primary)
-                    
+                        .foregroundStyle(HiTheme.textPrimary)
+
                     Spacer()
                 }
             }
             .buttonStyle(.plain)
-            
+
             if isCustom, let delete = onDelete {
                 Button {
                     delete()
                 } label: {
                     Image(systemName: "trash")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(HiTheme.statusError)
                 }
                 .buttonStyle(.plain)
             }

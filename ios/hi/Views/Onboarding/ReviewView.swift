@@ -10,7 +10,7 @@ struct ReviewView: View {
         VStack(spacing: 0) {
             // Title at top
             Text("Send hi-key to the stars.")
-                .font(.title.bold())
+                .font(.system(.title, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, HiTheme.spacingXXL)
@@ -53,7 +53,7 @@ struct ReviewView: View {
 
 #Preview {
     ZStack {
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
         
         ReviewView()

@@ -16,7 +16,7 @@ struct KeyboardSetupSheet: View {
             VStack(spacing: HiTheme.spacingLG) {
                 // Header
                 headerSection
-                
+
                 // Steps
                 VStack(spacing: HiTheme.spacingMD) {
                     SetupStepCard(
@@ -30,7 +30,7 @@ struct KeyboardSetupSheet: View {
                         ],
                         isCompleted: step1Completed
                     )
-                    
+
                     SetupStepCard(
                         stepNumber: 2,
                         title: "Allow Full Access",
@@ -42,24 +42,25 @@ struct KeyboardSetupSheet: View {
                         isCompleted: step2Completed
                     )
                 }
-                
+
                 Spacer()
-                
+
                 // Buttons
                 if bothStepsComplete {
                     // Success state
                     VStack(spacing: HiTheme.spacingMD) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 48))
-                            .foregroundStyle(.green)
-                        
+                            .foregroundStyle(HiTheme.accentPrimary)
+
                         Text("All set!")
                             .font(.title2.bold())
-                        
+                            .foregroundStyle(HiTheme.textPrimary)
+
                         Text("You can now use hi-key in any app")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        
+                            .foregroundStyle(HiTheme.textSecondary)
+
                         Button {
                             dismiss()
                         } label: {
@@ -80,24 +81,26 @@ struct KeyboardSetupSheet: View {
                             }
                         }
                         .buttonStyle(HiPrimaryButtonStyle())
-                        
+
                         Button {
                             dismiss()
                         } label: {
                             Text("I'll do this later")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(HiTheme.textSecondary)
                         }
                     }
                 }
             }
             .padding(HiTheme.spacingMD)
+            .background(HiTheme.backgroundRoot)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
         }
@@ -110,19 +113,20 @@ struct KeyboardSetupSheet: View {
     }
     
     // MARK: - Header
-    
+
     private var headerSection: some View {
         VStack(spacing: HiTheme.spacingMD) {
             Image(systemName: "keyboard.fill")
                 .font(.system(size: 48))
-                .foregroundStyle(Color.accentColor)
-            
+                .foregroundStyle(HiTheme.accentPrimary)
+
             Text("Set up your keyboard")
                 .font(.title2.bold())
-            
+                .foregroundStyle(HiTheme.textPrimary)
+
             Text("Follow these steps to start using\nhi-key in all your apps")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(HiTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
     }
@@ -167,9 +171,9 @@ private struct SetupStepCard: View {
     let title: String
     let instructions: [String]
     let isCompleted: Bool
-    
+
     @State private var isExpanded: Bool = true
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
             // Header row
@@ -177,27 +181,27 @@ private struct SetupStepCard: View {
                 // Step indicator
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? Color.green : Color(.systemGray5))
+                        .fill(isCompleted ? HiTheme.accentPrimary : HiTheme.surfaceSecondary)
                         .frame(width: 36, height: 36)
-                    
+
                     if isCompleted {
                         Image(systemName: "checkmark")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HiTheme.backgroundRoot)
                     } else {
                         Text("\(stepNumber)")
                             .font(.headline)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                     }
                 }
-                
+
                 Text(title)
                     .font(.headline)
                     .strikethrough(isCompleted)
-                    .foregroundStyle(isCompleted ? .secondary : .primary)
-                
+                    .foregroundStyle(isCompleted ? HiTheme.textSecondary : HiTheme.textPrimary)
+
                 Spacer()
-                
+
                 if !isCompleted {
                     Button {
                         withAnimation {
@@ -205,11 +209,11 @@ private struct SetupStepCard: View {
                         }
                     } label: {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
-            
+
             // Instructions (expandable)
             if !isCompleted && isExpanded {
                 VStack(alignment: .leading, spacing: 6) {
@@ -217,11 +221,11 @@ private struct SetupStepCard: View {
                         HStack(alignment: .top, spacing: 8) {
                             Text("•")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            
+                                .foregroundStyle(HiTheme.textSecondary)
+
                             Text(instruction)
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(HiTheme.textSecondary)
                         }
                     }
                 }
@@ -229,7 +233,7 @@ private struct SetupStepCard: View {
             }
         }
         .padding(HiTheme.spacingMD)
-        .background(Color(.systemBackground))
+        .background(HiTheme.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
     }
 }

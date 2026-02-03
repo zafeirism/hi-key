@@ -14,7 +14,7 @@ struct ReferralCreditsView: View {
             Spacer()
             
             Text("Got a friend code? Enter it and you'll both get 5 free credits.")
-                .font(.title.bold())
+                .font(.system(.title, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -89,10 +89,10 @@ struct ReferralCreditsView: View {
                     } label: {
                         Text("Apply")
                             .font(.body.weight(.medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HiTheme.backgroundRoot)
                             .padding(.horizontal, HiTheme.spacingMD)
                             .padding(.vertical, HiTheme.spacingSM)
-                            .background(isValidFormat ? Color.accentColor : Color.accentColor.opacity(0.5))
+                            .background(isValidFormat ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
                             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                     }
                     .disabled(!isValidFormat)
@@ -151,7 +151,7 @@ struct ReferralCreditsView: View {
 
 #Preview {
     ZStack {
-        HiTheme.onboardingGradient
+        HiTheme.backgroundRoot
             .ignoresSafeArea()
         
         ReferralCreditsView()
