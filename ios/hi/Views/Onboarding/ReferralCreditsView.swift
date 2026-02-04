@@ -11,24 +11,26 @@ struct ReferralCreditsView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-            
-            Text("Got a friend code? Enter it and you'll both get 5 free credits.")
+            Text("Got a friend code?")
                 .font(.system(.title, design: .rounded, weight: .semibold))
-                .multilineTextAlignment(.leading)
+                .foregroundStyle(HiTheme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
-            
-            // Middle space - input field and Apply button
+                .padding(.top, HiTheme.spacingXXL)
+
+            Text("Enter it here and you'll both get 5 free credits.")
+                .font(.body.weight(.medium))
+                .foregroundStyle(HiTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, HiTheme.spacingMD)
+
             referralInputSection
-                .padding(.vertical, HiTheme.spacingLG)
-            
+                .padding(.top, HiTheme.spacingXXL)
+
             Spacer()
-            
+
             Group {
                 if codeApplied {
                     Button {
-                        // Grant credits and continue
                         creditsManager.grantInitialCredits(withReferral: true)
                         onboardingManager.goToNextStep()
                     } label: {
@@ -37,7 +39,6 @@ struct ReferralCreditsView: View {
                     .buttonStyle(HiPrimaryButtonStyle())
                 } else {
                     Button {
-                        // Skip referral
                         creditsManager.grantInitialCredits(withReferral: false)
                         onboardingManager.goToNextStep()
                     } label: {
@@ -54,56 +55,66 @@ struct ReferralCreditsView: View {
     // MARK: - Referral Input Section
     
     private var referralInputSection: some View {
-        VStack(spacing: HiTheme.spacingMD) {
-            HStack(spacing: HiTheme.spacingSM) {
-                HStack {
-                    TextField("FRIEND-CODE", text: $referralCode)
-                        .textFieldStyle(.plain)
-                        .font(.body.monospaced())
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .disabled(codeApplied) //.disabled(codeApplied || isProcessing)
-                    
-                    if codeApplied {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .transition(.scale.combined(with: .opacity))
-                    } else if isProcessing {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                }
-                .padding(.horizontal, HiTheme.spacingMD)
-                .padding(.vertical, HiTheme.spacingSM)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-                .onChange(of: referralCode) { _, newValue in
-                    referralCode = formatReferralCode(newValue)
-                    showError = false
-                }
-                
-                if !codeApplied && !isProcessing {
+        VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+            HStack(spacing: 0) {
+                TextField("", text: $referralCode, prompt: Text("FRIEND-CODE")
+                    .foregroundStyle(HiTheme.textTertiary))
+                    .textFieldStyle(.plain)
+                    .font(.body.monospaced())
+                    .foregroundStyle(HiTheme.textPrimary)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .disabled(codeApplied)
+
+                if codeApplied {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(HiTheme.accentPrimary)
+                        .transition(.scale.combined(with: .opacity))
+                } else if isProcessing {
+                    ProgressView()
+                        .tint(HiTheme.textSecondary)
+                        .scaleEffect(0.8)
+                        .transition(.scale.combined(with: .opacity))
+                } else {
                     Button {
                         applyCode()
                     } label: {
                         Text("Apply")
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(HiTheme.backgroundRoot)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(isValidFormat ? HiTheme.backgroundRoot : HiTheme.textTertiary)
                             .padding(.horizontal, HiTheme.spacingMD)
                             .padding(.vertical, HiTheme.spacingSM)
-                            .background(isValidFormat ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
-                            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+                            .background(isValidFormat ? HiTheme.accentPrimary : HiTheme.surfaceSecondary)
+                            .clipShape(Capsule())
                     }
                     .disabled(!isValidFormat)
                 }
             }
-            
-            Text("Invalid code. Try again.")
-                .font(.caption)
-                .foregroundStyle(.red)
-                .opacity(showError ? 1.0 : 0.001)
+            .padding(.leading, HiTheme.spacingMD)
+            .padding(.trailing, HiTheme.spacingSM)
+            .frame(height: 48)
+            .frame(maxWidth: 290)
+            .background(HiTheme.surfacePrimary)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            .overlay(
+                RoundedRectangle(cornerRadius: HiTheme.radiusMD)
+                    .stroke(showError ? HiTheme.statusError : HiTheme.divider, lineWidth: 1)
+            )
+            .onChange(of: referralCode) { _, newValue in
+                referralCode = formatReferralCode(newValue)
+                showError = false
+            }
+
+            if showError {
+                Text("Invalid code. Try again.")
+                    .font(.caption)
+                    .foregroundStyle(HiTheme.statusError)
+                    .padding(.leading, HiTheme.spacingXS)
+                    .transition(.opacity)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Helpers

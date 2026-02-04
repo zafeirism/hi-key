@@ -96,6 +96,7 @@ class CreditsManager: ObservableObject {
     // MARK: - Published State
     
     @Published private(set) var credits: Int = 0
+    @Published private(set) var extraCredits: Int = 0
     @Published private(set) var subscriptionTier: SubscriptionTier = .none
     @Published private(set) var userName: String = ""
     @Published private(set) var referralCode: String? = nil
@@ -104,6 +105,7 @@ class CreditsManager: ObservableObject {
     
     private enum Keys {
         static let credits = "credits"
+        static let extraCredits = "extraCredits"
         static let subscriptionTier = "subscriptionTier"
         static let userName = "userName"
         static let referralCode = "referralCode"
@@ -118,6 +120,7 @@ class CreditsManager: ObservableObject {
     
     private func loadState() {
         credits = userDefaults?.integer(forKey: Keys.credits) ?? 0
+        extraCredits = userDefaults?.integer(forKey: Keys.extraCredits) ?? 0
         userName = userDefaults?.string(forKey: Keys.userName) ?? ""
         referralCode = userDefaults?.string(forKey: Keys.referralCode)
         
@@ -158,6 +161,15 @@ class CreditsManager: ObservableObject {
         return true
     }
     
+    /// Add extra one-time credits (from pack purchase)
+    func addExtraCredits(_ amount: Int) {
+        extraCredits += amount
+        credits += amount
+        userDefaults?.set(extraCredits, forKey: Keys.extraCredits)
+        userDefaults?.set(credits, forKey: Keys.credits)
+        objectWillChange.send()
+    }
+
     /// Check if user has credits available
     var hasCredits: Bool {
         credits > 0
@@ -214,10 +226,12 @@ class CreditsManager: ObservableObject {
     
     func resetCredits() {
         credits = 0
+        extraCredits = 0
         subscriptionTier = .none
         userName = ""
         referralCode = nil
         userDefaults?.removeObject(forKey: Keys.credits)
+        userDefaults?.removeObject(forKey: Keys.extraCredits)
         userDefaults?.removeObject(forKey: Keys.subscriptionTier)
         userDefaults?.removeObject(forKey: Keys.userName)
         userDefaults?.removeObject(forKey: Keys.referralCode)

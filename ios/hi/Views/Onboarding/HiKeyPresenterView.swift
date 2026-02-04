@@ -16,10 +16,11 @@ struct HiKeyPresenterView: View {
         (startWith: "Images fast enough to", startWithAccent: false, endWith: " send in the moment", endWithAccent: true),
     ]
     
-    private let textAlignment: [Alignment] = [.center, .leading, .leading, .leading]
+    private let textAlignment: [TextAlignment] = [.center, .leading, .leading, .center]
+    private let alignment: [Alignment] = [.center, .leading, .leading, .center]
     private let textIsAtTheTop: [Bool] = [true, false, false, true]
     
-    private let animationDuration: TimeInterval = 23.7
+    private let animationDuration: TimeInterval = 23
     
     private struct TextCue {
         let at: TimeInterval       // seconds from start
@@ -33,7 +34,7 @@ struct HiKeyPresenterView: View {
         TextCue(at: 13, stateIndex: nil), // another gap
         TextCue(at: 14, stateIndex: 2),
         TextCue(at: 19.5, stateIndex: nil),
-        TextCue(at: 23, stateIndex: 3)
+        TextCue(at: 22.5, stateIndex: 3)
     ]
 
     private var progress: Double {
@@ -66,8 +67,8 @@ struct HiKeyPresenterView: View {
                             .foregroundColor(textStates[index].endWithAccent ? HiTheme.accentSecondary : HiTheme.textPrimary) +
                          Text(".").foregroundColor(HiTheme.textPrimary))
                         .font(.system(.title, design: .rounded, weight: .semibold))
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: textAlignment[index])
+                        .multilineTextAlignment(textAlignment[index])
+                        .frame(maxWidth: .infinity, alignment: alignment[index])
                         .padding(.top, HiTheme.spacingXL)
                         .id(index)
                         .transition(.asymmetric(

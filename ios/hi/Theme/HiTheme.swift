@@ -77,17 +77,6 @@ enum HiTheme {
     //static let animationFadeIn: Animation = .
 }
 
-// MARK: - Scaled Metric for Logo
-
-/// Use this for the "hi" logo text to scale with Dynamic Type
-struct ScaledLogo {
-    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 72
-    
-    var font: Font {
-        .system(size: size, weight: .bold, design: .rounded)
-    }
-}
-
 // MARK: - Color Extension
 
 extension Color {
@@ -113,48 +102,6 @@ extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
-    }
-}
-
-// MARK: - View Extensions
-
-extension View {
-    /// Primary action button style - full width, solid accent background
-    func hiPrimaryButtonStyle() -> some View {
-        self
-            .font(.body.weight(.semibold))
-            .foregroundStyle(HiTheme.backgroundRoot)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(HiTheme.accentPrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-    }
-
-    /// Secondary button style - full width, outlined with accent border
-    func hiSecondaryButtonStyle() -> some View {
-        self
-            .font(.body.weight(.semibold))
-            .foregroundStyle(HiTheme.accentPrimary)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-            .overlay(
-                RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(HiTheme.accentPrimary, lineWidth: 1.5)
-            )
-    }
-
-    /// Card style with dark surface background
-    func hiCardStyle() -> some View {
-        self
-            .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
-    }
-
-    /// Standard content padding
-    func hiPadding() -> some View {
-        self.padding(.horizontal, HiTheme.spacingMD)
     }
 }
 
@@ -188,7 +135,7 @@ struct HiSecondaryButtonStyle: ButtonStyle {
             .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(Color.clear)
+            .background(HiTheme.accentPrimary.opacity(0.001))
             .clipShape(Capsule())
             .overlay(
                 Capsule()
@@ -226,8 +173,8 @@ struct HiCard<Content: View>: View {
             .padding(HiTheme.spacingMD)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusLG))
-            .overlay(RoundedRectangle(cornerRadius: HiTheme.radiusLG).stroke(HiTheme.divider, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusXL))
+            .overlay(RoundedRectangle(cornerRadius: HiTheme.radiusXL).stroke(HiTheme.divider, lineWidth: 1))
     }
 }
 

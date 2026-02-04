@@ -20,8 +20,10 @@ struct hiApp: App {
                 HiTheme.backgroundRoot
                     .ignoresSafeArea()
             
-                ContentView()
-                    .opacity(showSplash ? 0 : 1)
+                if !showSplash {
+                    ContentView()
+                        .transition(.opacity)
+                }
                 
                 if showSplash {
                     SplashView(isPresented: $showSplash)

@@ -236,6 +236,7 @@ struct SettingsView: View {
                 onboardingManager.resetOnboarding()
                 creditsManager.resetCredits()
                 settingsManager.resetSettings()
+                UserDefaults.standard.removeObject(forKey: "hasSeenHomeScreen")
                 dismiss()
             }
             .foregroundStyle(.red)

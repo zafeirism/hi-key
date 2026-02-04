@@ -5,7 +5,8 @@ struct ReviewView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
     
     @State private var hasRequestedReview: Bool = false
-    
+    @State private var showCTA: Bool = false
+
     var body: some View {
         VStack(spacing: 0) {
             // Title at top
@@ -15,12 +16,14 @@ struct ReviewView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, HiTheme.spacingXXL)
             
+            Text("Early reviews make a huge difference. Help hi-key reach more creative people.")
+                .font(.body.weight(.medium))
+                .foregroundStyle(HiTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, HiTheme.spacingMD)
+            
             Spacer()
-            
-            // Middle space for future assets
-            
-            Spacer()
-            
+                        
             // CTA at bottom
             Button {
                 onboardingManager.goToNextStep()
@@ -28,11 +31,16 @@ struct ReviewView: View {
                 Text("Continue")
             }
             .buttonStyle(HiPrimaryButtonStyle())
+            .opacity(showCTA ? 1 : 0)
+            .animation(.easeIn(duration: 0.3), value: showCTA)
             .padding(.bottom, HiTheme.spacingXXL)
         }
         .padding(.horizontal, HiTheme.spacingLG)
         .onAppear {
             requestReview()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                showCTA = true
+            }
         }
     }
     
@@ -43,7 +51,7 @@ struct ReviewView: View {
         hasRequestedReview = true
         
         // Request review after short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
                 SKStoreReviewController.requestReview(in: scene)
             }

@@ -17,7 +17,7 @@ struct WelcomeView: View {
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingXL)
+                    .padding(.top, HiTheme.spacingXXL)
                 
                 Spacer()
                 
@@ -30,7 +30,7 @@ struct WelcomeView: View {
                 .buttonStyle(HiPrimaryButtonStyle())
                 .padding(.bottom, HiTheme.spacingXXL)
             }
-            .padding(.horizontal, HiTheme.spacingMD)
+            .padding(.horizontal, HiTheme.spacingLG)
         }
     }
 }

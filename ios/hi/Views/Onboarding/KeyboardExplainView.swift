@@ -7,7 +7,7 @@ struct KeyboardExplainView: View {
         VStack(spacing: 0) {
             // Title at top
             Text("Add hi-key in Settings, then try it in a chat with a friend.")
-                .font(.title.bold())
+                .font(.system(.title, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, HiTheme.spacingXXL)
@@ -30,7 +30,7 @@ struct KeyboardExplainView: View {
                 Button {
                     onboardingManager.goToNextStep()
                 } label: {
-                    Text("Not now")
+                    Text("Continue")
                 }
                 .buttonStyle(HiTertiaryButtonStyle())
             }
