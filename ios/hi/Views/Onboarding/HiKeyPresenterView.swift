@@ -7,8 +7,6 @@ struct HiKeyPresenterView: View {
     @State private var currentTextIndex: Int? = nil
     @State private var isAnimationComplete: Bool = false
     @State private var textChangeTasks: [DispatchWorkItem] = []
-    @State private var isLottieFinished = false
-    
     private let textStates: [(startWith: String, startWithAccent: Bool, endWith: String, endWithAccent: Bool)] = [
         (startWith: "Meet ", startWithAccent: false, endWith: "hi-key", endWithAccent: true),
         (startWith: "It's a keyboard and", startWithAccent: false, endWith: " it works in any app", endWithAccent: true),
@@ -46,7 +44,7 @@ struct HiKeyPresenterView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.03)) { timeline in
             ZStack{
-                LottieView(name: "hi-key-overview", isFinished: $isLottieFinished)
+                LottieView(name: "hi-key-overview", scaleAspectFill: true)
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {

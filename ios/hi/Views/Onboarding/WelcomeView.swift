@@ -2,11 +2,9 @@ import SwiftUI
 
 struct WelcomeView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    @State private var isLottieFinished = false
-    
     var body: some View {
         ZStack{
-            LottieView(name: "parallax", isFinished: $isLottieFinished)
+            LottieView(name: "parallax")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {

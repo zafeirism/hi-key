@@ -2,41 +2,49 @@ import SwiftUI
 
 struct KeyboardExplainView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    
+
     var body: some View {
-        VStack(spacing: 0) {
-            // Title at top
-            Text("Add hi-key in Settings, then try it in a chat with a friend.")
-                .font(.system(.title, design: .rounded, weight: .semibold))
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, HiTheme.spacingXXL)
+        ZStack{
+            LottieView(name: "enable-settings", loop: true)
+                //.frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
             
-            Spacer()
-            
-            // Middle space for future assets
-            
-            Spacer()
-            
-            // CTAs at bottom
-            VStack(spacing: HiTheme.spacingLG) {
-                Button {
-                    openKeyboardSettings()
-                } label: {
-                    Text("Open Settings")
-                }
-                .buttonStyle(HiPrimaryButtonStyle())
+            VStack(spacing: 0) {
+                // Title at top
+                Text("Enable hi-key, then try it in a chat with a friend.")
+                    .font(.system(.title, design: .rounded, weight: .semibold))
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, HiTheme.spacingXXL)
                 
-                Button {
-                    onboardingManager.goToNextStep()
-                } label: {
-                    Text("Continue")
+                Text("hi-key only reads prompts you submit to generate images.")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(HiTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, HiTheme.spacingMD)
+                
+                Spacer()
+                
+                // CTAs at bottom
+                VStack(spacing: HiTheme.spacingLG) {
+                    Button {
+                        openKeyboardSettings()
+                    } label: {
+                        Text("Open Settings")
+                    }
+                    .buttonStyle(HiPrimaryButtonStyle())
+                    
+                    Button {
+                        onboardingManager.goToNextStep()
+                    } label: {
+                        Text("Continue")
+                    }
+                    .buttonStyle(HiTertiaryButtonStyle())
                 }
-                .buttonStyle(HiTertiaryButtonStyle())
+                .padding(.bottom, HiTheme.spacingXL)
             }
-            .padding(.bottom, HiTheme.spacingXL)
+            .padding(.horizontal, HiTheme.spacingLG)
         }
-        .padding(.horizontal, HiTheme.spacingLG)
     }
     
     // MARK: - Actions
