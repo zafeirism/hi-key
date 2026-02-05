@@ -26,8 +26,6 @@ class KeyboardViewController: KeyboardInputViewController {
         }
         
         Task {
-            print("KeyboardViewController calling Auth Manager...")
-            _ = AuthManager.shared.isAuthenticated
             try await APIClient.shared.warmup()
         }
     }

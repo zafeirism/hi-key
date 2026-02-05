@@ -17,7 +17,6 @@ class APIClient {
         let signedUrls: [String]  // 4 signed URLs for images
     }
     
-    // ADD these new structs after GenerateResponse:
     struct AutocompleteRequest: Codable {
         let prompt: String
     }
@@ -171,8 +170,7 @@ class APIClient {
         case invalidResponse
         case httpError(statusCode: Int)
         case notAuthenticated
-        case sessionExpired
-        
+
         var errorDescription: String? {
             switch self {
             case .invalidURL:
@@ -183,8 +181,6 @@ class APIClient {
                 return "Server error: \(code)"
             case .notAuthenticated:
                 return "Please login in the hi app first"
-            case .sessionExpired:
-                return "Session expired. Please login again in the hi app"
             }
         }
     }
