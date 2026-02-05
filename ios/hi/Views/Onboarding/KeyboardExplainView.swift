@@ -6,18 +6,17 @@ struct KeyboardExplainView: View {
     var body: some View {
         ZStack{
             LottieView(name: "enable-settings", loop: true)
-                //.frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Title at top
-                Text("Enable hi-key, then try it in a chat with a friend.")
+                Text("Enable hi-key in Settings.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, HiTheme.spacingXXL)
                 
-                Text("hi-key only reads prompts you submit to generate images.")
+                Text("Allow Full Access so hi-key can generate images from your prompts.")
                     .font(.body.weight(.medium))
                     .foregroundStyle(HiTheme.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -37,7 +36,7 @@ struct KeyboardExplainView: View {
                     Button {
                         onboardingManager.goToNextStep()
                     } label: {
-                        Text("Continue")
+                        Text("I'll do this later")
                     }
                     .buttonStyle(HiTertiaryButtonStyle())
                 }
