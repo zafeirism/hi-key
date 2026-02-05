@@ -3,31 +3,35 @@ import StoreKit
 
 struct ReviewView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    
+
     @State private var hasRequestedReview: Bool = false
     @State private var showCTA: Bool = false
 
     var body: some View {
-        ZStack{
+        ZStack {
             LottieView(name: "give-5stars")
                 .frame(maxWidth: 330)
-            
+
             VStack(spacing: 0) {
-                // Title at top
+                OnboardingTopBar(onBack: {
+                    onboardingManager.goToPreviousStep()
+                })
+                .padding(.top, HiTheme.spacingSM)
+
                 Text("Send hi-key to the stars.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingXXL)
-                
+                    .padding(.top, HiTheme.spacingLG)
+
                 Text("Early reviews make a huge difference. Help hi-key reach more creative people.")
                     .font(.body.weight(.medium))
                     .foregroundStyle(HiTheme.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, HiTheme.spacingMD)
-                
-                Spacer()                
-                
+
+                Spacer()
+
                 Button {
                     onboardingManager.goToNextStep()
                 } label: {
@@ -47,13 +51,13 @@ struct ReviewView: View {
             }
         }
     }
-    
+
     // MARK: - Review Request
-    
+
     private func requestReview() {
         guard !hasRequestedReview else { return }
         hasRequestedReview = true
-        
+
         // Request review after short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
@@ -67,7 +71,7 @@ struct ReviewView: View {
     ZStack {
         HiTheme.backgroundRoot
             .ignoresSafeArea()
-        
+
         ReviewView()
     }
 }

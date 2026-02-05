@@ -151,11 +151,12 @@ struct HomeView: View {
                 showSettings = true
             } label: {
                 Image(systemName: "gearshape")
-                    .font(.title2)
+                    .font(.title2.weight(.medium))
                     .foregroundStyle(HiTheme.iconDefault)
                     .frame(width: 40, height: 40)
-                    .background(HiTheme.divider)
+                    .background(HiTheme.surfacePrimary)
                     .clipShape(Circle())
+                    .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
             }
 
             Spacer()
@@ -165,11 +166,12 @@ struct HomeView: View {
                 showKeyboardSetup = true
             } label: {
                 Image(systemName: "questionmark.circle")
-                    .font(.title2)
+                    .font(.title2.weight(.medium))
                     .foregroundStyle(HiTheme.iconDefault)
                     .frame(width: 40, height: 40)
-                    .background(HiTheme.divider)
+                    .background(HiTheme.surfacePrimary)
                     .clipShape(Circle())
+                    .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
             }
         }
     }

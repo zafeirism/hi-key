@@ -3,65 +3,59 @@ import SwiftUI
 struct PaywallView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
     @ObservedObject var creditsManager = CreditsManager.shared
-    
+
     @State private var selectedOption: PaywallOption = .liteSubscription
     @State private var isProcessing: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showTerms: Bool = false
-    
+
     // For AllOptionsSheet
     @State private var allOptionsSubscription: SubscriptionTier? = nil
     @State private var allOptionsPack: CreditPack? = nil
-    
+
     enum PaywallOption {
         case liteSubscription
         case miniPack
     }
-    
+
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                Spacer()
-                
-                // Header
-                headerSection
-                
-                Spacer()
-                
-                // Option cards
-                optionCards
-                
-                // View all options link
-                Button {
-                    showAllOptions = true
-                } label: {
-                    Text("View all options")
-                }
-                .buttonStyle(HiTertiaryButtonStyle())
-                .padding(.top, HiTheme.spacingLG)
-                
-                Spacer()
-                Spacer()
-                
-                // Purchase button
-                purchaseButton
-                
-                // Footer links
-                footerLinks
-            }
-            .padding(.horizontal, HiTheme.spacingLG)
-            .padding(.bottom, HiTheme.spacingLG)
-            
-            // Dismiss button (soft paywall)
+        VStack(spacing: 0) {
+            OnboardingTopBar(
+                rightLabel: "Skip",
+                onRight: { onboardingManager.completeOnboarding() }
+            )
+            .padding(.top, HiTheme.spacingSM)
+
+            Spacer()
+
+            // Header
+            headerSection
+
+            Spacer()
+
+            // Option cards
+            optionCards
+
+            // View all options link
             Button {
-                onboardingManager.completeOnboarding()
+                showAllOptions = true
             } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title)
-                    //.foregroundStyle(.secondary)
+                Text("View all options")
             }
-            .padding(HiTheme.spacingMD)
+            .buttonStyle(HiTertiaryButtonStyle())
+            .padding(.top, HiTheme.spacingLG)
+
+            Spacer()
+            Spacer()
+
+            // Purchase button
+            purchaseButton
+
+            // Footer links
+            footerLinks
         }
+        .padding(.horizontal, HiTheme.spacingLG)
+        .padding(.bottom, HiTheme.spacingLG)
         .sheet(isPresented: $showAllOptions) {
             AllOptionsSheet(
                 selectedSubscription: $allOptionsSubscription,
@@ -72,7 +66,7 @@ struct PaywallView: View {
             TermsSheet()
         }
     }
-    
+
     // MARK: - Header
 
     private var headerSection: some View {
@@ -91,9 +85,9 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
         }
     }
-    
+
     // MARK: - Option Cards
-    
+
     private var optionCards: some View {
         VStack(spacing: HiTheme.spacingMD) {
             // Lite subscription
@@ -104,7 +98,7 @@ struct PaywallView: View {
                 isSelected: selectedOption == .liteSubscription,
                 onSelect: { selectedOption = .liteSubscription }
             )
-            
+
             // Mini pack
             PaywallOptionCard(
                 title: "Mini Pack",
@@ -115,9 +109,9 @@ struct PaywallView: View {
             )
         }
     }
-    
+
     // MARK: - Purchase Button
-    
+
     private var purchaseButton: some View {
         Button {
             processPurchase()
@@ -132,7 +126,7 @@ struct PaywallView: View {
         .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
         .disabled(isProcessing)
     }
-    
+
     private var purchaseButtonText: String {
         switch selectedOption {
         case .liteSubscription:
@@ -141,9 +135,9 @@ struct PaywallView: View {
             return "Buy for $2.99"
         }
     }
-    
+
     // MARK: - Footer
-    
+
     private var footerLinks: some View {
         HStack(spacing: HiTheme.spacingXXL) {
             Button("Restore Purchases") {
@@ -151,7 +145,7 @@ struct PaywallView: View {
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
-            
+
             Button("Terms & Privacy") {
                 showTerms = true
             }
@@ -160,12 +154,12 @@ struct PaywallView: View {
         }
         .padding(.top, HiTheme.spacingLG)
     }
-    
+
     // MARK: - Actions
-    
+
     private func processPurchase() {
         isProcessing = true
-        
+
         // TODO: Implement StoreKit purchase
         // For now, simulate purchase
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -180,10 +174,10 @@ struct PaywallView: View {
             onboardingManager.completeOnboarding()
         }
     }
-    
+
     private func restorePurchases() {
         isProcessing = true
-        
+
         // TODO: Implement StoreKit restore
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isProcessing = false
@@ -236,4 +230,3 @@ private struct PaywallOptionCard: View {
 #Preview {
     PaywallView()
 }
-

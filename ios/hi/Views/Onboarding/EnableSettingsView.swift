@@ -1,30 +1,33 @@
 import SwiftUI
 
-struct KeyboardExplainView: View {
+struct EnableSettingsView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
 
     var body: some View {
-        ZStack{
+        ZStack {
             LottieView(name: "enable-settings", loop: true)
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
-                // Title at top
+                OnboardingTopBar(onBack: {
+                    onboardingManager.goToPreviousStep()
+                })
+                .padding(.top, HiTheme.spacingSM)
+
                 Text("Enable hi-key in Settings.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingXXL)
-                
+                    .padding(.top, HiTheme.spacingLG)
+
                 Text("Allow Full Access so hi-key can generate images from your prompts.")
                     .font(.body.weight(.medium))
                     .foregroundStyle(HiTheme.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, HiTheme.spacingMD)
-                
+
                 Spacer()
-                
-                // CTAs at bottom
+
                 VStack(spacing: HiTheme.spacingLG) {
                     Button {
                         openKeyboardSettings()
@@ -32,7 +35,7 @@ struct KeyboardExplainView: View {
                         Text("Open Settings")
                     }
                     .buttonStyle(HiPrimaryButtonStyle())
-                    
+
                     Button {
                         onboardingManager.goToNextStep()
                     } label: {
@@ -45,9 +48,9 @@ struct KeyboardExplainView: View {
             .padding(.horizontal, HiTheme.spacingLG)
         }
     }
-    
+
     // MARK: - Actions
-    
+
     private func openKeyboardSettings() {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
@@ -59,7 +62,7 @@ struct KeyboardExplainView: View {
     ZStack {
         HiTheme.backgroundRoot
             .ignoresSafeArea()
-        
-        KeyboardExplainView()
+
+        EnableSettingsView()
     }
 }

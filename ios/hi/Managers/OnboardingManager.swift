@@ -6,11 +6,19 @@ import Combine
 enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
     case hiKeyPresenter = 1
-    case keyboardExplain = 2
-    case referralCredits = 3
-    case review = 4
-    case paywall = 5
-    case complete = 6
+    case enableSettings = 2
+    case tryNow = 3
+    case referralCredits = 4
+    case review = 5
+    case paywall = 6
+    case complete = 7
+}
+
+// MARK: - Navigation Direction
+
+enum NavigationDirection {
+    case forward
+    case backward
 }
 
 // MARK: - Onboarding Manager
@@ -25,8 +33,9 @@ class OnboardingManager: ObservableObject {
     }
     
     // MARK: - Published State
-    
+
     @Published var currentStep: OnboardingStep = .welcome
+    @Published var navigationDirection: NavigationDirection = .forward
     
     // MARK: - Keys
     
@@ -84,8 +93,20 @@ class OnboardingManager: ObservableObject {
         guard let nextStep = OnboardingStep(rawValue: currentStep.rawValue + 1) else {
             return
         }
+        navigationDirection = .forward
         withAnimation(HiTheme.animationNormal) {
             currentStep = nextStep
+        }
+    }
+
+    func goToPreviousStep() {
+        guard currentStep.rawValue > 0,
+              let previousStep = OnboardingStep(rawValue: currentStep.rawValue - 1) else {
+            return
+        }
+        navigationDirection = .backward
+        withAnimation(HiTheme.animationNormal) {
+            currentStep = previousStep
         }
     }
     
