@@ -12,13 +12,13 @@ struct EnableSettingsView: View {
                 OnboardingTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
-                .padding(.top, HiTheme.spacingSM)
+                .padding(.top, HiTheme.spacingMD)
 
                 Text("Enable hi-key in Settings.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingLG)
+                    .padding(.top, HiTheme.spacingMD)
 
                 Text("Allow Full Access so hi-key can generate images from your prompts.")
                     .font(.body.weight(.medium))

@@ -14,15 +14,15 @@ struct ReferralCreditsView: View {
             OnboardingTopBar(onBack: {
                 onboardingManager.goToPreviousStep()
             })
-            .padding(.top, HiTheme.spacingSM)
+            .padding(.top, HiTheme.spacingMD)
 
             Text("Got a friend code?")
                 .font(.system(.title, design: .rounded, weight: .semibold))
                 .foregroundStyle(HiTheme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, HiTheme.spacingLG)
+                .padding(.top, HiTheme.spacingMD)
 
-            Text("Enter it here and you'll both get 5 free credits.")
+            Text("Enter it now and you'll both get 5 free credits.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -110,6 +110,11 @@ struct ReferralCreditsView: View {
                 referralCode = formatReferralCode(newValue)
                 showError = false
             }
+            
+            Text("Shared by a friend who already uses hi-key")
+                .font(.footnote)
+                .foregroundStyle(HiTheme.textSecondary)
+                .padding(.leading, HiTheme.spacingMD)
 
             if showError {
                 Text("Invalid code. Try again.")

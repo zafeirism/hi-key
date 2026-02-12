@@ -16,13 +16,13 @@ struct ReviewView: View {
                 OnboardingTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
-                .padding(.top, HiTheme.spacingSM)
+                .padding(.top, HiTheme.spacingMD)
 
                 Text("Send hi-key to the stars.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingLG)
+                    .padding(.top, HiTheme.spacingMD)
 
                 Text("Early reviews make a huge difference. Help hi-key reach more creative people.")
                     .font(.body.weight(.medium))

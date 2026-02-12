@@ -83,7 +83,7 @@ struct HiKeyPresenterView: View {
                             Button {
                                 onboardingManager.goToNextStep()
                             } label: {
-                                Text("Try it now")
+                                Text("Next")
                             }
                             .buttonStyle(HiPrimaryButtonStyle())
                             .transition(.opacity.combined(with: .scale))

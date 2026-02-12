@@ -5,21 +5,20 @@ struct TryNowView: View {
 
     var body: some View {
         ZStack {
-            // TODO: Replace with final Lottie animation
-            // LottieView(name: "try-now")
-            //     .frame(maxWidth: 330)
+            LottieView(name: "try-now", loop: true)
+                .padding(.horizontal, HiTheme.spacingLG)
 
             VStack(spacing: 0) {
                 OnboardingTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
-                .padding(.top, HiTheme.spacingSM)
+                .padding(.top, HiTheme.spacingMD)
 
                 Text("Send your first hi.")
                     .font(.system(.title, design: .rounded, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, HiTheme.spacingLG)
+                    .padding(.top, HiTheme.spacingMD)
 
                 Text("You have 5 free credits. Open any chat and send your first hi.")
                     .font(.body.weight(.medium))
