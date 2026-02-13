@@ -50,6 +50,7 @@ enum HiTheme {
     static let statusError = Color(hex: "FF6B6B")
     static let statusWarning = Color(hex: "FFB86B")
     static let statusInfo = Color(hex: "6EA8FF")
+    static let statusGreen = Color(hex: "7AE3D1")
     
     // MARK: - Spacing
     
