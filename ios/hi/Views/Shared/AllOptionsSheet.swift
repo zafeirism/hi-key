@@ -1,166 +1,233 @@
 import SwiftUI
 
-struct AllOptionsSheet: View {
+struct AllPlansSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var creditsManager = CreditsManager.shared
-    
-    @Binding var selectedSubscription: SubscriptionTier?
-    @Binding var selectedPack: CreditPack?
-    
+    @ObservedObject private var creditsManager = CreditsManager.shared
+
+    let onComplete: (() -> Void)?
+
+    @State private var selectedTab: Tab = .subscriptions
+    @State private var selectedSubscription: SubscriptionTier = .pro
+    @State private var selectedPack: CreditPack? = nil
     @State private var isProcessing: Bool = false
     @State private var showTerms: Bool = false
-    
+
+    enum Tab {
+        case subscriptions
+        case onDemand
+    }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: HiTheme.spacingLG) {
-                    // Subscriptions section
-                    subscriptionsSection
+        VStack(spacing: 0) {
+            // Header
+            ZStack {
+                Text("Select a plan")
+                    .font(.title2.weight(.semibold))
 
-                    // One-time packs section
-                    packsSection
+                HStack {
+                    Spacer()
 
-                    // Purchase button
-                    if selectedSubscription != nil || selectedPack != nil {
-                        purchaseButton
-                    }
-
-                    // Footer links
-                    footerLinks
-                }
-                .padding(HiTheme.spacingMD)
-            }
-            .background(HiTheme.backgroundRoot)
-            .navigationTitle("All Plans")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(HiTheme.iconDefault)
+                            .frame(width: 32, height: 32)
+                            .background(HiTheme.surfaceSecondary)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
                     }
-                    .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
+            .padding(.top, HiTheme.spacingMD)
+            .padding(.bottom, HiTheme.spacingXL)
+
+            tabSwitcher
+                .padding(.bottom, HiTheme.spacingLG)
+
+            VStack(spacing: HiTheme.spacingSM) {
+                if selectedTab == .subscriptions {
+                    subscriptionOptions
+                } else {
+                    packOptions
+                }
+            }
+            .padding(.bottom, HiTheme.spacingLG)
+
+            Spacer()
+
+            // Hint
+            PaywallHintView(type: selectedTab == .subscriptions ? .subscription : .onDemand)
+                .padding(.bottom, HiTheme.spacingMD)
+
+            // Purchase button
+            PaywallCTAButton(
+                text: purchaseButtonText,
+                isProcessing: isProcessing,
+                action: { processPurchase() }
+            )
+            .padding(.bottom, HiTheme.spacingXL)
+
+            // Footer links
+            PaywallFooterLinks(
+                onRestore: { restorePurchases() },
+                onTerms: { showTerms = true }
+            )
+            .padding(.horizontal, HiTheme.spacingMD)
         }
+        .padding(.horizontal, HiTheme.spacingMD)
         .sheet(isPresented: $showTerms) {
             TermsSheet()
         }
-    }
-    
-    // MARK: - Subscriptions Section
-
-    private var subscriptionsSection: some View {
-        VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-            Text("Subscriptions")
-                .font(.headline)
-                .foregroundStyle(HiTheme.textSecondary)
-
-            VStack(spacing: HiTheme.spacingSM) {
-                ForEach(SubscriptionTier.allCases.filter { $0 != .none }, id: \.self) { tier in
-                    SubscriptionOptionCard(
-                        tier: tier,
-                        isSelected: selectedSubscription == tier,
-                        isCurrent: creditsManager.subscriptionTier == tier,
-                        onSelect: {
-                            selectedPack = nil
-                            selectedSubscription = tier
-                        }
-                    )
-                }
-            }
+        .onAppear {
+            configureDefaults()
         }
     }
 
-    // MARK: - Packs Section
+    // MARK: - Tab Switcher
 
-    private var packsSection: some View {
-        VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-            Text("Credit Packs")
-                .font(.headline)
-                .foregroundStyle(HiTheme.textSecondary)
-
-            VStack(spacing: HiTheme.spacingSM) {
-                ForEach(CreditPack.allCases, id: \.self) { pack in
-                    PackOptionCard(
-                        pack: pack,
-                        isSelected: selectedPack == pack,
-                        onSelect: {
-                            selectedSubscription = nil
-                            selectedPack = pack
-                        }
-                    )
-                }
-            }
+    private var tabSwitcher: some View {
+        HStack(spacing: 0) {
+            tabButton(title: "Subscriptions", icon: "calendar.badge.checkmark", tab: .subscriptions)
+            tabButton(title: "One-time", icon: "hand.point.up.left", tab: .onDemand)
         }
+        .padding(HiTheme.spacingXS)
+        .background(HiTheme.surfacePrimary)
+        .clipShape(Capsule())
     }
-    
-    // MARK: - Purchase Button
-    
-    private var purchaseButton: some View {
+
+    private func tabButton(title: String, icon: String, tab: Tab) -> some View {
         Button {
-            processPurchase()
-        } label: {
-            if isProcessing {
-                ProgressView()
-                    .tint(.white)
-            } else {
-                Text(purchaseButtonText)
+            withAnimation(.spring(response: 0.3)) {
+                selectedTab = tab
+                if tab == .onDemand && selectedPack == nil {
+                    selectedPack = .mini
+                } else if tab == .subscriptions {
+                    selectedPack = nil
+                }
             }
+        } label: {
+            VStack(spacing: HiTheme.spacingXS) {
+                Image(systemName: icon)
+                    .font(.title3.weight(.medium))
+                Text(title)
+                    .font(.headline.weight(.medium))
+            }
+            .foregroundStyle(selectedTab == tab ? HiTheme.accentPrimary : HiTheme.textPrimary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, HiTheme.spacingXS)
+            .background(selectedTab == tab ? HiTheme.surfaceSecondary : HiTheme.surfacePrimary)
+            .clipShape(Capsule())
         }
-        .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
-        .disabled(isProcessing)
+        .buttonStyle(.plain)
     }
-    
+
+    // MARK: - Subscription Options
+
+    private var subscriptionOptions: some View {
+        ForEach(SubscriptionTier.allCases.filter { $0 != .none }, id: \.self) { tier in
+            let isCurrent = creditsManager.subscriptionTier == tier
+            PaywallOptionCard(
+                title: tier.displayName,
+                subtitle: tier.creditsText,
+                price: tier.price,
+                isSelected: selectedSubscription == tier && selectedPack == nil,
+                onSelect: {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        selectedPack = nil
+                        selectedSubscription = tier
+                    }
+                },
+                label: tier == .pro && !isCurrent ? "BEST VALUE" : nil,
+                isCurrentPlan: isCurrent
+            )
+        }
+    }
+
+    // MARK: - Pack Options
+
+    private var packOptions: some View {
+        ForEach(CreditPack.allCases, id: \.self) { pack in
+            PaywallOptionCard(
+                title: pack.displayName,
+                subtitle: pack.creditsText,
+                price: pack.price,
+                isSelected: selectedPack == pack,
+                onSelect: {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        selectedPack = pack
+                    }
+                }
+            )
+        }
+    }
+
+    // MARK: - CTA Text
+
     private var purchaseButtonText: String {
-        if let tier = selectedSubscription {
-            return "Subscribe for \(tier.price)"
-        } else if let pack = selectedPack {
+        if let pack = selectedPack {
             return "Buy for \(pack.price)"
         }
-        return "Purchase"
-    }
-    
-    // MARK: - Footer Links
 
-    private var footerLinks: some View {
-        HStack(spacing: HiTheme.spacingXL) {
-            Button("Restore Purchases") {
-                restorePurchases()
-            }
-            .font(.footnote)
-            .foregroundStyle(HiTheme.textSecondary)
+        let currentTier = creditsManager.subscriptionTier
+        let price = selectedSubscription.price.replacingOccurrences(of: " / mo", with: "/month")
 
-            Button("Terms & Privacy") {
-                showTerms = true
-            }
-            .font(.footnote)
-            .foregroundStyle(HiTheme.textSecondary)
+        if currentTier == .none {
+            return "Subscribe for \(price)"
+        } else if selectedSubscription.monthlyAmount > currentTier.monthlyAmount {
+            return "Upgrade for \(price)"
+        } else if selectedSubscription.monthlyAmount < currentTier.monthlyAmount {
+            return "Downgrade for \(price)"
         }
-        .padding(.top, HiTheme.spacingMD)
+        return "Subscribe for \(price)"
     }
-    
+
+    // MARK: - Configuration
+
+    private func configureDefaults() {
+        let currentTier = creditsManager.subscriptionTier
+
+        // If user is on pro, default to one-time tab
+        if currentTier == .pro {
+            selectedTab = .onDemand
+            selectedPack = .mini
+            return
+        }
+
+        // Default selection is the next tier up from current
+        switch currentTier {
+        case .none:
+            selectedSubscription = .pro
+        case .lite:
+            selectedSubscription = .plus
+        case .plus, .pro:
+            selectedSubscription = .pro
+        }
+    }
+
     // MARK: - Actions
-    
+
     private func processPurchase() {
         isProcessing = true
-        
+
         // TODO: Implement StoreKit purchase
-        // For now, simulate purchase
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            if let tier = selectedSubscription {
-                creditsManager.setSubscription(tier)
-                creditsManager.addCredits(tier.monthlyPrompts)
-            } else if let pack = selectedPack {
+            if let pack = selectedPack {
                 creditsManager.addCredits(pack.credits)
+            } else {
+                creditsManager.setSubscription(selectedSubscription)
+                creditsManager.addCredits(selectedSubscription.monthlyPrompts)
             }
             isProcessing = false
+            onComplete?()
             dismiss()
         }
     }
-    
+
     private func restorePurchases() {
         isProcessing = true
-        
+
         // TODO: Implement StoreKit restore
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isProcessing = false
@@ -168,176 +235,6 @@ struct AllOptionsSheet: View {
     }
 }
 
-// MARK: - Subscription Option Card
-
-private struct SubscriptionOptionCard: View {
-    let tier: SubscriptionTier
-    let isSelected: Bool
-    let isCurrent: Bool
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: HiTheme.spacingMD) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(tier.displayName)
-                            .font(.headline)
-                            .foregroundStyle(HiTheme.textPrimary)
-
-                        if tier == .pro {
-                            Text("BEST")
-                                .font(.caption2.bold())
-                                .foregroundStyle(HiTheme.backgroundRoot)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(HiTheme.accentPrimary)
-                                .clipShape(Capsule())
-                        }
-
-                        if isCurrent {
-                            Text("CURRENT")
-                                .font(.caption2.bold())
-                                .foregroundStyle(HiTheme.textSecondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(HiTheme.surfaceSecondary)
-                                .clipShape(Capsule())
-                        }
-                    }
-
-                    Text("\(tier.monthlyPrompts) prompts/month")
-                        .font(.subheadline)
-                        .foregroundStyle(HiTheme.textSecondary)
-
-                    if tier == .pro {
-                        Text("No watermark • Early features")
-                            .font(.caption)
-                            .foregroundStyle(HiTheme.textTertiary)
-                    }
-                }
-
-                Spacer()
-
-                Text(tier.price)
-                    .font(.headline)
-                    .foregroundStyle(HiTheme.textPrimary)
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
-                    .font(.title2)
-            }
-            .padding(HiTheme.spacingMD)
-            .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-            .overlay(
-                RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(isSelected ? HiTheme.accentPrimary : Color.clear, lineWidth: 2)
-            )
-        }
-        .buttonStyle(.plain)
-        .disabled(isCurrent)
-        .opacity(isCurrent ? 0.6 : 1)
-    }
-}
-
-// MARK: - Pack Option Card
-
-private struct PackOptionCard: View {
-    let pack: CreditPack
-    let isSelected: Bool
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: HiTheme.spacingMD) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(pack.displayName)
-                        .font(.headline)
-                        .foregroundStyle(HiTheme.textPrimary)
-
-                    Text("\(pack.credits) credits • One-time")
-                        .font(.subheadline)
-                        .foregroundStyle(HiTheme.textSecondary)
-                }
-
-                Spacer()
-
-                Text(pack.price)
-                    .font(.headline)
-                    .foregroundStyle(HiTheme.textPrimary)
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
-                    .font(.title2)
-            }
-            .padding(HiTheme.spacingMD)
-            .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
-            .overlay(
-                RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(isSelected ? HiTheme.accentPrimary : Color.clear, lineWidth: 2)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Terms Sheet
-
-struct TermsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: HiTheme.spacingLG) {
-                    Text("Terms of Service")
-                        .font(.title2.bold())
-                        .foregroundStyle(HiTheme.textPrimary)
-
-                    Text(termsText)
-                        .font(.body)
-                        .foregroundStyle(HiTheme.textSecondary)
-                }
-                .padding(HiTheme.spacingLG)
-            }
-            .background(HiTheme.backgroundRoot)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .foregroundStyle(HiTheme.accentPrimary)
-                }
-            }
-        }
-    }
-
-    private var termsText: String {
-        """
-        By subscribing to hi-key, you agree to the following terms:
-        
-        • Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.
-        
-        • Your account will be charged for renewal within 24 hours prior to the end of the current period.
-        
-        • You can manage and cancel subscriptions by going to your Account Settings on the App Store after purchase.
-        
-        • Any unused portion of a free trial period will be forfeited when you purchase a subscription.
-        
-        Privacy Policy:
-        
-        • We collect only the data necessary to provide our service.
-        
-        • Your prompts are processed to generate images and are not stored.
-        
-        • We do not sell your personal data to third parties.
-        """
-    }
-}
-
-#Preview("All Options") {
-    AllOptionsSheet(selectedSubscription: .constant(nil), selectedPack: .constant(nil))
+#Preview("All Plans") {
+    AllPlansSheet(onComplete: nil)
 }

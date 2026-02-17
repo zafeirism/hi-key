@@ -13,7 +13,6 @@ struct ContentView: View {
                 OnboardingFlowView()
             }
         }
-        .animation(HiTheme.animationNormal, value: onboardingManager.hasCompletedOnboarding)
     }
 }
 

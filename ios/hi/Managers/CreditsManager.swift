@@ -12,12 +12,12 @@ enum SubscriptionTier: String, CaseIterable {
     var displayName: String {
         switch self {
         case .none: return "Free"
-        case .lite: return "Lite"
+        case .lite: return "Starter"
         case .plus: return "Plus"
-        case .pro: return "Pro"
+        case .pro: return "Super"
         }
     }
-    
+
     var monthlyPrompts: Int {
         switch self {
         case .none: return 0
@@ -26,16 +26,34 @@ enum SubscriptionTier: String, CaseIterable {
         case .pro: return 110
         }
     }
-    
+
     var price: String {
         switch self {
         case .none: return "Free"
-        case .lite: return "$4.99/mo"
-        case .plus: return "$6.99/mo"
-        case .pro: return "$12.99/mo"
+        case .lite: return "$4.99 / mo"
+        case .plus: return "$6.99 / mo"
+        case .pro: return "$12.99 / mo"
         }
     }
-    
+
+    var creditsText: String {
+        switch self {
+        case .none: return "5 free credits"
+        case .lite: return "25 credits / month"
+        case .plus: return "50 credits / month"
+        case .pro: return "110 credits / month"
+        }
+    }
+
+    var monthlyAmount: Decimal {
+        switch self {
+        case .none: return 0
+        case .lite: return 4.99
+        case .plus: return 6.99
+        case .pro: return 12.99
+        }
+    }
+
     var features: [String] {
         switch self {
         case .none:
@@ -48,7 +66,7 @@ enum SubscriptionTier: String, CaseIterable {
             return ["110 prompts per month", "4 images per prompt", "No watermark", "Early access to new features"]
         }
     }
-    
+
     var canRemoveWatermark: Bool {
         self == .pro
     }
@@ -62,22 +80,29 @@ enum CreditPack: String, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .mini: return "Mini Pack"
-        case .big: return "Big Pack"
+        case .mini: return "Mini pack"
+        case .big: return "Big pack"
         }
     }
-    
+
     var credits: Int {
         switch self {
         case .mini: return 10
         case .big: return 25
         }
     }
-    
+
     var price: String {
         switch self {
         case .mini: return "$2.99"
         case .big: return "$5.99"
+        }
+    }
+
+    var creditsText: String {
+        switch self {
+        case .mini: return "10 credits, one-time"
+        case .big: return "25 credits, one-time"
         }
     }
 }

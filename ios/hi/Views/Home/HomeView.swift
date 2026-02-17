@@ -13,22 +13,18 @@ struct HomeView: View {
     @State private var isFirstVisit: Bool = true
     @AppStorage("hasSeenHomeScreen") private var hasSeenHomeScreen: Bool = false
 
-    // For AllOptionsSheet
-    @State private var selectedSubscription: SubscriptionTier? = nil
-    @State private var selectedPack: CreditPack? = nil
-
     var body: some View {
         ZStack {
             HiTheme.backgroundRoot
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 0) {
                 // Header row with settings and help
                 headerRow
                     .padding(.horizontal, HiTheme.spacingMD)
                     .padding(.top, HiTheme.spacingLG)
                     .padding(.bottom, HiTheme.spacingSM)
-
+                
                 // Main scrollable content
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -38,25 +34,25 @@ struct HomeView: View {
                             .foregroundStyle(HiTheme.textPrimary)
                             .padding(.top, HiTheme.spacingSM)
                             .padding(.horizontal, HiTheme.spacingSM)
-
+                        
                         // Credits card
                         creditsCard
                             .padding(.top, HiTheme.spacingXL)
-
+                        
                         // Invite friends card
                         inviteFriendsCard
                             .padding(.top, HiTheme.spacingLG)
                     }
                     .padding(.horizontal, HiTheme.spacingMD)
-
+                    
                     Spacer(minLength: HiTheme.spacingXL * 2)
-
+                    
                     Text("Open any chat or app, switch \nkeyboards and send a hi.")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(HiTheme.textSecondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
-
+                    
                     Spacer(minLength: HiTheme.spacingXL)
                 }
                 .overlay(alignment: .top) {
@@ -77,7 +73,7 @@ struct HomeView: View {
                     .frame(height: HiTheme.spacingMD)
                     .allowsHitTesting(false)
                 }
-
+                
                 // Bottom footer (fixed outside scroll)
                 Button {
                     showKeyboardSetup = true
@@ -97,18 +93,19 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showKeyboardSetup) {
             KeyboardSetupSheet()
+                .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showReferralCode) {
             ReferralCodeSheet()
+                .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showAllOptions) {
-            AllOptionsSheet(
-                selectedSubscription: $selectedSubscription,
-                selectedPack: $selectedPack
-            )
+            AllPlansSheet(onComplete: nil)
+                .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+                .background(HiTheme.backgroundRoot)
         }
         .onAppear {
             isFirstVisit = !hasSeenHomeScreen
@@ -146,7 +143,6 @@ struct HomeView: View {
 
     private var headerRow: some View {
         HStack {
-            // Settings button (left)
             Button {
                 showSettings = true
             } label: {
@@ -161,7 +157,6 @@ struct HomeView: View {
 
             Spacer()
 
-            // Help button (right)
             Button {
                 showKeyboardSetup = true
             } label: {

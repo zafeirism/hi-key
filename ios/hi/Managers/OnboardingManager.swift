@@ -127,8 +127,8 @@ class OnboardingManager: ObservableObject {
     }
     
     func completeOnboarding() {
-        hasCompletedOnboarding = true
-        withAnimation(HiTheme.animationNormal) {
+        withAnimation(HiTheme.animationSlow) {
+            hasCompletedOnboarding = true
             currentStep = .complete
         }
     }

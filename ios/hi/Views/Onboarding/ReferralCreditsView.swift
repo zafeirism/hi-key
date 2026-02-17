@@ -94,13 +94,12 @@ struct ReferralCreditsView: View {
                             .background(isValidFormat ? HiTheme.accentPrimary : HiTheme.surfaceSecondary)
                             .clipShape(Capsule())
                     }
+                    .padding(.vertical, HiTheme.spacingSM)
                     .disabled(!isValidFormat)
                 }
             }
             .padding(.leading, HiTheme.spacingMD)
             .padding(.trailing, HiTheme.spacingSM)
-            .frame(height: 56)
-            .frame(maxWidth: 290)
             .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
             .overlay(
@@ -125,7 +124,6 @@ struct ReferralCreditsView: View {
                     .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     // MARK: - Helpers
