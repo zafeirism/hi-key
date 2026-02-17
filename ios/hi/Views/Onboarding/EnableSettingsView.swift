@@ -29,7 +29,7 @@ struct EnableSettingsView: View {
                 
                 Spacer()
                 
-                VStack(spacing: HiTheme.spacingLG) {
+                VStack {
                     HiCard{
                         VStack(spacing: HiTheme.spacingMD){
                             Button {
@@ -41,7 +41,7 @@ struct EnableSettingsView: View {
                                         .foregroundStyle(HiTheme.accentPrimary)
                                         .padding(.trailing, HiTheme.spacingSM)
                                     Text("Learn how we protect your privacy")
-                                        .font(.footnote.weight(.medium))
+                                        .font(.footnote.weight(.semibold))
                                         .foregroundStyle(HiTheme.accentPrimary)
                                         .padding(.trailing, HiTheme.spacingXS)
                                     Image(systemName: "chevron.right")
@@ -54,6 +54,7 @@ struct EnableSettingsView: View {
                             thirdPartyKeyboardFootnote
                         }
                     }
+                    .padding(.bottom, HiTheme.spacingLG)
                     
                     if onboardingManager.hasOpenedSettings {
                         Button {
@@ -62,6 +63,7 @@ struct EnableSettingsView: View {
                             Text("Continue")
                         }
                         .buttonStyle(HiPrimaryButtonStyle())
+                        .padding(.bottom, HiTheme.spacingSM)
                         
                         Button {
                             openKeyboardSettings()
@@ -69,6 +71,7 @@ struct EnableSettingsView: View {
                             Text("Open Settings")
                         }
                         .buttonStyle(HiTertiaryButtonStyle())
+                        .padding(.bottom, HiTheme.spacingMD)
                     } else {
                         Button {
                             openKeyboardSettings()
@@ -79,9 +82,9 @@ struct EnableSettingsView: View {
                             Text("Open Settings")
                         }
                         .buttonStyle(HiPrimaryButtonStyle())
+                        .padding(.bottom, HiTheme.spacingXL)
                     }
                 }
-                .padding(.bottom, HiTheme.spacingXL)
             }
             .padding(.horizontal, HiTheme.spacingLG)
         }

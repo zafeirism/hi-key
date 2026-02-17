@@ -195,14 +195,14 @@ struct HomeView: View {
                     // Plan badge
                     Text(creditsManager.subscriptionTier.displayName.uppercased())
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HiTheme.textPrimary)
+                        .foregroundStyle(creditsManager.subscriptionTier == .none ? HiTheme.textSecondary : HiTheme.accentSecondary)
                         .padding(.horizontal, HiTheme.spacingSM)
                         .padding(.vertical, HiTheme.spacingXS)
-                        .background(creditsManager.subscriptionTier == .none ? HiTheme.surfaceSecondary : HiTheme.accentSecondary.opacity(0.7))
+                        .background(HiTheme.surfaceSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
                         .overlay(
                             RoundedRectangle(cornerRadius: HiTheme.radiusSM)
-                                .stroke(creditsManager.subscriptionTier == .none ? HiTheme.divider : Color.clear, lineWidth: 1)
+                                .stroke(creditsManager.subscriptionTier == .none ? HiTheme.divider : HiTheme.accentSecondary, lineWidth: 1)
                         )
                 }
 
@@ -217,7 +217,7 @@ struct HomeView: View {
                 Button {
                     showAllOptions = true
                 } label: {
-                    Text("Top-up credits")
+                    Text("Top up credits")
                 }
                 .buttonStyle(HiSecondaryButtonStyle())
                 .padding(.top, HiTheme.spacingLG)

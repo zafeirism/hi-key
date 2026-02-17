@@ -65,6 +65,7 @@ struct AllPlansSheet: View {
             PaywallCTAButton(
                 text: purchaseButtonText,
                 isProcessing: isProcessing,
+                isSecondary: isDowngrade,
                 action: { processPurchase() }
             )
             .padding(.bottom, HiTheme.spacingXL)
@@ -163,7 +164,13 @@ struct AllPlansSheet: View {
         }
     }
 
-    // MARK: - CTA Text
+    // MARK: - CTA State
+
+    private var isDowngrade: Bool {
+        guard selectedPack == nil else { return false }
+        let currentTier = creditsManager.subscriptionTier
+        return currentTier != .none && selectedSubscription.monthlyAmount < currentTier.monthlyAmount
+    }
 
     private var purchaseButtonText: String {
         if let pack = selectedPack {
@@ -192,6 +199,7 @@ struct AllPlansSheet: View {
         if currentTier == .pro {
             selectedTab = .onDemand
             selectedPack = .mini
+            selectedSubscription = .plus
             return
         }
 

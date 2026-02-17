@@ -4,8 +4,8 @@ struct ReferralCreditsView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
     @ObservedObject var creditsManager = CreditsManager.shared
 
-    @State private var referralCode: String = ""
-    @State private var codeApplied: Bool = false
+    @State private var referralCode: String = OnboardingManager.shared.referrerCode ?? ""
+    @State private var codeApplied: Bool = OnboardingManager.shared.referralApplied
     @State private var showError: Bool = false
     @State private var isProcessing: Bool = false
 
@@ -71,14 +71,17 @@ struct ReferralCreditsView: View {
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .disabled(codeApplied)
+                    .padding(.vertical, HiTheme.spacingSM)
 
                 if codeApplied {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
                         .foregroundStyle(HiTheme.accentPrimary)
+                        .padding(.trailing, HiTheme.spacingMD)
                         .transition(.scale.combined(with: .opacity))
                 } else if isProcessing {
                     ProgressView()
+                        .padding(.trailing, HiTheme.spacingMD)
                         .tint(HiTheme.textSecondary)
                         .scaleEffect(0.8)
                         .transition(.scale.combined(with: .opacity))
@@ -92,14 +95,14 @@ struct ReferralCreditsView: View {
                             .padding(.horizontal, HiTheme.spacingMD)
                             .padding(.vertical, HiTheme.spacingSM)
                             .background(isValidFormat ? HiTheme.accentPrimary : HiTheme.surfaceSecondary)
-                            .clipShape(Capsule())
+                            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                     }
+                    .padding(.trailing, HiTheme.spacingSM)
                     .padding(.vertical, HiTheme.spacingSM)
                     .disabled(!isValidFormat)
                 }
             }
             .padding(.leading, HiTheme.spacingMD)
-            .padding(.trailing, HiTheme.spacingSM)
             .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
             .overlay(
@@ -111,7 +114,7 @@ struct ReferralCreditsView: View {
                 showError = false
             }
             
-            Text("Shared by a friend who already uses hi-key")
+            Text("Shared by a friend who already uses hi-key.")
                 .font(.footnote)
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.leading, HiTheme.spacingMD)

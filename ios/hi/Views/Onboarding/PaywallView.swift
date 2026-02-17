@@ -67,10 +67,12 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showAllPlans) {
             AllPlansSheet(onComplete: { onboardingManager.completeOnboarding() })
-                .presentationDetents([.fraction(0.8)])
+                .presentationDetents([.fraction(0.85)])
                 .background(HiTheme.backgroundRoot)
         }
-        .sheet(isPresented: $showOnlyPacks) {
+        .sheet(isPresented: $showOnlyPacks, onDismiss: {
+            selectedPack = nil
+        }) {
             OnlyPacksSheet(
                 selectedPack: $selectedPack,
                 onPurchase: { processPurchase() },
@@ -121,7 +123,7 @@ struct PaywallView: View {
 
             // Option cards
             optionCards
-                .padding(.bottom, HiTheme.spacingMD)
+                .padding(.bottom, HiTheme.spacingSM)
 
             // View all plans link
             if paywallState == .main {
@@ -137,7 +139,6 @@ struct PaywallView: View {
                         }
                     }
                     .buttonStyle(HiTertiaryButtonStyle())
-                    .padding(.trailing, HiTheme.spacingSM)
                 }
             }
 
@@ -202,7 +203,7 @@ struct PaywallView: View {
                 title: SubscriptionTier.plus.displayName,
                 subtitle: SubscriptionTier.plus.creditsText,
                 price: SubscriptionTier.plus.price,
-                isSelected: selectedSubscription == .plus && selectedPack == nil,
+                isSelected: selectedSubscription == .plus,
                 onSelect: {
                     withAnimation(.easeOut(duration: 0.15)) {
                         selectedPack = nil
@@ -216,7 +217,7 @@ struct PaywallView: View {
                 title: SubscriptionTier.pro.displayName,
                 subtitle: SubscriptionTier.pro.creditsText,
                 price: paywallState == .finalOffer ? "$9.99 / mo" : SubscriptionTier.pro.price,
-                isSelected: selectedSubscription == .pro && selectedPack == nil,
+                isSelected: selectedSubscription == .pro,
                 onSelect: {
                     withAnimation(.easeOut(duration: 0.15)) {
                         selectedPack = nil
@@ -231,10 +232,6 @@ struct PaywallView: View {
     }
 
     private var purchaseButtonText: String {
-        if let pack = selectedPack {
-            return "Buy for \(pack.price)"
-        }
-
         switch paywallState {
         case .main:
             return "Subscribe for \(selectedSubscription == .pro ? "$12.99" : "$6.99")/month"
@@ -332,7 +329,7 @@ private struct OnlyPacksSheet: View {
                 isProcessing: isProcessing,
                 action: onPurchase
             )
-            .padding(.bottom, HiTheme.spacingLG)
+            .padding(.bottom, HiTheme.spacingSM)
 
             // Not now button
             Button(action: onNotNow) {
@@ -340,7 +337,7 @@ private struct OnlyPacksSheet: View {
                     .foregroundStyle(HiTheme.textSecondary)
             }
             .buttonStyle(HiTertiaryButtonStyle())
-            .padding(.bottom, HiTheme.spacingXL)
+            .padding(.bottom, HiTheme.spacingMD)
 
             // Footer links
             PaywallFooterLinks(

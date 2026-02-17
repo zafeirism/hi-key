@@ -44,19 +44,30 @@ struct PaywallHintView: View {
 struct PaywallCTAButton: View {
     let text: String
     let isProcessing: Bool
+    var isSecondary: Bool = false
     let action: () -> Void
 
-    var body: some View {
-        Button(action: action) {
+    private var buttonLabel: some View {
+        Group {
             if isProcessing {
                 ProgressView()
-                    .tint(HiTheme.backgroundRoot)
+                    .tint(isSecondary ? HiTheme.accentPrimary : HiTheme.backgroundRoot)
             } else {
                 Text(text)
             }
         }
-        .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
-        .disabled(isProcessing)
+    }
+
+    var body: some View {
+        if isSecondary {
+            Button(action: action) { buttonLabel }
+                .buttonStyle(HiSecondaryButtonStyle(isEnabled: !isProcessing))
+                .disabled(isProcessing)
+        } else {
+            Button(action: action) { buttonLabel }
+                .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
+                .disabled(isProcessing)
+        }
     }
 }
 

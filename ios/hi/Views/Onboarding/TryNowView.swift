@@ -34,7 +34,7 @@ struct TryNowView: View {
                     Text("I'll try it later")
                 }
                 .buttonStyle(HiTertiaryButtonStyle())
-                .padding(.bottom, HiTheme.spacingXXL)
+                .padding(.bottom, HiTheme.spacingXL)
             }
             .padding(.horizontal, HiTheme.spacingLG)
         }

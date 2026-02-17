@@ -154,6 +154,9 @@ struct HiTertiaryButtonStyle: ButtonStyle {
         configuration.label
             .font(.body.weight(.semibold))
             .foregroundStyle(HiTheme.accentPrimary)
+            .padding(.horizontal, HiTheme.spacingLG)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.6 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
