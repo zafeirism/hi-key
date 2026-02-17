@@ -31,6 +31,12 @@ class SettingsManager: ObservableObject {
             userDefaults?.set(customStyles, forKey: Keys.customStyles)
         }
     }
+
+    @Published var removeWatermarkEnabled: Bool = false {
+        didSet {
+            userDefaults?.set(removeWatermarkEnabled, forKey: Keys.removeWatermarkEnabled)
+        }
+    }
     
     // MARK: - Keys
     
@@ -38,6 +44,7 @@ class SettingsManager: ObservableObject {
         static let randomStylesEnabled = "randomStylesEnabled"
         static let enabledStyles = "enabledStyles"
         static let customStyles = "customStyles"
+        static let removeWatermarkEnabled = "removeWatermarkEnabled"
     }
     
     // MARK: - Default Styles
@@ -55,10 +62,21 @@ class SettingsManager: ObservableObject {
         "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Street art"
     ]
     
+    private var cancellables = Set<AnyCancellable>()
+
     // MARK: - Init
-    
+
     private init() {
         loadState()
+
+        // Reset watermark setting when user loses eligibility (e.g. downgrade)
+        CreditsManager.shared.$subscriptionTier
+            .sink { [weak self] tier in
+                if !tier.canRemoveWatermark {
+                    self?.removeWatermarkEnabled = false
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func loadState() {
@@ -79,6 +97,10 @@ class SettingsManager: ObservableObject {
         
         // Load custom styles
         customStyles = userDefaults?.stringArray(forKey: Keys.customStyles) ?? []
+
+        // Load watermark toggle (reset to false if no longer eligible)
+        let savedWatermark = userDefaults?.bool(forKey: Keys.removeWatermarkEnabled) ?? false
+        removeWatermarkEnabled = canRemoveWatermark ? savedWatermark : false
     }
     
     // MARK: - Style Management
@@ -149,8 +171,10 @@ class SettingsManager: ObservableObject {
         randomStylesEnabled = true
         enabledStyles = Set(Self.defaultStyles)
         customStyles = []
+        removeWatermarkEnabled = false
         userDefaults?.removeObject(forKey: Keys.randomStylesEnabled)
         userDefaults?.removeObject(forKey: Keys.enabledStyles)
         userDefaults?.removeObject(forKey: Keys.customStyles)
+        userDefaults?.removeObject(forKey: Keys.removeWatermarkEnabled)
     }
 }

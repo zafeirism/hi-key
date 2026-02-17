@@ -1,16 +1,16 @@
 import SwiftUI
-import StoreKit
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var creditsManager = CreditsManager.shared
     @ObservedObject var settingsManager = SettingsManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    
+
     @State private var showStylePicker: Bool = false
     @State private var showNameEditor: Bool = false
+    @State private var showAllPlans: Bool = false
     @State private var editedName: String = ""
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -23,11 +23,8 @@ struct SettingsView: View {
                 // Subscription section
                 subscriptionSection
 
-                // Support section
+                // Support & Legal section
                 supportSection
-
-                // Legal section
-                legalSection
 
                 #if DEBUG
                 // Debug section (development only)
@@ -49,7 +46,10 @@ struct SettingsView: View {
             .sheet(isPresented: $showStylePicker) {
                 StylePickerView()
             }
-            .alert("Edit Name", isPresented: $showNameEditor) {
+            .sheet(isPresented: $showAllPlans) {
+                AllPlansSheet(onComplete: nil)
+            }
+            .alert("Enter your name", isPresented: $showNameEditor) {
                 TextField("Your name", text: $editedName)
                     .textInputAutocapitalization(.words)
 
@@ -59,13 +59,13 @@ struct SettingsView: View {
                     saveName()
                 }
             } message: {
-                Text("Your name will be shown to friends who use your referral code")
+                Text("Part of your name will appear in your referral code and be shown to friends who use it.")
             }
         }
     }
-    
+
     // MARK: - Profile Section
-    
+
     private var profileSection: some View {
         Section {
             Button {
@@ -74,161 +74,141 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Text("Name")
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(HiTheme.textPrimary)
                     Spacer()
                     Text(creditsManager.userName.isEmpty ? "Not set" : creditsManager.userName)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(HiTheme.textSecondary)
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(HiTheme.textSecondary)
                 }
             }
         } header: {
             Text("Profile")
         } footer: {
-            Text("Shown to friends who use your referral code")
+            Text("Part of your name will appear in your referral code.")
         }
     }
-    
+
     // MARK: - Image Generation Section
-    
+
     private var imageGenerationSection: some View {
         Section {
             Toggle("Random styles", isOn: $settingsManager.randomStylesEnabled)
-            
+
             if settingsManager.randomStylesEnabled {
                 Button {
                     showStylePicker = true
                 } label: {
                     HStack {
                         Text("Manage styles")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Spacer()
                         Text("\(settingsManager.enabledStyles.count) enabled")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(HiTheme.textSecondary)
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
         } header: {
             Text("Image Generation")
         } footer: {
-            Text("When enabled, each of your 4 images will have a different random style if you don't specify one")
+            Text("When enabled, each of the 4 images will have a random style, unless your prompt specifies one.")
         }
     }
-    
+
     // MARK: - Subscription Section
-    
+
     private var subscriptionSection: some View {
         Section {
-            Toggle("Remove hi watermark", isOn: .constant(settingsManager.canRemoveWatermark))
+            Toggle("Remove hi-key watermark", isOn: $settingsManager.removeWatermarkEnabled)
                 .disabled(!settingsManager.canRemoveWatermark)
-            
-            if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-                Link(destination: url) {
-                    HStack {
-                        Text("Manage subscription")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
+
+            Button {
+                showAllPlans = true
+            } label: {
+                HStack {
+                    Text("Manage subscription")
+                        .foregroundStyle(HiTheme.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(HiTheme.textSecondary)
                 }
             }
         } header: {
-            Text("Subscription")
+            Text("Watermark")
         } footer: {
             if !settingsManager.canRemoveWatermark {
-                Text("Watermark removal is available with Pro subscription")
+                Text("Watermark removal is available with Super subscription.")
             }
         }
     }
-    
+
     // MARK: - Support Section
-    
+
     private var supportSection: some View {
         Section {
             if let url = URL(string: "https://hi-key.ai/faq") {
                 Link(destination: url) {
                     HStack {
                         Text("Help & FAQ")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
-            
+
             if let url = URL(string: "mailto:support@hi-key.ai") {
                 Link(destination: url) {
                     HStack {
                         Text("Contact us")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
-            
-            Button {
-                requestReview()
-            } label: {
-                HStack {
-                    Text("Rate hi-key")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "star")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } header: {
-            Text("Support")
-        }
-    }
-    
-    // MARK: - Legal Section
-    
-    private var legalSection: some View {
-        Section {
+
             if let url = URL(string: "https://hi-key.ai/terms") {
                 Link(destination: url) {
                     HStack {
                         Text("Terms of Service")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
-            
+
             if let url = URL(string: "https://hi-key.ai/privacy") {
                 Link(destination: url) {
                     HStack {
                         Text("Privacy Policy")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(HiTheme.textPrimary)
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
             }
         } header: {
-            Text("Legal")
+            Text("Help")
         }
     }
-    
+
     // MARK: - Debug Section
-    
+
     #if DEBUG
     private var debugSection: some View {
         Section {
@@ -239,14 +219,14 @@ struct SettingsView: View {
                 UserDefaults.standard.removeObject(forKey: "hasSeenHomeScreen")
                 dismiss()
             }
-            .foregroundStyle(.red)
-            
+            .foregroundStyle(HiTheme.statusError)
+
             Button("Sign out") {
                 Task {
                     await AuthManager.shared.signOut()
                 }
             }
-            .foregroundStyle(.red)
+            .foregroundStyle(HiTheme.statusError)
         } header: {
             Text("Debug")
         } footer: {
@@ -254,24 +234,18 @@ struct SettingsView: View {
         }
     }
     #endif
-    
+
     // MARK: - Actions
-    
+
     private func saveName() {
         let trimmed = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // Don't allow clearing name if referral code exists
         if trimmed.isEmpty && creditsManager.referralCode != nil {
             return
         }
-        
+
         creditsManager.setUserName(trimmed)
-    }
-    
-    private func requestReview() {
-        if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-            SKStoreReviewController.requestReview(in: scene)
-        }
     }
 }
 

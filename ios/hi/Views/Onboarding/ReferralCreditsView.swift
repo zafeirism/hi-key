@@ -65,7 +65,7 @@ struct ReferralCreditsView: View {
                 TextField("", text: $referralCode, prompt: Text("FRIEND-CODE")
                     .foregroundStyle(HiTheme.textTertiary))
                     .textFieldStyle(.plain)
-                    .font(.body.monospaced())
+                    .font(.title2.monospaced().bold())
                     .foregroundStyle(HiTheme.textPrimary)
                     .keyboardType(.asciiCapable)
                     .textInputAutocapitalization(.characters)

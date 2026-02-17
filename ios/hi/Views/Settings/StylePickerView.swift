@@ -45,6 +45,7 @@ struct StylePickerView: View {
                             Image(systemName: "plus.circle.fill")
                                 .foregroundStyle(HiTheme.accentPrimary)
                             Text("Add custom style")
+                                .foregroundStyle(HiTheme.accentPrimary)
                         }
                     }
                 } header: {
@@ -112,30 +113,28 @@ private struct StyleRow: View {
     var onDelete: (() -> Void)? = nil
 
     var body: some View {
-        HStack {
-            Button {
-                onToggle()
-            } label: {
-                HStack {
-                    Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.textSecondary)
-
-                    Text(style)
-                        .foregroundStyle(HiTheme.textPrimary)
-
-                    Spacer()
+        Button {
+            onToggle()
+        } label: {
+            HStack {
+                Text(style)
+                    .foregroundStyle(HiTheme.textPrimary)
+                Spacer()
+                if isEnabled {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(HiTheme.accentPrimary)
                 }
             }
-            .buttonStyle(.plain)
-
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .swipeActions(edge: .trailing) {
             if isCustom, let delete = onDelete {
-                Button {
+                Button(role: .destructive) {
                     delete()
                 } label: {
-                    Image(systemName: "trash")
-                        .foregroundStyle(HiTheme.statusError)
+                    Label("Delete", systemImage: "trash")
                 }
-                .buttonStyle(.plain)
             }
         }
     }
