@@ -64,10 +64,6 @@ struct PaywallView: View {
             return "$9.99 / mo"
         }
 
-        var originalPrice: String {
-            return "$12.99"
-        }
-
         var creditsManagerTier: SubscriptionTier {
             switch self {
             case .starter: return .lite
@@ -187,7 +183,7 @@ struct PaywallView: View {
                 onPurchase: { processPurchase() },
                 onNotNow: {
                     showOnlyPacks = false
-                    withAnimation{//}(.easeInOut(duration: 2.3)) {
+                    withAnimation{
                         paywallState = .finalOffer
                         selectedSubscription = .superTier
                         selectedPack = nil
@@ -296,7 +292,7 @@ struct PaywallView: View {
                 case .main:
                     Text("Never run out of credits. One credit generates 4 images from your prompt.")
                 case .finalOffer:
-                    Text("We really want you to try hi-key. Claim your limited-time offer now. Let's do this.")
+                    Text("We really want you to try hi-key. 25% off on the already best-value plan. Claim it now.")
                 }
             }
             .font(.body.weight(.medium))
@@ -336,7 +332,8 @@ struct PaywallView: View {
                     }
                 },
                 discountBadge: paywallState == .finalOffer ? "-25%" : nil,
-                originalPrice: paywallState == .finalOffer ? "$12.99" : nil//PaywallSubscription.superTier.originalPrice : nil
+                originalPrice: paywallState == .finalOffer ? "$12.99" : nil,
+                label: paywallState == .finalOffer ? nil : "BEST VALUE"
             )
         }
     }
@@ -481,6 +478,7 @@ private struct PaywallOptionCard: View {
     
     var discountBadge: String? = nil
     var originalPrice: String? = nil
+    var label: String? = nil
     
     var body: some View {
         Button(action: onSelect) {
@@ -502,6 +500,18 @@ private struct PaywallOptionCard: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: HiTheme.radiusSM)
                                         .stroke(HiTheme.accentSecondary, lineWidth: 1)
+                                )
+                        } else if (label != nil) {
+                            Text(label!)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(HiTheme.statusGreen)
+                                .padding(.horizontal, HiTheme.spacingSM)
+                                .padding(.vertical, HiTheme.spacingXS)
+                                .background(HiTheme.surfaceSecondary)
+                                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                                        .stroke(HiTheme.statusGreen, lineWidth: 1)
                                 )
                         }
                     }
@@ -565,8 +575,8 @@ private struct AllPlansSheet: View {
         VStack(spacing: 0) {
             // Header
             ZStack {
-                Text("Choose your plan")
-                    .font(.headline)
+                Text("Select a plan")
+                    .font(.title2.weight(.semibold))
 
                 HStack {
                     Spacer()
@@ -626,7 +636,7 @@ private struct AllPlansSheet: View {
     private var tabSwitcher: some View {
             HStack(spacing: 0) {
                 tabButton(title: "Subscriptions", icon: "calendar.badge.checkmark", tab: .subscriptions)
-                tabButton(title: "On demand", icon: "hand.point.up.left", tab: .onDemand)
+                tabButton(title: "One-time", icon: "hand.point.up.left", tab: .onDemand)
             }
             .padding(HiTheme.spacingXS)
             .background(HiTheme.surfacePrimary)
@@ -671,7 +681,8 @@ private struct AllPlansSheet: View {
                         selectedPack = nil
                         selectedSubscription = subscription
                     }
-                }
+                },
+                label: subscription.displayName == PaywallView.PaywallSubscription.superTier.displayName ? "BEST VALUE" : nil
             )
         }
     }
@@ -722,7 +733,7 @@ private struct OnlyPacksSheet: View {
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.bottom, HiTheme.spacingXXL)
             
-            // Pack options
+            // Pack options 
             VStack(spacing: HiTheme.spacingSM) {
                 ForEach(PaywallView.PaywallPack.allCases, id: \.self) { pack in
                     PaywallOptionCard(

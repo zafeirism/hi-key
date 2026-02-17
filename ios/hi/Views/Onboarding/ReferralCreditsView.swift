@@ -67,6 +67,7 @@ struct ReferralCreditsView: View {
                     .textFieldStyle(.plain)
                     .font(.body.monospaced())
                     .foregroundStyle(HiTheme.textPrimary)
+                    .keyboardType(.asciiCapable)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .disabled(codeApplied)
@@ -98,7 +99,7 @@ struct ReferralCreditsView: View {
             }
             .padding(.leading, HiTheme.spacingMD)
             .padding(.trailing, HiTheme.spacingSM)
-            .frame(height: 48)
+            .frame(height: 56)
             .frame(maxWidth: 290)
             .background(HiTheme.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
@@ -124,7 +125,7 @@ struct ReferralCreditsView: View {
                     .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     // MARK: - Helpers
