@@ -43,8 +43,11 @@ xcodebuild -scheme hi -configuration Release build
 - `KeyboardViewController.swift` - UIInputViewController bridging to SwiftUI
 - `HiKeyboardViewModel.swift` - Keyboard state machine (composing → results → browsingSuggestions)
 - Uses KeyboardKit framework for input handling
+- **Styling:** The keyboard extension intentionally has no hi-key branding or accent colors — it lives inside third-party apps and must remain visually neutral. Do not apply `HiTheme` colors or button styles to keyboard extension views.
 
 ### Design System
+> For any aesthetic or visual design decisions, consult `hi/mood-board.md` first — it covers color philosophy, typography rules, motion guidelines, and brand personality.
+
 - `HiTheme.swift` - All design tokens (colors, spacing, animations, button styles)
 - **Dark-first design**: Main app uses dark background with accent-sparse approach
 - **Fixed dark mode**: App always renders in dark mode regardless of system settings (`.preferredColorScheme(.dark)`)
@@ -136,6 +139,15 @@ hi-keyboard/                 # Keyboard extension
 
 Steps defined in `OnboardingManager.swift`:
 `welcome` → `hiKeyPresenter` → `keyboardExplain` → `referralCredits` → `review` → `paywall` → `complete`
+
+The flow is driven by `OnboardingManager.shared.currentStep`. `ContentView.swift` observes this and renders the appropriate view. To add or remove a step: update the `OnboardingStep` enum and the `advance()` logic in `OnboardingManager.swift`.
+
+## Known Gotchas
+
+- **Keychain in keyboard extension:** The extension cannot access Keychain directly. Auth tokens are shared via App Group (`group.ai.hi-key`) through `AuthKeychainStorage.swift`.
+- **SwiftUI Previews for keyboard views:** Previews often fail for views that depend on `UIInputViewController`. Test keyboard UI on simulator or device instead.
+- **API response models:** Request/response types are defined alongside `APIClient.swift`. Check there before adding new model types.
+- **Full Access requirement:** The keyboard extension requires "Full Access" to make network requests. Remind users in onboarding — network calls silently fail without it.
 
 ## Logging
 

@@ -3,12 +3,14 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var showKeyboardSetup: Bool = false
     @State private var showReferralCode: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showSettings: Bool = false
-    @State private var keyboardStatus: KeyboardStatus = .checking
+    @State private var keyboardEnabled: Bool = false
+    @State private var fullAccessEnabled: Bool = false
     @State private var showCopiedFeedback: Bool = false
     @State private var isFirstVisit: Bool = true
     @AppStorage("hasSeenHomeScreen") private var hasSeenHomeScreen: Bool = false
@@ -35,25 +37,16 @@ struct HomeView: View {
                             .padding(.top, HiTheme.spacingSM)
                             .padding(.horizontal, HiTheme.spacingSM)
                         
-                        // Credits card
                         creditsCard
                             .padding(.top, HiTheme.spacingXL)
                         
-                        // Invite friends card
+                        keyboardStatusCard
+                            .padding(.top, HiTheme.spacingLG)
+
                         inviteFriendsCard
                             .padding(.top, HiTheme.spacingLG)
                     }
                     .padding(.horizontal, HiTheme.spacingMD)
-                    
-                    Spacer(minLength: HiTheme.spacingXL * 2)
-                    
-                    Text("Open any chat or app, switch \nkeyboards and send a hi.")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(HiTheme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                    
-                    Spacer(minLength: HiTheme.spacingXL)
                 }
                 .overlay(alignment: .top) {
                     LinearGradient(
@@ -64,31 +57,6 @@ struct HomeView: View {
                     .frame(height: HiTheme.spacingMD)
                     .allowsHitTesting(false)
                 }
-                .overlay(alignment: .bottom) {
-                    LinearGradient(
-                        colors: [HiTheme.backgroundRoot.opacity(0), HiTheme.backgroundRoot],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: HiTheme.spacingMD)
-                    .allowsHitTesting(false)
-                }
-                
-                // Bottom footer (fixed outside scroll)
-                Button {
-                    showKeyboardSetup = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("How to enable hi-key")
-                            .font(.subheadline.weight(.medium))
-                        Image(systemName: "arrow.right")
-                            .font(.caption.weight(.medium))
-                    }
-                    .foregroundStyle(HiTheme.textSecondary)
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.bottom, HiTheme.spacingMD)
-                .padding(.top, HiTheme.spacingSM)
             }
         }
         .sheet(isPresented: $showKeyboardSetup) {
@@ -110,6 +78,12 @@ struct HomeView: View {
         .onAppear {
             isFirstVisit = !hasSeenHomeScreen
             hasSeenHomeScreen = true
+            checkKeyboardStatus()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                checkKeyboardStatus()
+            }
         }
     }
 
@@ -205,6 +179,8 @@ struct HomeView: View {
                                 .stroke(creditsManager.subscriptionTier == .none ? HiTheme.divider : HiTheme.accentSecondary, lineWidth: 1)
                         )
                 }
+                Divider()
+                    .background(HiTheme.divider)
 
                 // Subtitle
                 Text(creditsSubtitle)
@@ -258,7 +234,7 @@ struct HomeView: View {
                                 .font(.body.weight(.medium))
                                 .foregroundStyle(HiTheme.textPrimary)
                         }
-
+                        
                         Text("Get 5 free credits for \nevery friend who joins")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(HiTheme.textSecondary)
@@ -294,49 +270,111 @@ struct HomeView: View {
     }
 
 
+    // MARK: - Keyboard Status Card
+
+    private var keyboardStatusCard: some View {
+        HiCard {
+            VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
+                // Header
+                HStack(spacing: HiTheme.spacingSM) {
+                    Image(systemName: "keyboard")
+                        .font(.title2.weight(.medium))
+                        .foregroundStyle(HiTheme.iconDefault)
+
+                    Text("Keyboard status")
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(HiTheme.textPrimary)
+                }
+
+                Divider()
+                    .background(HiTheme.divider)
+
+                // Indicator rows
+                HStack{
+                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                        statusRow(label: "hi-key enabled", isEnabled: keyboardEnabled)
+                        statusRow(label: "Full access", isEnabled: fullAccessEnabled)
+                    }
+                    
+                    Spacer()
+                    
+                    if !keyboardEnabled || !fullAccessEnabled {
+                        Button {
+                            openKeyboardSettings()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("Open Settings")
+                                Image(systemName: "arrow.up.right")
+                            }
+                        }
+                        .buttonStyle(HiTertiaryButtonStyle(addHorizontalPadding: false))
+                    }
+                }
+
+                // Status message
+                let allGood = keyboardEnabled && fullAccessEnabled
+                HStack(alignment: .center, spacing: HiTheme.spacingSM) {
+                    Image(systemName: allGood ? "checkmark.circle" : "exclamationmark.triangle")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(allGood ? HiTheme.statusSuccess : HiTheme.statusWarning)
+
+                    Text(allGood ? keyboardSuccessText : keyboardWarningText)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(HiTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(HiTheme.spacingSM)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(HiTheme.surfaceSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
+            }
+        }
+    }
+
+    private func statusRow(label: String, isEnabled: Bool) -> some View {
+        HStack(spacing: HiTheme.spacingSM) {
+            Circle()
+                .fill(isEnabled ? HiTheme.statusSuccess : HiTheme.statusError)
+                .frame(width: 8, height: 8)
+
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(HiTheme.textPrimary)
+        }
+    }
+
+    private var keyboardWarningText: String {
+        if !keyboardEnabled {
+            return "Enable hi-key with Full access in iPhone Settings to allow it to generate images."
+        } else {
+            return "Full access is required to generate images from your keyboard."
+        }
+    }
+
+    private var keyboardSuccessText: String {
+        let totalCredits = creditsManager.credits + creditsManager.extraCredits
+        if totalCredits == 0 {
+            return "Looks good! Just top up some credits and open a chat to send a hi."
+        }
+        return "Looks good! Open a chat, switch keyboards and send a hi."
+    }
+
     // MARK: - Helpers
 
     private func checkKeyboardStatus() {
-        keyboardStatus = .checking
+        let keyboardBundleID = "ai.hi-key.keyboard"
+        let appleKeyboards = UserDefaults.standard.object(forKey: "AppleKeyboards") as? [String] ?? []
+        keyboardEnabled = appleKeyboards.contains(keyboardBundleID)
+        fullAccessEnabled = UIInputViewController().hasFullAccess
+    }
 
-        let keyboardBundleID = "ai.hi-key.hi.hi-keyboard"
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let activeInputModes = UITextInputMode.activeInputModes
-            let isKeyboardEnabled = activeInputModes.contains { mode in
-                (mode.value(forKey: "identifier") as? String) == keyboardBundleID
-            }
-
-            if isKeyboardEnabled {
-                keyboardStatus = .ready
-            } else {
-                keyboardStatus = .notInstalled
-            }
+    private func openKeyboardSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
         }
     }
 }
 
-// MARK: - Keyboard Status
-
-enum KeyboardStatus {
-    case checking
-    case notInstalled
-    case noFullAccess
-    case ready
-
-    var description: String {
-        switch self {
-        case .checking:
-            return "Checking..."
-        case .notInstalled:
-            return "Not installed yet"
-        case .noFullAccess:
-            return "Full access required"
-        case .ready:
-            return "Ready to use"
-        }
-    }
-}
 
 #Preview("First Visit - No Name") {
     HomeView()

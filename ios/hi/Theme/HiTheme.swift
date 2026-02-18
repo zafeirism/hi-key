@@ -51,6 +51,7 @@ enum HiTheme {
     static let statusWarning = Color(hex: "FFB86B")
     static let statusInfo = Color(hex: "6EA8FF")
     static let statusGreen = Color(hex: "7AE3D1")
+    static let statusSuccess = Color(hex: "4ADE80")
     
     // MARK: - Spacing
     
@@ -150,11 +151,13 @@ struct HiSecondaryButtonStyle: ButtonStyle {
 
 /// Tertiary button style for text-only actions (Skip, Not now, etc.)
 struct HiTertiaryButtonStyle: ButtonStyle {
+    var addHorizontalPadding: Bool = true
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
             .foregroundStyle(HiTheme.accentPrimary)
-            .padding(.horizontal, HiTheme.spacingLG)
+            .padding(.horizontal, addHorizontalPadding ? HiTheme.spacingLG : 0)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.6 : 1.0)
