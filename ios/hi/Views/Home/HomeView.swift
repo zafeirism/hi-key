@@ -5,7 +5,6 @@ struct HomeView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
     @Environment(\.scenePhase) private var scenePhase
 
-    @State private var showKeyboardSetup: Bool = false
     @State private var showReferralCode: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showSettings: Bool = false
@@ -19,27 +18,28 @@ struct HomeView: View {
         ZStack {
             HiTheme.backgroundRoot
                 .ignoresSafeArea()
-            
+
+            // Ambient glow — purple, top-centered
+            RadialGradient(
+                colors: [HiTheme.accentSecondary.opacity(0.09), Color.clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 360
+            )
+            .ignoresSafeArea()
+
             VStack(spacing: 0) {
-                // Header row with settings and help
+                // Transparent header — gradient shows through seamlessly
                 headerRow
                     .padding(.horizontal, HiTheme.spacingMD)
                     .padding(.top, HiTheme.spacingLG)
-                    .padding(.bottom, HiTheme.spacingSM)
-                
-                // Main scrollable content
+                    .padding(.bottom, HiTheme.spacingMD)
+
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // Welcome title
-                        Text(welcomeText)
-                            .font(.system(.title, design: .rounded, weight: .semibold))
-                            .foregroundStyle(HiTheme.textPrimary)
-                            .padding(.top, HiTheme.spacingSM)
-                            .padding(.horizontal, HiTheme.spacingSM)
-                        
                         creditsCard
-                            .padding(.top, HiTheme.spacingXL)
-                        
+                            .padding(.top, HiTheme.spacingXS)
+
                         keyboardStatusCard
                             .padding(.top, HiTheme.spacingLG)
 
@@ -47,21 +47,9 @@ struct HomeView: View {
                             .padding(.top, HiTheme.spacingLG)
                     }
                     .padding(.horizontal, HiTheme.spacingMD)
-                }
-                .overlay(alignment: .top) {
-                    LinearGradient(
-                        colors: [HiTheme.backgroundRoot, HiTheme.backgroundRoot.opacity(0)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: HiTheme.spacingMD)
-                    .allowsHitTesting(false)
+                    .padding(.bottom, HiTheme.spacingXL)
                 }
             }
-        }
-        .sheet(isPresented: $showKeyboardSetup) {
-            KeyboardSetupSheet()
-                .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showReferralCode) {
             ReferralCodeSheet()
@@ -87,7 +75,7 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Welcome Text
+    // MARK: - Derived State
 
     private var welcomeText: String {
         let name = creditsManager.userName
@@ -98,25 +86,44 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Credits Subtitle
+    private var totalCredits: Int {
+        creditsManager.credits + creditsManager.extraCredits
+    }
 
-    private var creditsSubtitle: String {
-        if creditsManager.subscriptionTier != .none {
-            var text = "\(creditsManager.credits) of \(creditsManager.subscriptionTier.monthlyPrompts) remaining · resets Feb 23"
-            if creditsManager.extraCredits > 0 {
-                let creditWord = creditsManager.extraCredits == 1 ? "credit" : "credits"
-                text += "\n\(creditsManager.extraCredits) extra \(creditWord)"
-            }
-            return text
-        } else {
-            return "Buy one-time credit packs or \nsubscribe for auto-renew"
-        }
+    private var allKeyboardStatusGood: Bool {
+        keyboardEnabled && fullAccessEnabled
+    }
+
+    private var hasReferralCode: Bool {
+        creditsManager.referralCode != nil
+    }
+
+    private var subscriptionProgress: Double {
+        let monthly = creditsManager.subscriptionTier.monthlyPrompts
+        guard monthly > 0 else { return 0 }
+        return Double(creditsManager.credits) / Double(monthly)
+    }
+
+    private var monthlyCreditsCaption: String {
+        let monthly = creditsManager.subscriptionTier.monthlyPrompts
+        return "\(creditsManager.credits) of \(monthly) monthly · resets Feb 23"
+    }
+
+    private var extraCreditsText: String {
+        let n = creditsManager.extraCredits
+        return "+\(n) extra \(n == 1 ? "credit" : "credits")"
     }
 
     // MARK: - Header Row
 
     private var headerRow: some View {
-        HStack {
+        HStack(alignment: .top, spacing: HiTheme.spacingSM) {
+            Text(welcomeText)
+                .font(.system(.title, design: .rounded, weight: .semibold))
+                .foregroundStyle(HiTheme.textPrimary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             Button {
                 showSettings = true
             } label: {
@@ -124,21 +131,7 @@ struct HomeView: View {
                     .font(.title2.weight(.medium))
                     .foregroundStyle(HiTheme.iconDefault)
                     .frame(width: 40, height: 40)
-                    .background(HiTheme.surfacePrimary)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
-            }
-
-            Spacer()
-
-            Button {
-                showKeyboardSetup = true
-            } label: {
-                Image(systemName: "questionmark.circle")
-                    .font(.title2.weight(.medium))
-                    .foregroundStyle(HiTheme.iconDefault)
-                    .frame(width: 40, height: 40)
-                    .background(HiTheme.surfacePrimary)
+                    .background(HiTheme.surfacePrimary.opacity(0.5))
                     .clipShape(Circle())
                     .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
             }
@@ -149,133 +142,104 @@ struct HomeView: View {
 
     private var creditsCard: some View {
         HiCard {
-            VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
-                // Top row: icon + credits + badge
-                HStack(spacing: HiTheme.spacingSM) {
-                    Image(systemName: "creditcard")
-                        .font(.title2.weight(.medium))
-                        .foregroundStyle(HiTheme.iconDefault)
+            VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
+                // Hero row: large credit count + plan badge
+                HStack(alignment: .center) {
+                    HStack(alignment: .firstTextBaseline, spacing: HiTheme.spacingSM) {
+                        Text("\(totalCredits)")
+                            .font(.system(size: 48, weight: .heavy, design: .rounded))
+                            .foregroundStyle(HiTheme.textPrimary)
+                            .contentTransition(.numericText())
 
-                    Text("You've got ")
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(HiTheme.textPrimary)
-                    +
-                    Text("\(creditsManager.credits) credits")
-                        .font(.body.weight(.heavy))
-                        .foregroundStyle(HiTheme.textPrimary)
+                        Text("credits")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(HiTheme.textSecondary)
+                    }
 
                     Spacer()
 
-                    // Plan badge
-                    Text(creditsManager.subscriptionTier.displayName.uppercased())
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(creditsManager.subscriptionTier == .none ? HiTheme.textSecondary : HiTheme.accentSecondary)
-                        .padding(.horizontal, HiTheme.spacingSM)
-                        .padding(.vertical, HiTheme.spacingXS)
-                        .background(HiTheme.surfaceSecondary)
-                        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: HiTheme.radiusSM)
-                                .stroke(creditsManager.subscriptionTier == .none ? HiTheme.divider : HiTheme.accentSecondary, lineWidth: 1)
-                        )
+                    planBadge
                 }
-                Divider()
-                    .background(HiTheme.divider)
 
-                // Subtitle
-                Text(creditsSubtitle)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HiTheme.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    
-                    
-                // Top-up button
+                // Subscriber: progress bar + captions
+                // Free user: descriptive text
+                if creditsManager.subscriptionTier != .none {
+                    creditsProgressSection
+                } else {
+                    Text("Buy one-time credit packs or subscribe for auto-renew")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(HiTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 Button {
                     showAllOptions = true
                 } label: {
                     Text("Top up credits")
                 }
                 .buttonStyle(HiSecondaryButtonStyle())
-                .padding(.top, HiTheme.spacingLG)
             }
         }
     }
 
-    // MARK: - Invite Friends Card
-
-    private var inviteFriendsCard: some View {
-        let hasCode = creditsManager.referralCode != nil
-
-        return Button {
-            if let code = creditsManager.referralCode {
-                UIPasteboard.general.string = code
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showCopiedFeedback = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showCopiedFeedback = false
-                    }
-                }
-            } else {
-                showReferralCode = true
-            }
-        } label: {
-            HiCard {
-                HStack {
-                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
-                        HStack(spacing: HiTheme.spacingSM) {
-                            Image(systemName: "person.2")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(HiTheme.iconDefault)
-
-                            Text("Invite friends")
-                                .font(.body.weight(.medium))
-                                .foregroundStyle(HiTheme.textPrimary)
-                        }
-                        
-                        Text("Get 5 free credits for \nevery friend who joins")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HiTheme.textSecondary)
-                    }
-                    Spacer()
-
-                    if hasCode {
-                        // Show referral code + copy icon
-                        Text(creditsManager.referralCode ?? "")
-                            .font(.subheadline.monospaced().bold())
-                            .foregroundStyle(HiTheme.textPrimary)
-
-                        Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(showCopiedFeedback ? HiTheme.accentPrimary : HiTheme.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(HiTheme.divider)
-                            .clipShape(Circle())
-                            .contentTransition(.symbolEffect(.replace))
-                    } else {
-                        // Chevron in circular background
-                        Image(systemName: "chevron.right")
-                            .font(.body)
-                            .foregroundStyle(HiTheme.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(HiTheme.divider)
-                            .clipShape(Circle())
-                    }
-                }
-            }
-        }
-        .buttonStyle(.plain)
+    private var planBadge: some View {
+        Text(creditsManager.subscriptionTier.displayName.uppercased())
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(
+                creditsManager.subscriptionTier == .none
+                    ? HiTheme.textSecondary
+                    : HiTheme.accentSecondary
+            )
+            .padding(.horizontal, HiTheme.spacingSM)
+            .padding(.vertical, HiTheme.spacingXS)
+            .background(HiTheme.surfaceSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+            .overlay(
+                RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                    .stroke(
+                        creditsManager.subscriptionTier == .none
+                            ? HiTheme.divider
+                            : HiTheme.accentSecondary,
+                        lineWidth: 1
+                    )
+            )
     }
 
+    private var creditsProgressSection: some View {
+        VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(HiTheme.divider)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    Capsule()
+                        .fill(HiTheme.accentPrimary)
+                        .frame(
+                            width: max(0, geo.size.width * CGFloat(subscriptionProgress)),
+                            height: geo.size.height
+                        )
+                }
+            }
+            .frame(height: 6)
+
+            Text(monthlyCreditsCaption)
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(HiTheme.textSecondary)
+
+            if creditsManager.extraCredits > 0 {
+                Text(extraCreditsText)
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(HiTheme.textSecondary)
+            }
+        }
+    }
 
     // MARK: - Keyboard Status Card
 
     private var keyboardStatusCard: some View {
         HiCard {
             VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-                // Header
                 HStack(spacing: HiTheme.spacingSM) {
                     Image(systemName: "keyboard")
                         .font(.title2.weight(.medium))
@@ -289,15 +253,14 @@ struct HomeView: View {
                 Divider()
                     .background(HiTheme.divider)
 
-                // Indicator rows
-                HStack{
+                HStack {
                     VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
                         statusRow(label: "hi-key enabled", isEnabled: keyboardEnabled)
                         statusRow(label: "Full access", isEnabled: fullAccessEnabled)
                     }
-                    
+
                     Spacer()
-                    
+
                     if !keyboardEnabled || !fullAccessEnabled {
                         Button {
                             openKeyboardSettings()
@@ -311,14 +274,12 @@ struct HomeView: View {
                     }
                 }
 
-                // Status message
-                let allGood = keyboardEnabled && fullAccessEnabled
                 HStack(alignment: .center, spacing: HiTheme.spacingSM) {
-                    Image(systemName: allGood ? "checkmark.circle" : "exclamationmark.triangle")
+                    Image(systemName: allKeyboardStatusGood ? "checkmark.circle" : "exclamationmark.triangle")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(allGood ? HiTheme.statusSuccess : HiTheme.statusWarning)
+                        .foregroundStyle(allKeyboardStatusGood ? HiTheme.statusSuccess : HiTheme.statusWarning)
 
-                    Text(allGood ? keyboardSuccessText : keyboardWarningText)
+                    Text(allKeyboardStatusGood ? keyboardSuccessText : keyboardWarningText)
                         .font(.footnote.weight(.medium))
                         .foregroundStyle(HiTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -352,11 +313,76 @@ struct HomeView: View {
     }
 
     private var keyboardSuccessText: String {
-        let totalCredits = creditsManager.credits + creditsManager.extraCredits
         if totalCredits == 0 {
             return "Looks good! Just top up some credits and open a chat to send a hi."
         }
         return "Looks good! Open a chat, switch keyboards and send a hi."
+    }
+
+    // MARK: - Invite Friends Card
+
+    private var inviteFriendsCard: some View {
+        Button {
+            if let code = creditsManager.referralCode {
+                UIPasteboard.general.string = code
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showCopiedFeedback = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showCopiedFeedback = false
+                    }
+                }
+            } else {
+                showReferralCode = true
+            }
+        } label: {
+            HiCard {
+                HStack {
+                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                        HStack(spacing: HiTheme.spacingSM) {
+                            Image(systemName: "person.2")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(HiTheme.iconDefault)
+
+                            Text("Invite friends")
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(HiTheme.textPrimary)
+                        }
+
+                        Text("Get 5 free credits for every friend who joins")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(HiTheme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+
+                    if hasReferralCode {
+                        Text(creditsManager.referralCode ?? "")
+                            .font(.subheadline.monospaced().bold())
+                            .foregroundStyle(HiTheme.textPrimary)
+
+                        Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(showCopiedFeedback ? HiTheme.accentPrimary : HiTheme.textPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(HiTheme.divider)
+                            .clipShape(Circle())
+                            .contentTransition(.symbolEffect(.replace))
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.body)
+                            .foregroundStyle(HiTheme.textPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(HiTheme.divider)
+                            .clipShape(Circle())
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
@@ -385,12 +411,25 @@ struct HomeView: View {
         }
 }
 
-#Preview("Returning - With Name") {
+#Preview("Returning - Subscribed") {
+    HomeView()
+        .onAppear {
+            UserDefaults.standard.set(true, forKey: "hasSeenHomeScreen")
+            let manager = CreditsManager.shared
+            manager.setUserName("Alexandros")
+            manager.setSubscription(.pro)
+            manager.addCredits(20)
+            manager.addExtraCredits(5)
+            _ = manager.generateReferralCode()
+        }
+}
+
+#Preview("Returning - Free") {
     HomeView()
         .onAppear {
             UserDefaults.standard.set(true, forKey: "hasSeenHomeScreen")
             let manager = CreditsManager.shared
             manager.setUserName("Zaf")
-            _ = manager.generateReferralCode()
+            manager.resetCredits()
         }
 }
