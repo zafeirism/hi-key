@@ -19,21 +19,7 @@ struct AllPlansSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            ZStack {
-                Text("Select a plan")
-                    .font(.title2.weight(.semibold))
-
-                HStack {
-                    Spacer()
-
-                    HiIconButton("xmark", size: .sheet){
-                        dismiss()
-                    }
-                }
-            }
-            .padding(.top, HiTheme.spacingMD)
-            .padding(.bottom, HiTheme.spacingXL)
+            HiSheetHeader(title: "Select a plan", onClose: { dismiss() })
 
             tabSwitcher
                 .padding(.bottom, HiTheme.spacingLG)

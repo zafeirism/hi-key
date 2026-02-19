@@ -10,7 +10,7 @@ struct EnableSettingsView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                OnboardingTopBar(onBack: {
+                HiTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
                 .padding(.top, HiTheme.spacingMD)

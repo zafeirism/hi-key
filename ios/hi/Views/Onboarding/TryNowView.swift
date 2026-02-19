@@ -9,7 +9,7 @@ struct TryNowView: View {
                 .padding(.horizontal, HiTheme.spacingLG)
 
             VStack(spacing: 0) {
-                OnboardingTopBar(onBack: {
+                HiTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
                 .padding(.top, HiTheme.spacingMD)

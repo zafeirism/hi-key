@@ -13,7 +13,7 @@ struct ReviewView: View {
                 .frame(maxWidth: 330)
 
             VStack(spacing: 0) {
-                OnboardingTopBar(onBack: {
+                HiTopBar(onBack: {
                     onboardingManager.goToPreviousStep()
                 })
                 .padding(.top, HiTheme.spacingMD)

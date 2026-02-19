@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Reusable top bar for onboarding screens.
-/// Supports optional back button (left) and optional text action (right).
-struct OnboardingTopBar: View {
+/// Reusable top bar for full-screen views.
+/// Supports optional back button (left), close button (right), or text action (right).
+struct HiTopBar: View {
     var onBack: (() -> Void)?
+    var onClose: (() -> Void)?
     var rightLabel: String?
     var onRight: (() -> Void)?
 
@@ -11,25 +12,27 @@ struct OnboardingTopBar: View {
         HStack {
             // Left: Back button (if provided)
             if let onBack {
-                HiIconButton("chevron.left", size: .topBar){
+                HiIconButton("chevron.left", size: .topBar) {
                     onBack()
                 }
             } else {
-                // Invisible spacer to maintain layout
                 Color.clear
                     .frame(width: 40, height: 40)
             }
 
             Spacer()
 
-            // Right: Text action (if provided)
-            if let rightLabel, let onRight {
+            // Right: Close icon, text action, or spacer
+            if let onClose {
+                HiIconButton("xmark", size: .topBar) {
+                    onClose()
+                }
+            } else if let rightLabel, let onRight {
                 Button(action: onRight) {
                     Text(rightLabel)
                 }
                 .buttonStyle(HiTertiaryButtonStyle())
             } else {
-                // Invisible spacer to maintain layout
                 Color.clear
                     .frame(width: 40, height: 40)
             }
@@ -40,9 +43,19 @@ struct OnboardingTopBar: View {
 #Preview("Back only") {
     ZStack {
         HiAppBackground()
-
         VStack {
-            OnboardingTopBar(onBack: { print("Back") })
+            HiTopBar(onBack: { print("Back") })
+                .padding(.horizontal, HiTheme.spacingLG)
+            Spacer()
+        }
+    }
+}
+
+#Preview("Close only") {
+    ZStack {
+        HiAppBackground()
+        VStack {
+            HiTopBar(onClose: { print("Close") })
                 .padding(.horizontal, HiTheme.spacingLG)
             Spacer()
         }
@@ -52,21 +65,19 @@ struct OnboardingTopBar: View {
 #Preview("Skip only") {
     ZStack {
         HiAppBackground()
-
         VStack {
-            OnboardingTopBar(rightLabel: "Skip", onRight: { print("Skip") })
+            HiTopBar(rightLabel: "Skip", onRight: { print("Skip") })
                 .padding(.horizontal, HiTheme.spacingLG)
             Spacer()
         }
     }
 }
 
-#Preview("Both") {
+#Preview("Back + Skip") {
     ZStack {
         HiAppBackground()
-
         VStack {
-            OnboardingTopBar(
+            HiTopBar(
                 onBack: { print("Back") },
                 rightLabel: "Skip",
                 onRight: { print("Skip") }

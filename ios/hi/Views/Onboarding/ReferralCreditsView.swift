@@ -11,7 +11,7 @@ struct ReferralCreditsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            OnboardingTopBar(onBack: {
+            HiTopBar(onBack: {
                 onboardingManager.goToPreviousStep()
             })
             .padding(.top, HiTheme.spacingMD)

@@ -9,21 +9,7 @@ struct ReferralCodeSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            ZStack {
-                Text("Invite friends")
-                    .font(.title2.weight(.semibold))
-
-                HStack {
-                    Spacer()
-
-                    HiIconButton("xmark", size: .sheet){
-                        dismiss()
-                    }
-                }
-            }
-            .padding(.top, HiTheme.spacingMD)
-            .padding(.bottom, HiTheme.spacingXL)
+            HiSheetHeader(title: "Invite friends", onClose: { dismiss() })
 
             Text("Earn 5 credits for each friend who joins using your code.")
                 .font(.body.weight(.medium))
