@@ -1,4 +1,5 @@
 import SwiftUI
+import FluidGradient
 
 struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
@@ -19,12 +20,24 @@ struct HomeView: View {
             HiTheme.backgroundRoot
                 .ignoresSafeArea()
 
-            // Ambient glow — purple, top-centered
-            RadialGradient(
-                colors: [HiTheme.accentSecondary.opacity(0.09), Color.clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 360
+            // Ambient glow — slow-drifting blues, fades out towards bottom
+            FluidGradient(
+                blobs: [Color(hex: "1B3752"), Color(hex: "002E4B"), Color(hex: "0A1F35")],
+                highlights: [Color(hex: "467090").opacity(0.35)],
+                speed: 0.35,
+                blur: 0.88
+            )
+            .opacity(0.4)
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .white, location: 0.0),
+                        .init(color: .white, location: 0.35),
+                        .init(color: .clear, location: 0.65)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             )
             .ignoresSafeArea()
 

@@ -13,6 +13,7 @@
 		33347AA02ED896B7001BD688 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33347A9F2ED896B7001BD688 /* Supabase */; };
 		33347AC42ED8F204001BD688 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33347AC32ED8F204001BD688 /* KeyboardKit */; };
 		33347ACA2ED8FEB3001BD688 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33347AC92ED8FEB3001BD688 /* KeyboardKit */; };
+		3362C56A2F465411009DE2D9 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 3362C5692F465411009DE2D9 /* FluidGradient */; };
 		3388FD332EF171DE001B2AA4 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		3388FD342EF171DE001B2AA4 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = C547159CE0EE47B4878E6F09 /* Sentry */; };
 		3388FD352EF171DE001B2AA4 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -139,6 +140,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33066A962F1F9EFD000E37BF /* Lottie in Frameworks */,
+				3362C56A2F465411009DE2D9 /* FluidGradient in Frameworks */,
 				33347ACA2ED8FEB3001BD688 /* KeyboardKit in Frameworks */,
 				33347A9D2ED89699001BD688 /* Supabase in Frameworks */,
 				3388FD332EF171DE001B2AA4 /* (null) in Frameworks */,
@@ -232,6 +234,7 @@
 				33347AC92ED8FEB3001BD688 /* KeyboardKit */,
 				C547159CE0EE47B4878E6F09 /* Sentry */,
 				33066A952F1F9EFD000E37BF /* Lottie */,
+				3362C5692F465411009DE2D9 /* FluidGradient */,
 			);
 			productName = hi;
 			productReference = 33B4B51B2ED8765100120BAA /* hi.app */;
@@ -347,6 +350,7 @@
 				33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */,
 				7E499F1AEE95488EA6E3957C /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				33066A942F1F9EFD000E37BF /* XCRemoteSwiftPackageReference "lottie-spm" */,
+				3362C5682F465411009DE2D9 /* XCRemoteSwiftPackageReference "FluidGradient" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 33B4B51C2ED8765100120BAA /* Products */;
@@ -872,6 +876,14 @@
 				minimumVersion = 10.1.2;
 			};
 		};
+		3362C5682F465411009DE2D9 /* XCRemoteSwiftPackageReference "FluidGradient" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Cindori/FluidGradient";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		7E499F1AEE95488EA6E3957C /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
@@ -907,6 +919,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 33347AC22ED8F204001BD688 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
 			productName = KeyboardKit;
+		};
+		3362C5692F465411009DE2D9 /* FluidGradient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3362C5682F465411009DE2D9 /* XCRemoteSwiftPackageReference "FluidGradient" */;
+			productName = FluidGradient;
 		};
 		C547159CE0EE47B4878E6F09 /* Sentry */ = {
 			isa = XCSwiftPackageProductDependency;
