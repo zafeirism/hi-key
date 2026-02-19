@@ -45,8 +45,7 @@ struct OnboardingTopBar: View {
 
 #Preview("Back only") {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         VStack {
             OnboardingTopBar(onBack: { print("Back") })
@@ -58,8 +57,7 @@ struct OnboardingTopBar: View {
 
 #Preview("Skip only") {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         VStack {
             OnboardingTopBar(rightLabel: "Skip", onRight: { print("Skip") })
@@ -71,8 +69,7 @@ struct OnboardingTopBar: View {
 
 #Preview("Both") {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         VStack {
             OnboardingTopBar(

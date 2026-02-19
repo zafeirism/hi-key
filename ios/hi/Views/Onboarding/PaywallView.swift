@@ -359,8 +359,7 @@ private struct OnlyPacksSheet: View {
 
 #Preview("Main Paywall") {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         PaywallView()
     }

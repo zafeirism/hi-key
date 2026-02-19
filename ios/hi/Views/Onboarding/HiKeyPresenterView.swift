@@ -163,8 +163,7 @@ struct HiKeyPresenterView: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
         
         HiKeyPresenterView()
     }

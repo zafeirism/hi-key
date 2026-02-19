@@ -43,8 +43,7 @@ struct TryNowView: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         TryNowView()
     }

@@ -244,6 +244,7 @@ struct AllPlansSheet: View {
 }
 
 #Preview("All Plans") {
+    HiAppBackground()
+    
     AllPlansSheet(onComplete: nil)
-        .background(HiTheme.backgroundRoot)
 }

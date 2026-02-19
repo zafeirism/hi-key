@@ -17,8 +17,7 @@ struct hiApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                HiTheme.backgroundRoot
-                    .ignoresSafeArea()
+                HiAppBackground()
             
                 if !showSplash {
                     ContentView()

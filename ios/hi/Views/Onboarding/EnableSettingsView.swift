@@ -172,8 +172,7 @@ private struct PrivacyInfoModal: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         EnableSettingsView()
     }

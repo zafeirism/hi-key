@@ -35,8 +35,7 @@ struct WelcomeView: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
         
         WelcomeView()
     }

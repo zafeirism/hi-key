@@ -13,6 +13,15 @@ enum HiTheme {
 
     /// App background - darkest
     static let backgroundRoot = Color(hex: "0F1115")
+    
+    /// Background atmospheric bloom
+    static let atmosphereNeutralBlook = Color(hex: "1B1F27")
+    
+    /// Background cool bloom (same as statusInfo)
+    static let atmosphereCoolBloom = Color(hex: "6EA8FF")
+    
+    /// Background haze blue
+    static let atmosphereHazeBlue = Color(hex: "3A4D6A")
 
     /// Cards, sheets, modals
     static let surfacePrimary = Color(hex: "171A20")
@@ -177,11 +186,51 @@ struct HiCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(HiTheme.spacingMD)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusXL))
-            .overlay(RoundedRectangle(cornerRadius: HiTheme.radiusXL).stroke(HiTheme.divider, lineWidth: 1))
+                    .padding(HiTheme.spacingMD)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: HiTheme.radiusXL, style: .continuous)
+                            .fill(HiTheme.surfacePrimary)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: HiTheme.radiusXL, style: .continuous)
+                            .stroke(HiTheme.divider.opacity(0.7), lineWidth: 1)
+                    )
+                    // tight separation
+                    .shadow(color: Color.black.opacity(0.35), radius: 10, x: 0, y: 6)
+                    // broad ambient lift
+                    .shadow(color: HiTheme.surfacePrimary.opacity(0.22), radius: 36, x: 0, y: 12)
+    }
+}
+
+// MARK: - App Background
+
+/// Full-screen background used across main app screens: base color + atmospheric radial gradients
+struct HiAppBackground: View {
+    var body: some View {
+        ZStack {
+            HiTheme.backgroundRoot
+                .ignoresSafeArea()
+
+            RadialGradient(
+                colors: [HiTheme.atmosphereNeutralBlook.opacity(0.9), Color.clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 420
+            )
+            .ignoresSafeArea()
+            .opacity(0.35)
+
+            RadialGradient(
+                colors: [HiTheme.atmosphereCoolBloom.opacity(0.35), Color.clear],
+                center: UnitPoint(x: 0.8, y: -0.1),
+                startRadius: 0,
+                endRadius: 480
+            )
+            .ignoresSafeArea()
+            .blendMode(.screen)
+            .opacity(0.07)
+        }
     }
 }
 
@@ -246,8 +295,7 @@ struct HiLogoView: View {
 
 #Preview("Theme Components - Onboarding") {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         ScrollView {
             VStack(spacing: HiTheme.spacingLG) {

@@ -1,5 +1,4 @@
 import SwiftUI
-import FluidGradient
 
 struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
@@ -17,29 +16,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            HiTheme.backgroundRoot
-                .ignoresSafeArea()
-
-            // Ambient glow — slow-drifting blues, fades out towards bottom
-            FluidGradient(
-                blobs: [Color(hex: "1B3752"), Color(hex: "002E4B"), Color(hex: "0A1F35")],
-                highlights: [Color(hex: "467090").opacity(0.35)],
-                speed: 0.35,
-                blur: 0.88
-            )
-            .opacity(0.4)
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .white, location: 0.0),
-                        .init(color: .white, location: 0.35),
-                        .init(color: .clear, location: 0.65)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            .ignoresSafeArea()
+            HiAppBackground()
 
             VStack(spacing: 0) {
                 // Transparent header — gradient shows through seamlessly
@@ -47,15 +24,15 @@ struct HomeView: View {
                     .padding(.horizontal, HiTheme.spacingMD)
                     .padding(.top, HiTheme.spacingLG)
                     .padding(.bottom, HiTheme.spacingMD)
-
+                
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         creditsCard
                             .padding(.top, HiTheme.spacingXS)
-
+                        
                         keyboardStatusCard
                             .padding(.top, HiTheme.spacingLG)
-
+                        
                         inviteFriendsCard
                             .padding(.top, HiTheme.spacingLG)
                     }

@@ -69,8 +69,7 @@ struct ReviewView: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         ReviewView()
     }

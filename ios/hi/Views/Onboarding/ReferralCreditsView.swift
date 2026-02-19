@@ -174,8 +174,7 @@ struct ReferralCreditsView: View {
 
 #Preview {
     ZStack {
-        HiTheme.backgroundRoot
-            .ignoresSafeArea()
+        HiAppBackground()
 
         ReferralCreditsView()
     }
