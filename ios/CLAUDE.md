@@ -61,7 +61,10 @@ xcodebuild -scheme hi -configuration Release build
   - `HiSecondaryButtonStyle` - Outlined with lime border (secondary actions)
   - `HiTertiaryButtonStyle` - Lime text only (skip, cancel actions)
 - **Legacy colors:** Mint (`CEF0C4`) kept for keyboard extension backward compatibility
-- **Reusable components:** `HiCard` (uses surfacePrimary background)
+- **Reusable components:**
+  - `HiCard` — card surface with `surfacePrimary` background
+  - `HiTopBar` — top bar for full-screen views; optional `onBack` (chevron.left, left), `onClose` (xmark icon, right), or `rightLabel`/`onRight` (text action, right). Use this instead of building a custom HStack.
+  - `HiSheetHeader` — header for sheet presentations; centered `title` with optional `onClose` (xmark icon, right). Use this instead of building a custom ZStack header in sheets.
 
 ### Shared Code Between Targets
 Files in `hi/` folder used by keyboard extension:
