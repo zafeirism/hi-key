@@ -120,7 +120,7 @@ extension Color {
 
 /// Primary button style for main CTAs - solid accent background with dark text
 struct HiPrimaryButtonStyle: ButtonStyle {
-    var isEnabled: Bool = true
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -128,51 +128,72 @@ struct HiPrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(HiTheme.backgroundRoot)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
-            .clipShape(Capsule())
-            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .background(
+                Capsule()
+                    .fill(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.35))
+            )
+            // subtle elevation
+            .shadow(color: Color.black.opacity(isEnabled ? 0.25 : 0.0),
+                    radius: isEnabled ? 14 : 0,
+                    x: 0,
+                    y: isEnabled ? 8 : 0)
+            .shadow(color: HiTheme.surfacePrimary.opacity(isEnabled ? 0.12 : 0.0),
+                    radius: isEnabled ? 24 : 0,
+                    x: 0,
+                    y: isEnabled ? 14 : 0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .offset(y: configuration.isPressed ? 1 : 0)
+            .brightness(configuration.isPressed ? -0.02 : 0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
+
 /// Secondary button style - outlined with accent border
 struct HiSecondaryButtonStyle: ButtonStyle {
-    var isEnabled: Bool = true
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5))
+            .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.35))
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(HiTheme.accentPrimary.opacity(0.001))
-            .clipShape(Capsule())
+            .background(
+                Capsule()
+                    // subtle surface tint on press (feels “real”)
+                    .fill(configuration.isPressed ? HiTheme.surfaceSecondary.opacity(0.9) : Color.clear)
+            )
+            .contentShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.5), lineWidth: 1)
+                    .stroke(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.35), lineWidth: 1)
             )
-            .opacity(configuration.isPressed ? 0.7 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .offset(y: configuration.isPressed ? 1 : 0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
+
 
 /// Tertiary button style for text-only actions (Skip, Not now, etc.)
 struct HiTertiaryButtonStyle: ButtonStyle {
     var addHorizontalPadding: Bool = true
-    
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .foregroundStyle(HiTheme.accentPrimary)
+            .foregroundStyle(isEnabled ? HiTheme.accentPrimary : HiTheme.accentPrimary.opacity(0.35))
             .padding(.horizontal, addHorizontalPadding ? HiTheme.spacingLG : 0)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
-            .opacity(configuration.isPressed ? 0.6 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
+            .offset(y: configuration.isPressed ? 1 : 0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
+
 
 struct HiIconButton: View {
 

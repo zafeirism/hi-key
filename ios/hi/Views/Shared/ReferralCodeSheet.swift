@@ -77,7 +77,7 @@ struct ReferralCodeSheet: View {
             } label: {
                 Text("Generate Code")
             }
-            .buttonStyle(HiPrimaryButtonStyle(isEnabled: !name.trimmingCharacters(in: .whitespaces).isEmpty))
+            .buttonStyle(HiPrimaryButtonStyle())
             .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
         }
     }

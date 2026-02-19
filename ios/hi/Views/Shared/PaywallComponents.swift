@@ -61,11 +61,11 @@ struct PaywallCTAButton: View {
     var body: some View {
         if isSecondary {
             Button(action: action) { buttonLabel }
-                .buttonStyle(HiSecondaryButtonStyle(isEnabled: !isProcessing))
+                .buttonStyle(HiSecondaryButtonStyle())
                 .disabled(isProcessing)
         } else {
             Button(action: action) { buttonLabel }
-                .buttonStyle(HiPrimaryButtonStyle(isEnabled: !isProcessing))
+                .buttonStyle(HiPrimaryButtonStyle())
                 .disabled(isProcessing)
         }
     }
