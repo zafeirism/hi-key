@@ -11,14 +11,8 @@ struct OnboardingTopBar: View {
         HStack {
             // Left: Back button (if provided)
             if let onBack {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(HiTheme.iconDefault)
-                        .frame(width: 40, height: 40)
-                        .background(HiTheme.surfacePrimary)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
+                HiIconButton("chevron.left", size: .topBar){
+                    onBack()
                 }
             } else {
                 // Invisible spacer to maintain layout

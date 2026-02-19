@@ -27,16 +27,8 @@ struct AllPlansSheet: View {
                 HStack {
                     Spacer()
 
-                    Button {
+                    HiIconButton("xmark", size: .sheet){
                         dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HiTheme.iconDefault)
-                            .frame(width: 32, height: 32)
-                            .background(HiTheme.surfaceSecondary)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
                     }
                 }
             }
@@ -244,7 +236,6 @@ struct AllPlansSheet: View {
 }
 
 #Preview("All Plans") {
-    HiAppBackground()
-    
     AllPlansSheet(onComplete: nil)
+        .background(HiTheme.backgroundRoot)
 }

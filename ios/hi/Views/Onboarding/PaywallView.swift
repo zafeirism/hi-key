@@ -46,7 +46,10 @@ struct PaywallView: View {
                 // Close button
                 HStack {
                     Spacer()
-                    closeButton
+                    
+                    HiIconButton("xmark", size: .topBarTranslucent) {
+                        handleDismiss()
+                    }
                 }
                 .padding(.top, HiTheme.spacingMD)
                 .padding(.horizontal, HiTheme.spacingMD)
@@ -94,22 +97,6 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showTerms) {
             TermsSheet()
-        }
-    }
-
-    // MARK: - Close Button
-
-    private var closeButton: some View {
-        Button {
-            handleDismiss()
-        } label: {
-            Image(systemName: "xmark")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(HiTheme.iconDefault)
-                .frame(width: 40, height: 40)
-                .background(HiTheme.surfacePrimary.opacity(0.5))
-                .clipShape(Circle())
-                .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
         }
     }
 

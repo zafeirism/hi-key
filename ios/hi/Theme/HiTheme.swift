@@ -174,6 +174,135 @@ struct HiTertiaryButtonStyle: ButtonStyle {
     }
 }
 
+struct HiIconButton: View {
+
+    enum Size {
+        case topBar
+        case topBarTranslucent
+        case card
+        case sheet
+    }
+
+    let systemName: String
+    let size: Size
+    let action: () -> Void
+
+    init(
+        _ systemName: String,
+        size: Size,
+        action: @escaping () -> Void
+    ) {
+        self.systemName = systemName
+        self.size = size
+        self.action = action
+    }
+
+    private var visualSize: CGFloat {
+        switch size {
+        case .topBar: return 40
+        case .topBarTranslucent: return 40
+        case .card:   return 36
+        case .sheet:  return 32
+        }
+    }
+
+    private var iconFont: Font {
+        switch size {
+        case .topBar:
+            return .system(size: 18, weight: .semibold)
+        case .topBarTranslucent:
+            return .system(size: 18, weight: .semibold)
+        case .card:
+            return .system(size: 15, weight: .semibold)
+        case .sheet:
+            return .system(size: 15, weight: .semibold)
+        }
+    }
+
+    private var fillColor: Color {
+        switch size {
+        case .topBar:
+            return HiTheme.surfacePrimary.opacity(0.75)
+        case .topBarTranslucent:
+            return HiTheme.surfacePrimary.opacity(0.35)
+        case .card:
+            return HiTheme.surfaceSecondary.opacity(0.90)
+        case .sheet:
+            return HiTheme.surfacePrimary.opacity(0.82)
+        }
+    }
+
+    private var strokeColor: Color {
+        HiTheme.divider.opacity(0.55)
+    }
+
+    private var tightShadow: (color: Color, radius: CGFloat, y: CGFloat) {
+        switch size {
+        case .topBar:
+            return (Color.black.opacity(0.35), 8, 4)
+        case .topBarTranslucent:
+            return (Color.black.opacity(0.25), 6, 3)
+        case .card:
+            return (Color.black.opacity(0.30), 7, 3)
+        case .sheet:
+            return (Color.black.opacity(0.34), 8, 4)
+        }
+    }
+
+    private var broadShadow: (color: Color, radius: CGFloat, y: CGFloat) {
+        switch size {
+        case .topBar:
+            return (HiTheme.surfacePrimary.opacity(0.18), 18, 10)
+        case .topBarTranslucent:
+            return (HiTheme.surfacePrimary.opacity(0.18), 18, 10)
+        case .card:
+            return (HiTheme.surfacePrimary.opacity(0.14), 16, 8)
+        case .sheet:
+            return (HiTheme.surfacePrimary.opacity(0.16), 18, 10)
+        }
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(iconFont)
+                .foregroundStyle(HiTheme.iconDefault)
+                .frame(width: visualSize, height: visualSize)
+                .background(
+                    Circle()
+                        .fill(fillColor)
+                )
+                .overlay(
+                    Circle()
+                        .stroke(strokeColor, lineWidth: 1)
+                )
+                .shadow(color: tightShadow.color,
+                        radius: tightShadow.radius,
+                        x: 0,
+                        y: tightShadow.y)
+                .shadow(color: broadShadow.color,
+                        radius: broadShadow.radius,
+                        x: 0,
+                        y: broadShadow.y)
+        }
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+        .buttonStyle(HiPressStyle())
+    }
+}
+
+struct HiPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .opacity(configuration.isPressed ? 0.80 : 1.0)
+            .brightness(configuration.isPressed ? 0.02 : 0.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+
+
 // MARK: - Card Component
 
 /// Reusable card view for home screen sections

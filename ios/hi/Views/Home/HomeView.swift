@@ -107,23 +107,15 @@ struct HomeView: View {
     // MARK: - Header Row
 
     private var headerRow: some View {
-        HStack(alignment: .top, spacing: HiTheme.spacingSM) {
+        HStack(alignment: .firstTextBaseline, spacing: HiTheme.spacingSM) {
             Text(welcomeText)
                 .font(.system(.title, design: .rounded, weight: .semibold))
                 .foregroundStyle(HiTheme.textPrimary)
                 .lineLimit(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button {
+            HiIconButton("gearshape", size: .topBar){
                 showSettings = true
-            } label: {
-                Image(systemName: "gearshape")
-                    .font(.title2.weight(.medium))
-                    .foregroundStyle(HiTheme.iconDefault)
-                    .frame(width: 40, height: 40)
-                    .background(HiTheme.surfacePrimary.opacity(0.5))
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(HiTheme.divider, lineWidth: 1))
             }
         }
     }
@@ -355,19 +347,19 @@ struct HomeView: View {
                             .foregroundStyle(HiTheme.textPrimary)
 
                         Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(showCopiedFeedback ? HiTheme.accentPrimary : HiTheme.textPrimary)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(showCopiedFeedback ? HiTheme.accentPrimary : HiTheme.iconDefault)
                             .frame(width: 36, height: 36)
-                            .background(HiTheme.divider)
-                            .clipShape(Circle())
+                            .background(Circle().fill(HiTheme.surfaceSecondary.opacity(0.90)))
+                            .overlay(Circle().stroke(HiTheme.divider.opacity(0.55), lineWidth: 1))
                             .contentTransition(.symbolEffect(.replace))
                     } else {
                         Image(systemName: "chevron.right")
-                            .font(.body)
-                            .foregroundStyle(HiTheme.textPrimary)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(HiTheme.iconDefault)
                             .frame(width: 36, height: 36)
-                            .background(HiTheme.divider)
-                            .clipShape(Circle())
+                            .background(Circle().fill(HiTheme.surfaceSecondary.opacity(0.90)))
+                            .overlay(Circle().stroke(HiTheme.divider.opacity(0.55), lineWidth: 1))
                     }
                 }
             }
