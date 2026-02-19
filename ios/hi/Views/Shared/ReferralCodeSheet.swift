@@ -5,7 +5,8 @@ struct ReferralCodeSheet: View {
     @ObservedObject var creditsManager = CreditsManager.shared
     
     @State private var name: String = ""
-    
+    @FocusState private var isNameFocused: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -43,6 +44,9 @@ struct ReferralCodeSheet: View {
         .padding(.horizontal, HiTheme.spacingMD)
         .onAppear {
             name = creditsManager.userName
+            if creditsManager.referralCode == nil && name.isEmpty {
+                isNameFocused = true
+            }
         }
     }
     
@@ -59,6 +63,7 @@ struct ReferralCodeSheet: View {
                 .background(HiTheme.surfacePrimary)
                 .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                 .textInputAutocapitalization(.words)
+                .focused($isNameFocused)
                 .padding(.bottom, HiTheme.spacingSM)
 
             Text("Part of your name will appear in your referral code and be shown to friends who use it. Enter at least 3 chars.")
