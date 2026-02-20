@@ -83,6 +83,7 @@ struct SettingsView: View {
                         .foregroundStyle(HiTheme.textSecondary)
                 }
             }
+            .listRowBackground(HiTheme.surfacePrimary)
         } header: {
             Text("Profile")
         } footer: {
@@ -95,6 +96,7 @@ struct SettingsView: View {
     private var imageGenerationSection: some View {
         Section {
             Toggle("Random styles", isOn: $settingsManager.randomStylesEnabled)
+                .listRowBackground(HiTheme.surfacePrimary)
 
             if settingsManager.randomStylesEnabled {
                 Button {
@@ -111,6 +113,7 @@ struct SettingsView: View {
                             .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
+                .listRowBackground(HiTheme.surfacePrimary)
             }
         } header: {
             Text("Image Generation")
@@ -125,6 +128,7 @@ struct SettingsView: View {
         Section {
             Toggle("Remove hi-key watermark", isOn: $settingsManager.removeWatermarkEnabled)
                 .disabled(!settingsManager.canRemoveWatermark)
+                .listRowBackground(HiTheme.surfacePrimary)
 
             Button {
                 showAllPlans = true
@@ -138,6 +142,7 @@ struct SettingsView: View {
                         .foregroundStyle(HiTheme.textSecondary)
                 }
             }
+            .listRowBackground(HiTheme.surfacePrimary)
         } header: {
             Text("Watermark")
         } footer: {
@@ -151,18 +156,13 @@ struct SettingsView: View {
 
     private var supportSection: some View {
         Section {
-            if let url = URL(string: "https://hi-key.ai/faq") {
-                Link(destination: url) {
-                    HStack {
-                        Text("Help & FAQ")
-                            .foregroundStyle(HiTheme.textPrimary)
-                        Spacer()
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundStyle(HiTheme.textSecondary)
-                    }
-                }
+            NavigationLink {
+                FAQView()
+            } label: {
+                Text("FAQ")
+                    .foregroundStyle(HiTheme.textPrimary)
             }
+            .listRowBackground(HiTheme.surfacePrimary)
 
             if let url = URL(string: "mailto:support@hi-key.ai") {
                 Link(destination: url) {
@@ -175,6 +175,7 @@ struct SettingsView: View {
                             .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
+                .listRowBackground(HiTheme.surfacePrimary)
             }
 
             if let url = URL(string: "https://hi-key.ai/terms") {
@@ -188,6 +189,7 @@ struct SettingsView: View {
                             .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
+                .listRowBackground(HiTheme.surfacePrimary)
             }
 
             if let url = URL(string: "https://hi-key.ai/privacy") {
@@ -201,6 +203,7 @@ struct SettingsView: View {
                             .foregroundStyle(HiTheme.textSecondary)
                     }
                 }
+                .listRowBackground(HiTheme.surfacePrimary)
             }
         } header: {
             Text("Help")
@@ -220,6 +223,7 @@ struct SettingsView: View {
                 dismiss()
             }
             .foregroundStyle(HiTheme.statusError)
+            .listRowBackground(HiTheme.surfacePrimary)
 
             Button("Sign out") {
                 Task {
@@ -227,6 +231,7 @@ struct SettingsView: View {
                 }
             }
             .foregroundStyle(HiTheme.statusError)
+            .listRowBackground(HiTheme.surfacePrimary)
         } header: {
             Text("Debug")
         } footer: {
