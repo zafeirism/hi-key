@@ -18,6 +18,7 @@ struct StylePickerView: View {
                             isEnabled: settingsManager.isStyleEnabled(style),
                             onToggle: { settingsManager.toggleStyle(style) }
                         )
+                        .listRowBackground(HiTheme.surfacePrimary)
                     }
                 } header: {
                     Text("Built-in Styles")
@@ -35,6 +36,7 @@ struct StylePickerView: View {
                             onToggle: { settingsManager.toggleStyle(style) },
                             onDelete: { settingsManager.removeCustomStyle(style) }
                         )
+                        .listRowBackground(HiTheme.surfacePrimary)
                     }
 
                     // Add custom style
@@ -48,6 +50,7 @@ struct StylePickerView: View {
                                 .foregroundStyle(HiTheme.accentPrimary)
                         }
                     }
+                    .listRowBackground(HiTheme.surfacePrimary)
                 } header: {
                     Text("Custom Styles")
                 }
@@ -58,11 +61,13 @@ struct StylePickerView: View {
                         settingsManager.enableAllStyles()
                     }
                     .foregroundStyle(HiTheme.accentPrimary)
+                    .listRowBackground(HiTheme.surfacePrimary)
 
                     Button("Disable All") {
                         settingsManager.disableAllStyles()
                     }
                     .foregroundStyle(HiTheme.statusError)
+                    .listRowBackground(HiTheme.surfacePrimary)
                 }
             }
             .scrollContentBackground(.hidden)

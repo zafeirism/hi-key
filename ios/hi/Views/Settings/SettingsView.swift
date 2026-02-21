@@ -156,11 +156,22 @@ struct SettingsView: View {
 
     private var supportSection: some View {
         Section {
-            NavigationLink {
-                FAQView()
-            } label: {
-                Text("FAQ")
-                    .foregroundStyle(HiTheme.textPrimary)
+            // Hidden NavigationLink + custom label to keep push navigation
+            // while matching the chevron style of other rows
+            ZStack(alignment: .leading) {
+                NavigationLink(destination: FAQView()) {
+                    EmptyView()
+                }
+                .opacity(0)
+
+                HStack {
+                    Text("FAQ")
+                        .foregroundStyle(HiTheme.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(HiTheme.textSecondary)
+                }
             }
             .listRowBackground(HiTheme.surfacePrimary)
 
