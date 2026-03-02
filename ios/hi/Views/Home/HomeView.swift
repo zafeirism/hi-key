@@ -296,9 +296,9 @@ struct HomeView: View {
 
     private var keyboardSuccessText: String {
         if totalCredits == 0 {
-            return "Looks good! Just top up some credits and open a chat to send a hi."
+            return "Your hi-key looks good! Just top up some credits and open a chat to send a hi."
         }
-        return "Looks good! Open a chat, switch keyboards and send a hi."
+        return "Your hi-key looks good! Open a chat, switch keyboards and send a hi."
     }
 
     // MARK: - Invite Friends Card
