@@ -73,7 +73,6 @@
 				APIClient.swift,
 				AuthKeychainStorage.swift,
 				AuthManager.swift,
-				"hi-key-app-icon.icon",
 				KeyboardAppHi.swift,
 				SupabaseManager.swift,
 			);
@@ -586,7 +585,7 @@
 		33B4B53D2ED8765300120BAA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "hi-key-app-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "hi-key";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = hi/hi.entitlements;
@@ -624,7 +623,7 @@
 		33B4B53E2ED8765300120BAA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "hi-key-app-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "hi-key";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = hi/hi.entitlements;
