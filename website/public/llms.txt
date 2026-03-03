@@ -1,0 +1,13 @@
+# hi-key
+
+> hi-key is an iOS keyboard that generates AI images from text prompts. Users type a description in any app — iMessage, WhatsApp, Instagram, and more — and get 4 AI-generated images in seconds.
+
+## Pages
+
+- [Home](https://hi-key.ai/): Landing page with app overview, features, pricing, and download links
+- [Privacy Policy](https://hi-key.ai/privacy): Privacy policy
+- [Terms of Service](https://hi-key.ai/terms): Terms of service
+
+## App
+
+- [App Store](https://apps.apple.com/app/hi-key/idYOUR_APP_ID): Download hi-key for iOS

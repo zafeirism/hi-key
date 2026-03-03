@@ -1,0 +1,25 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0F1115"/>
+  <!-- Subtle dot grid -->
+  <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+    <circle cx="12" cy="12" r="0.8" fill="#2A2F3A"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#dots)" opacity="0.5"/>
+  <!-- App name -->
+  <text x="120" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#E6E8EC">hi-key</text>
+  <!-- Tagline -->
+  <text x="120" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#9AA1AD">AI images from your keyboard</text>
+  <!-- Accent line -->
+  <rect x="120" y="360" width="80" height="4" rx="2" fill="#E4FF97"/>
+  <!-- Phone mockup outline -->
+  <rect x="780" y="80" width="280" height="470" rx="40" fill="#171A20" stroke="#2A2F3A" stroke-width="2"/>
+  <!-- Notch -->
+  <rect x="870" y="80" width="100" height="24" rx="12" fill="#0F1115"/>
+  <!-- 4 image placeholders -->
+  <rect x="810" y="160" width="110" height="110" rx="12" fill="#1E222B"/>
+  <rect x="930" y="160" width="110" height="110" rx="12" fill="#1E222B"/>
+  <rect x="810" y="280" width="110" height="110" rx="12" fill="#1E222B"/>
+  <rect x="930" y="280" width="110" height="110" rx="12" fill="#1E222B"/>
+  <!-- Input bar -->
+  <rect x="810" y="420" width="230" height="40" rx="12" fill="#1E222B"/>
+</svg>
