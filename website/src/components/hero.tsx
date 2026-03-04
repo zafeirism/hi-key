@@ -3,10 +3,10 @@ import { AppStoreBadge } from "./app-store-badge";
 export function Hero() {
   return (
     <section className="flex min-h-[90vh] items-center px-6 pt-24 pb-20">
-      <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-8">
         {/* Text */}
         <div className="text-center lg:text-left">
-          <h1 className="max-w-xl font-heading text-4xl font-bold tracking-tight text-text-primary sm:text-5xl md:text-6xl">
+          <h1 className="font-heading text-4xl font-bold tracking-tight text-text-primary sm:text-5xl md:text-6xl">
             AI images, right from{" "}
             <span className="text-accent-lime">your keyboard</span>
           </h1>
@@ -17,7 +17,7 @@ export function Hero() {
           <div className="mt-10 flex flex-col items-center gap-3 lg:items-start">
             <AppStoreBadge />
             <span className="text-sm text-text-tertiary">
-              Free to download. 5 credits to start.
+              Free to download. 5 credits to start. No account required.
             </span>
           </div>
         </div>

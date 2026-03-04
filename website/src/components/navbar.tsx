@@ -15,13 +15,13 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 right-0 left-0 z-50 px-6 transition-all duration-300 ${
         scrolled
           ? "border-b border-divider bg-background-root/80 backdrop-blur-xl"
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-5xl items-center justify-between py-4">
         <a href="#" aria-label="hi-key home">
           <img
             src="/hi-key.svg"
