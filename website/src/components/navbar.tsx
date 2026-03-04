@@ -22,11 +22,12 @@ export function Navbar() {
       }`}
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <a
-          href="#"
-          className="font-heading text-xl font-bold tracking-tight text-text-primary"
-        >
-          hi-key
+        <a href="#" aria-label="hi-key home">
+          <img
+            src="/hi-key.svg"
+            alt="hi-key"
+            className="h-8 w-auto"
+          />
         </a>
 
         <div className="hidden items-center gap-8 sm:flex">
