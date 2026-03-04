@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     description:
       "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds.",
   },
+  manifest: "/site.webmanifest",
   itunes: {
     appId: "YOUR_APP_STORE_ID",
   },
