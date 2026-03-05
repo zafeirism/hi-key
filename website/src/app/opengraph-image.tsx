@@ -11,6 +11,11 @@ export default async function Image() {
     join(process.cwd(), "src/assets/nunito-bold.ttf")
   );
 
+  const wordmarkSvg = await readFile(
+    join(process.cwd(), "public/hi-key.svg")
+  );
+  const wordmarkBase64 = `data:image/svg+xml;base64,${wordmarkSvg.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -28,17 +33,14 @@ export default async function Image() {
         <div
           style={{ display: "flex", flexDirection: "column", maxWidth: 550 }}
         >
-          <div
-            style={{
-              fontSize: 72,
-              fontFamily: "Nunito",
-              fontWeight: 700,
-              color: "#E6E8EC",
-              lineHeight: 1.1,
-            }}
-          >
-            hi-key
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={wordmarkBase64}
+            alt="hi-key"
+            width={280}
+            height={101}
+            style={{ objectFit: "contain" }}
+          />
           <div
             style={{
               fontSize: 32,
