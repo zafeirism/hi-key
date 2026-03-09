@@ -1,5 +1,5 @@
-import { AppStoreBadge } from "./app-store-badge";
 import { FadeUp } from "./fade-up";
+import { WaitlistForm } from "./waitlist-form";
 
 export function DownloadCTA() {
   return (
@@ -12,10 +12,10 @@ export function DownloadCTA() {
           <p className="mt-4 text-lg text-text-secondary">
             Generate your first AI images in under a minute.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <AppStoreBadge />
+          <div className="mt-8 mx-auto flex w-full max-w-sm flex-col items-center gap-3">
+            <WaitlistForm />
             <span className="text-sm text-text-tertiary">
-              Free to download. No account required.
+              No spam. We&apos;ll only email you when it&apos;s time.
             </span>
           </div>
         </div>

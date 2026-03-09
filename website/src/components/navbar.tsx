@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-const APP_STORE_URL = "https://apps.apple.com/app/hi-key/idYOUR_APP_ID";
-
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -50,23 +48,19 @@ export function Navbar() {
             FAQ
           </a>
           <a
-            href={APP_STORE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#waitlist"
             className="rounded-full bg-accent-lime px-5 py-2 text-sm font-semibold text-background-root transition-opacity hover:opacity-90"
           >
-            Download
+            Join Waitlist
           </a>
         </div>
 
-        {/* Mobile: just the download button */}
+        {/* Mobile: just the waitlist button */}
         <a
-          href={APP_STORE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="#waitlist"
           className="rounded-full bg-accent-lime px-4 py-1.5 text-sm font-semibold text-background-root transition-opacity hover:opacity-90 sm:hidden"
         >
-          Download
+          Join Waitlist
         </a>
       </div>
     </nav>

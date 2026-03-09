@@ -1,8 +1,8 @@
-import { AppStoreBadge } from "./app-store-badge";
+import { WaitlistForm } from "./waitlist-form";
 
 export function Hero() {
   return (
-    <section className="flex min-h-[90vh] items-center px-6 pt-24 pb-20">
+    <section id="waitlist" className="flex min-h-[90vh] items-center px-6 pt-24 pb-20">
       <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-8">
         {/* Text */}
         <div className="text-center lg:text-left">
@@ -14,10 +14,10 @@ export function Hero() {
             Describe a scene, get 4 images in seconds — right inside iMessage,
             WhatsApp, Instagram, or any app you already use.
           </p>
-          <div className="mt-10 flex flex-col items-center gap-3 lg:items-start">
-            <AppStoreBadge />
+          <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
+            <WaitlistForm />
             <span className="text-sm text-text-tertiary">
-              Free to download. 5 credits to start. No account required.
+              Join the waitlist. Be the first to try hi-key.
             </span>
           </div>
         </div>

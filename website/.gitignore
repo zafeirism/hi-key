@@ -7,10 +7,9 @@ build/
 .next/
 out/
 
-# Environment
-.env
-.env.local
-.env.*.local
+# Environment (can opt-in for committing if needed)
+.env*
+!.env.example
 
 # OS
 .DS_Store
