@@ -10,4 +10,4 @@
 
 ## App
 
-- [App Store](https://apps.apple.com/app/hi-key/idYOUR_APP_ID): Download hi-key for iOS
+- [Waitlist](https://hi-key.ai/#waitlist): Join the waitlist to be notified when hi-key launches

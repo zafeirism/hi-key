@@ -36,9 +36,6 @@ export const metadata: Metadata = {
       "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds.",
   },
   manifest: "/site.webmanifest",
-  itunes: {
-    appId: "YOUR_APP_STORE_ID",
-  },
 };
 
 const jsonLdApp = {
@@ -54,7 +51,6 @@ const jsonLdApp = {
     price: "0",
     priceCurrency: "USD",
   },
-  downloadUrl: "https://apps.apple.com/app/hi-key/idYOUR_APP_ID",
   image: "https://hi-key.ai/app-icon.png",
   author: {
     "@type": "Organization",
