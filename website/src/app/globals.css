@@ -97,6 +97,14 @@ body {
   color: var(--text-primary);
 }
 
+/* Hide scrollbar but keep scrolling functional */
+html {
+  scrollbar-width: none; /* Firefox */
+}
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
 /* Dot grid background */
 .dot-grid {
   background-image: radial-gradient(circle, #2a2f3a 1px, transparent 1px);

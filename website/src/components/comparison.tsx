@@ -190,16 +190,16 @@ export function Comparison() {
   return (
     <section ref={runwayRef} className="relative" style={{ height: "350vh" }}>
       {/* Sticky container — pinned to viewport */}
-      <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+      <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden pt-16">
         {/*
           Single flex container that switches direction:
           - Mobile: column (animation on top, text below)
           - Desktop (lg+): row (animation left, text right)
         */}
-        <div className="flex h-full w-full max-w-6xl flex-col items-center justify-center px-6 lg:flex-row lg:items-center lg:gap-12 lg:px-8 xl:gap-16">
+        <div className="flex h-full w-full flex-col items-center justify-center px-6 lg:w-auto lg:flex-row lg:items-center lg:gap-12 lg:px-8 xl:gap-16">
           {/* Animation */}
           <div
-            className="max-h-[60vh] w-full max-w-[min(400px,80vw,28vh)] shrink-0 lg:max-h-[80vh] lg:max-w-[min(400px,37vh)]"
+            className="max-h-[60vh] w-full max-w-[min(400px,80vw,35vh)] shrink-0 lg:max-h-[80vh] lg:max-w-[min(400px,37vh)]"
             style={{
               aspectRatio: "1024 / 2226",
               filter: "drop-shadow(0 0 8px rgba(0, 0, 0, 0.5))",
