@@ -4,8 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
 import type { AnimationItem } from "lottie-web";
 
-// Total frames in the Lottie animation — update this once you confirm
-// the frame count from your Jitter export.
+// Total frames in the Lottie animation
 const TOTAL_FRAMES = 480;
 
 /** Linear interpolation between two values */
