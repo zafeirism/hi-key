@@ -95,6 +95,9 @@
 body {
   background: var(--background-root);
   color: var(--text-primary);
+  /* Respect safe-area insets on notched / punch-hole Android & iOS devices */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Hide scrollbar but keep scrolling functional */
