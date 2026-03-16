@@ -4,8 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
 import type { AnimationItem } from "lottie-web";
 
-// Total frames in the Lottie animation
-const TOTAL_FRAMES = 480;
+// Total frames — update when you re-export from Jitter
+const TOTAL_FRAMES = 3000;
 
 /** Linear interpolation between two values */
 function lerp(a: number, b: number, t: number) {
@@ -23,27 +23,27 @@ function textOpacity(progress: number, fadeIn: number, holdStart: number, holdEn
 
 // Phase 1 text lines (without hi-key)
 const phase1Lines = [
-  { text: "You leave the app.", fadeIn: 0.08, holdStart: 0.12, holdEnd: 0.30, fadeOut: 0.42 },
-  { text: "You wait minutes for one result.", fadeIn: 0.15, holdStart: 0.22, holdEnd: 0.32, fadeOut: 0.42 },
-  { text: "The moment is lost.", fadeIn: 0.22, holdStart: 0.32, holdEnd: 0.38, fadeOut: 0.45 },
+  { text: "You leave the app.", fadeIn: 0.05, holdStart: 0.10, holdEnd: 0.30, fadeOut: 0.35 },
+  { text: "You wait minutes for one result.", fadeIn: 0.15, holdStart: 0.20, holdEnd: 0.31, fadeOut: 0.36 },
+  { text: "The moment is lost.", fadeIn: 0.25, holdStart: 0.30, holdEnd: 0.32, fadeOut: 0.37 },
 ];
 
 // Phase 2: "Switch. Prompt. Paste." appear one by one on the same line
 const phase2Words = [
-  { text: "Switch.", fadeIn: 0.58, holdStart: 0.62 },
-  { text: "Prompt.", fadeIn: 0.66, holdStart: 0.70 },
-  { text: "Paste.", fadeIn: 0.74, holdStart: 0.78 },
+  { text: "Switch.", fadeIn: 0.55, holdStart: 0.60 },
+  { text: "Prompt.", fadeIn: 0.60, holdStart: 0.65 },
+  { text: "Paste.", fadeIn: 0.65, holdStart: 0.70 },
 ];
 // All three words stay visible — no fade out
 const phase2WordsFadeOut = 1.1;
 const phase2WordsHoldEnd = 1.0;
 
 // "As you were." line — no fade out, stays visible
-const phase2Final = { text: "As you were.", fadeIn: 0.82, holdStart: 0.86, holdEnd: 1.0, fadeOut: 1.1 };
+const phase2Final = { text: "As you were.", fadeIn: 0.75, holdStart: 0.80, holdEnd: 1.0, fadeOut: 1.1 };
 
 // Phase headers
-const phase1Header = { text: "Without hi-key", fadeIn: 0.00, holdStart: 0.08, holdEnd: 0.38, fadeOut: 0.45 };
-const phase2Header = { text: "With hi-key", fadeIn: 0.40, holdStart: 0.58, holdEnd: 1.0, fadeOut: 1.1 };
+const phase1Header = { text: "Without hi-key", fadeIn: 0.00, holdStart: 0.00, holdEnd: 0.42, fadeOut: 0.47 };
+const phase2Header = { text: "With hi-key", fadeIn: 0.47, holdStart: 0.52, holdEnd: 1.0, fadeOut: 1.1 };
 
 export function Comparison() {
   const runwayRef = useRef<HTMLElement>(null);
@@ -71,7 +71,7 @@ export function Comparison() {
               renderer: "svg",
               loop: false,
               autoplay: false,
-              path: "/animations/comparison.json",
+              path: "/animations/comparison-square.json",
               rendererSettings: {
                 preserveAspectRatio: "xMidYMid slice",
               },
@@ -107,7 +107,7 @@ export function Comparison() {
     };
   }, []);
 
-  // Scrub animation to current frame based on scroll progress
+  // Scrub animation to current frame — linear mapping
   useEffect(() => {
     if (animRef.current && isLoaded) {
       const frame = Math.round(progress * (TOTAL_FRAMES - 1));
@@ -122,13 +122,13 @@ export function Comparison() {
   const phase1HeaderOpacity = textOpacity(progress, phase1Header.fadeIn, phase1Header.holdStart, phase1Header.holdEnd, phase1Header.fadeOut);
   const phase2HeaderOpacity = textOpacity(progress, phase2Header.fadeIn, phase2Header.holdStart, phase2Header.holdEnd, phase2Header.fadeOut);
 
-  // Phase 2 words: each word fades in independently, all fade out together
+  // Phase 2 words: each word fades in independently, all stay visible
   const phase2WordOpacities = phase2Words.map((w) =>
     textOpacity(progress, w.fadeIn, w.holdStart, phase2WordsHoldEnd, phase2WordsFadeOut)
   );
   const phase2FinalOpacity = textOpacity(progress, phase2Final.fadeIn, phase2Final.holdStart, phase2Final.holdEnd, phase2Final.fadeOut);
 
-  // Shared text content — used in both mobile (below) and desktop (side) layouts
+  // Shared text content
   const phase1Text = (
     <div
       className="flex flex-col items-center gap-2 lg:items-start"
@@ -187,20 +187,19 @@ export function Comparison() {
   );
 
   return (
-    <section ref={runwayRef} className="relative" style={{ height: "350vh" }}>
+    <section ref={runwayRef} className="relative" style={{ height: "800vh" }}>
       {/* Sticky container — pinned to viewport */}
       <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden pt-16">
         {/*
-          Single flex container that switches direction:
-          - Mobile: column (animation on top, text below)
-          - Desktop (lg+): row (animation left, text right)
+          Mobile: column (animation on top, text below)
+          Desktop (lg+): row (animation left, text right)
         */}
-        <div className="flex h-full w-full flex-col items-center justify-center px-6 lg:w-auto lg:flex-row lg:items-center lg:gap-12 lg:px-8 xl:gap-16">
-          {/* Animation */}
+        <div className="flex h-full w-full flex-col items-center justify-center lg:w-auto lg:flex-row lg:items-center lg:gap-12 lg:px-8 xl:gap-16">
+          {/* Animation — full width on mobile, constrained on desktop */}
           <div
-            className="max-h-[60vh] w-full max-w-[min(400px,80vw,35vh)] shrink-0 lg:max-h-[80vh] lg:max-w-[min(400px,37vh)]"
+            className="w-full shrink-0 lg:max-h-[80vh] lg:w-auto lg:max-w-[min(500px,45vh)]"
             style={{
-              aspectRatio: "1024 / 2226",
+              aspectRatio: "1024 / 1230",
               filter: "drop-shadow(0 0 8px rgba(0, 0, 0, 0.5))",
             }}
           >
@@ -209,19 +208,20 @@ export function Comparison() {
               style={{
                 width: "100%",
                 height: "100%",
-                borderRadius: "28px",
+                borderRadius: "0px",
                 overflow: "hidden",
                 isolation: "isolate",
               }}
+              className="lg:rounded-[28px]!"
             />
           </div>
 
           {/* Text — stacked below on mobile, beside on desktop */}
-          <div className="relative mt-6 h-[120px] w-full lg:mt-0 lg:h-auto lg:min-h-[140px] lg:flex-1">
-            <div className="absolute inset-x-0 top-0 lg:relative">
+          <div className="relative mt-6 h-[120px] w-full px-6 lg:mt-0 lg:h-auto lg:min-h-[140px] lg:flex-1 lg:px-0">
+            <div className="absolute inset-x-6 top-0 lg:relative lg:inset-x-0">
               {phase1Text}
             </div>
-            <div className="absolute inset-x-0 top-0 lg:absolute lg:inset-0">
+            <div className="absolute inset-x-6 top-0 lg:absolute lg:inset-0">
               {phase2Text}
             </div>
           </div>
