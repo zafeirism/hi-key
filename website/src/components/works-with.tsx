@@ -44,7 +44,7 @@ export function WorksWith() {
             animRef.current?.pause();
           }
         },
-        { threshold: 0.5 },
+        { threshold: 0.25 },
       );
       observer.observe(sectionRef.current!);
     });
@@ -58,14 +58,14 @@ export function WorksWith() {
 
   return (
     <section ref={sectionRef} className="px-6 py-24 sm:py-32">
-      <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-8">
+      <div className="mx-auto flex max-w-5xl flex-col-reverse items-center gap-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-8">
         {/* Text */}
         <div className="text-center lg:text-left">
           <h2 className="font-heading text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             Yes, it works there too
           </h2>
           <p className="mt-4 max-w-lg text-lg text-text-secondary">
-            hi-key is a keyboard — so it works in every app you already use, no setup needed.
+            hi-key works with all your favorite apps. If you can type in it, you can use hi-key.
           </p>
           <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
             <WaitlistForm />
