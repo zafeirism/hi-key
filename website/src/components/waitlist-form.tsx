@@ -71,8 +71,8 @@ function WaitlistFormInner() {
         />
         <button
           type="submit"
-          disabled={!isValidEmail || state === "loading"}
-          className="shrink-0 rounded-lg bg-accent-lime px-5 py-2 text-sm font-semibold text-background-root transition-opacity duration-200 hover:opacity-90 disabled:opacity-40"
+          disabled={state === "loading"}
+          className="shrink-0 rounded-lg border border-accent-lime px-5 py-2 text-sm font-semibold text-accent-lime transition-colors duration-200 hover:bg-accent-lime hover:text-background-root disabled:opacity-40"
         >
           {state === "loading" ? "Joining..." : "Join Waitlist"}
         </button>
