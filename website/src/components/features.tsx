@@ -73,7 +73,7 @@ const features = [
 export function Features() {
   return (
     <section className="px-6 py-24" id="features">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <FadeUp>
           <h2 className="text-center font-heading text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
             Why hi-key

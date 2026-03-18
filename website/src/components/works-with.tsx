@@ -58,7 +58,7 @@ export function WorksWith() {
 
   return (
     <section ref={sectionRef} className="px-6 py-24 sm:py-32">
-      <div className="mx-auto flex max-w-5xl flex-col-reverse items-center gap-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-8">
+      <div className="mx-auto flex max-w-6xl flex-col-reverse items-center gap-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-8">
         {/* Text */}
         <div className="text-center lg:text-left">
           <h2 className="font-heading text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">

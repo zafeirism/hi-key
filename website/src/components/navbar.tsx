@@ -19,7 +19,7 @@ export function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-between py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between py-4">
         <a href="#" aria-label="hi-key home">
           <img
             src="/hi-key.svg"
