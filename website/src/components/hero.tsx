@@ -12,8 +12,8 @@ export function Hero() {
             <span className="text-accent-lime">your keyboard</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg text-text-secondary sm:text-xl">
-            Describe a scene, get 4 images in seconds — right inside iMessage,
-            WhatsApp, Instagram, or any app you already use.
+            Create images in seconds, right inside WhatsApp, iMessage or
+            any app you use.
           </p>
           <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
             <WaitlistForm />

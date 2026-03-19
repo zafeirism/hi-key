@@ -17,7 +17,7 @@ const steps = [
     poster: "/twocups-getresults-poster.jpg",
     title: "Describe what you see",
     description:
-      "Type a quick prompt \u2014 a vibe, a scene, an idea. Get 4 images back in seconds.",
+      "Type a quick prompt. A vibe, a scene, an idea. Get 4 images back in seconds.",
   },
   {
     src: "/twocups-copypaste.mp4",
@@ -73,8 +73,8 @@ export function HowItWorks() {
             Easier than opening an app
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-text-secondary">
-            hi-key lives in your keyboard. Switch, describe, paste — without
-            ever leaving the conversation.
+            Switch keyboard, describe, paste. Without ever leaving the
+            conversation.
           </p>
         </div>
 
