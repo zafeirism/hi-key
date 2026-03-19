@@ -72,7 +72,7 @@ export function HowItWorks() {
           <h2 className="font-heading text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
             Easier than opening an app
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-text-secondary">
+          <p className="mx-auto mt-4 max-w-xl text-lg text-text-secondary">
             hi-key lives in your keyboard. Switch, describe, paste — without
             ever leaving the conversation.
           </p>

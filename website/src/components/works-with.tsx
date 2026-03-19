@@ -61,7 +61,7 @@ export function WorksWith() {
       <div className="mx-auto flex max-w-6xl flex-col-reverse items-center gap-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-8">
         {/* Text */}
         <div className="text-center lg:text-left">
-          <h2 className="font-heading text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+          <h2 className="font-heading text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
             Yes, it works there too
           </h2>
           <p className="mt-4 max-w-lg text-lg text-text-secondary">
