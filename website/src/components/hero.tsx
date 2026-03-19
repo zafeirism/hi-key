@@ -1,4 +1,5 @@
 import { WaitlistForm } from "./waitlist-form";
+import { LazyVideo } from "./lazy-video";
 
 export function Hero() {
   return (
@@ -24,14 +25,13 @@ export function Hero() {
 
         {/* Hero demo video */}
         <div className="flex justify-center lg:justify-end">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster="/geekout-poster.jpg"
-            className="w-full max-w-[460px] rounded-3xl"
+          <LazyVideo
             src="/geekout.mp4"
+            poster="/geekout-poster.jpg"
+            playing
+            fetchPriority="high"
+            lazyRootMargin="0px"
+            className="w-full max-w-[460px] rounded-3xl overflow-hidden"
           />
         </div>
       </div>
