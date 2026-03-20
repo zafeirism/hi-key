@@ -200,7 +200,6 @@ export function Comparison() {
             className="w-full shrink-0 lg:max-h-[80vh] lg:w-auto lg:max-w-[min(500px,45vh)]"
             style={{
               aspectRatio: "1024 / 1230",
-              filter: "drop-shadow(0 0 8px rgba(0, 0, 0, 0.5))",
               opacity: isLoaded ? 1 : 0,
               transform: isLoaded ? "translateY(0)" : "translateY(24px)",
               transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
@@ -208,11 +207,8 @@ export function Comparison() {
           >
             <div
               ref={lottieContainerRef}
+              className="h-full w-full overflow-hidden rounded-4xl"
               style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: "28px",
-                overflow: "hidden",
                 isolation: "isolate",
               }}
             />

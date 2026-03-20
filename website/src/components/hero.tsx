@@ -31,7 +31,7 @@ export function Hero() {
             playing
             fetchPriority="high"
             lazyRootMargin="0px"
-            className="w-full max-w-[460px] rounded-3xl overflow-hidden"
+            className="w-full max-w-[460px] rounded-4xl overflow-hidden"
           />
         </div>
       </div>

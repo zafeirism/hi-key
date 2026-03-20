@@ -82,7 +82,7 @@ export function Features() {
         <div className="mt-16 grid gap-6 sm:grid-cols-3">
           {features.map((feature, i) => (
             <FadeUp key={feature.title} delay={i * 120}>
-              <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-surface-primary transition-transform duration-250 hover:-translate-y-1">
+              <div className="group relative flex h-full flex-col overflow-hidden rounded-4xl bg-surface-primary transition-transform duration-250 hover:-translate-y-1">
                 {/* Media area — replace gradient with Lottie/video/image */}
                 <div
                   className={`flex h-48 items-center justify-center bg-gradient-to-b ${feature.mediaBg}`}

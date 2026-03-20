@@ -131,7 +131,7 @@ export function HowItWorks() {
             aria-labelledby={`hiw-tab-${activeStep}`}
             className="flex justify-center"
           >
-            <div className="relative aspect-square w-full max-w-[420px] overflow-hidden rounded-2xl">
+            <div className="relative aspect-square w-full max-w-[420px] overflow-hidden rounded-4xl">
               {steps.map((step, i) => (
                 <div
                   key={i}
@@ -159,7 +159,7 @@ export function HowItWorks() {
         {/* Mobile layout */}
         <div className="mt-12 lg:hidden">
           {/* Video */}
-          <div className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-2xl">
+          <div className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-4xl">
             <div
               role="tabpanel"
               id="hiw-panel-mobile"
