@@ -5,7 +5,7 @@ import { useScrollProgress } from "@/hooks/use-scroll-progress";
 import type { AnimationItem } from "lottie-web";
 
 // Total frames — update when you re-export from Jitter
-const TOTAL_FRAMES = 3000;
+const TOTAL_FRAMES = 471;
 
 /** Linear interpolation between two values */
 function lerp(a: number, b: number, t: number) {
@@ -23,27 +23,27 @@ function textOpacity(progress: number, fadeIn: number, holdStart: number, holdEn
 
 // Phase 1 text lines (without hi-key)
 const phase1Lines = [
-  { text: "You leave the app.", fadeIn: 0.05, holdStart: 0.10, holdEnd: 0.30, fadeOut: 0.35 },
-  { text: "You wait minutes for one result.", fadeIn: 0.15, holdStart: 0.20, holdEnd: 0.31, fadeOut: 0.36 },
-  { text: "The moment is lost.", fadeIn: 0.25, holdStart: 0.30, holdEnd: 0.32, fadeOut: 0.37 },
+  { text: "You leave the app.", fadeIn: 0.05, holdStart: 0.10, holdEnd: 0.33, fadeOut: 0.37 },
+  { text: "You wait minutes for one result.", fadeIn: 0.15, holdStart: 0.20, holdEnd: 0.34, fadeOut: 0.39 },
+  { text: "The moment is lost.", fadeIn: 0.25, holdStart: 0.30, holdEnd: 0.35, fadeOut: 0.40 },
 ];
 
 // Phase 2: "Switch. Prompt. Paste." appear one by one on the same line
 const phase2Words = [
-  { text: "Switch.", fadeIn: 0.55, holdStart: 0.60 },
-  { text: "Prompt.", fadeIn: 0.60, holdStart: 0.65 },
-  { text: "Paste.", fadeIn: 0.65, holdStart: 0.70 },
+  { text: "Switch.", fadeIn: 0.60, holdStart: 0.65 },
+  { text: "Prompt.", fadeIn: 0.70, holdStart: 0.75 },
+  { text: "Paste.", fadeIn: 0.80, holdStart: 0.85 },
 ];
 // All three words stay visible — no fade out
 const phase2WordsFadeOut = 1.1;
 const phase2WordsHoldEnd = 1.0;
 
 // "As you were." line — no fade out, stays visible
-const phase2Final = { text: "As you were.", fadeIn: 0.75, holdStart: 0.80, holdEnd: 1.0, fadeOut: 1.1 };
+const phase2Final = { text: "As you were.", fadeIn: 0.90, holdStart: 0.95, holdEnd: 1.0, fadeOut: 1.1 };
 
 // Phase headers
-const phase1Header = { text: "Without hi-key", fadeIn: 0.00, holdStart: 0.00, holdEnd: 0.42, fadeOut: 0.47 };
-const phase2Header = { text: "With hi-key", fadeIn: 0.47, holdStart: 0.52, holdEnd: 1.0, fadeOut: 1.1 };
+const phase1Header = { text: "Without hi-key", fadeIn: 0.00, holdStart: 0.00, holdEnd: 0.45, fadeOut: 0.50 };
+const phase2Header = { text: "With hi-key", fadeIn: 0.45, holdStart: 0.50, holdEnd: 1.0, fadeOut: 1.1 };
 
 export function Comparison() {
   const runwayRef = useRef<HTMLElement>(null);
@@ -71,7 +71,7 @@ export function Comparison() {
               renderer: "svg",
               loop: false,
               autoplay: false,
-              path: "/animations/comparison-square.json",
+              path: "/animations/comparison.json",
               rendererSettings: {
                 preserveAspectRatio: "xMidYMid slice",
               },
@@ -187,7 +187,7 @@ export function Comparison() {
   );
 
   return (
-    <section ref={runwayRef} className="relative" style={{ height: "800vh" }}>
+    <section ref={runwayRef} className="relative" style={{ height: "600vh" }}>
       {/* Sticky container — pinned to viewport */}
       <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden pt-16">
         {/*

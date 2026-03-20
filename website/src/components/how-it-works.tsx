@@ -15,7 +15,7 @@ const steps = [
   {
     src: "/twocups-getresults.mp4",
     poster: "/twocups-getresults-poster.jpg",
-    title: "Describe what you see",
+    title: "Describe a scene",
     description:
       "Type a quick prompt. A vibe, a scene, an idea. Get 4 images back in seconds.",
   },

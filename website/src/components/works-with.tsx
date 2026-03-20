@@ -78,7 +78,7 @@ export function WorksWith() {
         {/* Lottie animation */}
         <div className="flex justify-center lg:justify-end">
           <div
-            className={`w-full max-w-md transition-opacity duration-500 ${
+            className={`w-full max-w-sm transition-opacity duration-500 ${
               isLoaded ? "opacity-100" : "opacity-0"
             }`}
           >
