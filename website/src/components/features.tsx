@@ -171,7 +171,9 @@ export function Features() {
                       </div>
 
                       {/* Text side (1/3), bottom-aligned on desktop */}
-                      <div className="flex w-full flex-col items-center text-center lg:w-1/3 lg:items-start lg:text-left">
+                      <div className={`flex w-full flex-col items-start text-left lg:w-1/3 ${
+                        textLeft ? "lg:pl-6" : "lg:pr-6"
+                      }`}>
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-secondary text-accent-lime">
                           {feature.icon}
                         </div>
