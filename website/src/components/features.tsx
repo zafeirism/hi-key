@@ -31,6 +31,7 @@ const features = [
     description:
       "Fast enough to send in the moment. Describe and get results instantly.",
     animationPath: "/animations/features-fast.json",
+    aspect: "aspect-[4/3]" as const,
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -53,6 +54,7 @@ const features = [
     description:
       "iMessage, WhatsApp, Instagram, Telegram, Slack, email. hi-key is a system keyboard, available everywhere you type.",
     animationPath: "/animations/features-allapps.json",
+    aspect: "aspect-square" as const,
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -75,6 +77,7 @@ const features = [
     description:
       "hi-key only processes your prompts — never your messages, passwords, or personal data. Prompts are not stored after generation.",
     animationPath: null,
+    aspect: "aspect-square" as const,
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -94,14 +97,14 @@ const features = [
   },
 ];
 
-function FeatureLottie({ path }: { path: string | null }) {
+function FeatureLottie({ path, aspect = "aspect-square" }: { path: string | null; aspect?: string }) {
   const { containerRef, isLoaded } = useLottiePlayOnce(path);
 
-  if (!path) return <div className="w-full max-w-md aspect-square" />;
+  if (!path) return <div className={`w-full max-w-md ${aspect}`} />;
 
   return (
     <div
-      className={`w-full max-w-md aspect-square transition-opacity duration-500 ${
+      className={`w-full max-w-md ${aspect} transition-opacity duration-500 ${
         isLoaded ? "opacity-100" : "opacity-0"
       }`}
     >
@@ -159,15 +162,15 @@ export function Features() {
                   />
 
                   <FadeUp delay={i * 120}>
-                    {/* Row height — tweak: py-10 (compact) / py-12 / py-16 */}
+                    {/* Row height — tweak: py-8 / py-12 / py-16 */}
                     <div
-                      className={`flex flex-col items-center gap-8 px-4 py-10 lg:items-end lg:gap-16 lg:px-8 ${
+                      className={`flex flex-col items-center gap-8 px-4 py-8 lg:items-end lg:gap-16 lg:px-8 ${
                         textLeft ? "lg:flex-row" : "lg:flex-row-reverse"
                       }`}
                     >
                       {/* Animation side (2/3) */}
                       <div className="flex w-full items-center justify-center lg:w-2/3">
-                        <FeatureLottie path={feature.animationPath} />
+                        <FeatureLottie path={feature.animationPath} aspect={feature.aspect} />
                       </div>
 
                       {/* Text side (1/3), bottom-aligned on desktop */}
