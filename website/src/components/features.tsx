@@ -3,14 +3,42 @@
 import { FadeUp } from "./fade-up";
 import { useLottiePlayOnce } from "@/hooks/use-lottie-play-once";
 
-const hLineStyle = {
+/* ── Tweak points ──────────────────────────────────────────────
+ *  Header padding:  `py-6`  → try py-4 / py-8
+ *  Row height:      `py-8`  → try py-8 / py-12 / py-16
+ *  Line overshoot:  LINE_OVERSHOOT below → how far lines extend
+ *                   beyond the grid boundary (blueprint effect).
+ *                   Try: 16, 24, 32, 48, 64 (px)
+ * ──────────────────────────────────────────────────────────── */
+
+/** How far (px) lines extend past the grid edges — creates blueprint-style crossover */
+const LINE_OVERSHOOT = 128;
+
+const hLineBase = {
   height: 1,
   background:
     "linear-gradient(to right, transparent, var(--divider) 20%, var(--divider) 80%, transparent)",
 } as const;
 
+const hLineDesktop = {
+  ...hLineBase,
+  marginLeft: -LINE_OVERSHOOT * 2,
+  marginRight: -LINE_OVERSHOOT * 2,
+} as const;
+
+function HLine() {
+  return (
+    <>
+      <div className="lg:hidden" style={hLineBase} />
+      <div className="hidden lg:block" style={hLineDesktop} />
+    </>
+  );
+}
+
 const vLineEdgeStyle = {
   width: 1,
+  top: -LINE_OVERSHOOT,
+  bottom: -LINE_OVERSHOOT,
   background:
     "linear-gradient(to bottom, transparent, var(--divider) 15%, var(--divider) 85%, transparent)",
 } as const;
@@ -19,11 +47,6 @@ const vLineSolidStyle = {
   width: 1,
   background: "var(--divider)",
 } as const;
-
-/* ── Tweak points ──────────────────────────────────────────────
- *  Header padding:  `py-6` on line ~120  → try py-4 / py-8
- *  Row height:      `py-10` on line ~140 → try py-8 / py-12 / py-16
- * ──────────────────────────────────────────────────────────── */
 
 const features = [
   {
@@ -119,16 +142,16 @@ export function Features() {
       <div className="relative mx-auto max-w-6xl">
         {/* Left & right edge vertical lines (desktop only, fade at edges) */}
         <div
-          className="hidden lg:block absolute top-0 bottom-0 left-0"
+          className="hidden lg:block absolute left-0"
           style={vLineEdgeStyle}
         />
         <div
-          className="hidden lg:block absolute top-0 bottom-0 right-0"
+          className="hidden lg:block absolute right-0"
           style={vLineEdgeStyle}
         />
 
         {/* ── Header ── */}
-        <div style={hLineStyle} />
+        <HLine />
 
         <FadeUp>
           {/* Header padding — tweak: py-6 (tight) / py-8 / py-10 */}
@@ -142,7 +165,7 @@ export function Features() {
           </div>
         </FadeUp>
 
-        <div style={hLineStyle} />
+        <HLine />
 
         {/* ── Feature rows ── */}
         <div className="flex flex-col">
@@ -152,7 +175,7 @@ export function Features() {
 
             return (
               <div key={feature.title}>
-                {i > 0 && <div style={hLineStyle} />}
+                {i > 0 && <HLine />}
                 {/* Row wrapper — relative so the vertical line is scoped to this row */}
                 <div className="relative">
                   {/* Per-row vertical line (desktop only, solid) */}
@@ -195,7 +218,7 @@ export function Features() {
           })}
 
           {/* Horizontal line after last feature */}
-          <div style={hLineStyle} />
+          <HLine />
         </div>
       </div>
     </section>
