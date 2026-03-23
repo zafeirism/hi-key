@@ -113,36 +113,64 @@ export function useCarousel({
     [activeStep, getVideoPortion]
   );
 
-  // Swipe gesture support
+  // Drag / swipe gesture support
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lockedAxisRef = useRef<"x" | "y" | null>(null);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
     };
+    lockedAxisRef.current = null;
   }, []);
 
-  const onTouchEnd = useCallback(
+  const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!touchStartRef.current) return;
-      const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
-      const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
-      touchStartRef.current = null;
+      const dx = e.touches[0].clientX - touchStartRef.current.x;
+      const dy = e.touches[0].clientY - touchStartRef.current.y;
 
-      // Ignore if vertical swipe or too short
-      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
-
-      if (dx < 0 && activeStep < stepCount - 1) {
-        goToStep(activeStep + 1);
-      } else if (dx > 0 && activeStep > 0) {
-        goToStep(activeStep - 1);
+      // Lock axis after 10px of movement
+      if (!lockedAxisRef.current && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+        lockedAxisRef.current = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
       }
+
+      if (lockedAxisRef.current !== "x") return;
+
+      // Resist dragging past first/last step
+      const clamped =
+        (activeStep === 0 && dx > 0) || (activeStep === stepCount - 1 && dx < 0)
+          ? dx * 0.25
+          : dx;
+
+      setIsDragging(true);
+      setDragOffset(clamped);
     },
-    [activeStep, stepCount, goToStep]
+    [activeStep, stepCount]
   );
 
-  const swipeHandlers = { onTouchStart, onTouchEnd };
+  const onTouchEnd = useCallback(() => {
+    if (!isDragging) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const threshold = 50;
+    if (dragOffset < -threshold && activeStep < stepCount - 1) {
+      goToStep(activeStep + 1);
+    } else if (dragOffset > threshold && activeStep > 0) {
+      goToStep(activeStep - 1);
+    }
+
+    setIsDragging(false);
+    setDragOffset(0);
+    touchStartRef.current = null;
+  }, [isDragging, dragOffset, activeStep, stepCount, goToStep]);
+
+  const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
 
   return {
     activeStep,
@@ -152,5 +180,7 @@ export function useCarousel({
     setVideoProgress,
     setStepDuration,
     swipeHandlers,
+    dragOffset,
+    isDragging,
   };
 }

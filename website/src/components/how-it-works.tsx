@@ -37,6 +37,8 @@ export function HowItWorks() {
     setVideoProgress,
     setStepDuration,
     swipeHandlers,
+    dragOffset,
+    isDragging,
   } = useCarousel({ stepCount: steps.length });
 
   const handleKeyDown = useCallback(
@@ -160,19 +162,26 @@ export function HowItWorks() {
         {/* Mobile layout */}
         <div className="mt-12 lg:hidden">
           {/* Video */}
-          <div className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-4xl" {...swipeHandlers}>
+          <div
+            className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-4xl"
+            {...swipeHandlers}
+          >
             <div
               role="tabpanel"
               id="hiw-panel-mobile"
               aria-labelledby={`hiw-tab-mobile-${activeStep}`}
-              className="relative h-full w-full"
+              className="flex h-full"
+              style={{
+                width: `${steps.length * 100}%`,
+                transform: `translateX(calc(-${activeStep * (100 / steps.length)}% + ${dragOffset}px))`,
+                transition: isDragging ? "none" : "transform 300ms ease-out",
+              }}
             >
               {steps.map((step, i) => (
                 <div
                   key={i}
-                  className={`absolute inset-0 transition-opacity duration-300 ${
-                    i === activeStep ? "opacity-100" : "opacity-0 pointer-events-none"
-                  }`}
+                  className="h-full"
+                  style={{ width: `${100 / steps.length}%` }}
                 >
                   <LazyVideo
                     src={step.src}
