@@ -36,6 +36,7 @@ export function HowItWorks() {
     goToStep,
     setVideoProgress,
     setStepDuration,
+    swipeHandlers,
   } = useCarousel({ stepCount: steps.length });
 
   const handleKeyDown = useCallback(
@@ -159,7 +160,7 @@ export function HowItWorks() {
         {/* Mobile layout */}
         <div className="mt-12 lg:hidden">
           {/* Video */}
-          <div className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-4xl">
+          <div className="mx-auto aspect-square max-w-[360px] overflow-hidden rounded-4xl" {...swipeHandlers}>
             <div
               role="tabpanel"
               id="hiw-panel-mobile"

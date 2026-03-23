@@ -113,6 +113,37 @@ export function useCarousel({
     [activeStep, getVideoPortion]
   );
 
+  // Swipe gesture support
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  }, []);
+
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current) return;
+      const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+      const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+      touchStartRef.current = null;
+
+      // Ignore if vertical swipe or too short
+      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+
+      if (dx < 0 && activeStep < stepCount - 1) {
+        goToStep(activeStep + 1);
+      } else if (dx > 0 && activeStep > 0) {
+        goToStep(activeStep - 1);
+      }
+    },
+    [activeStep, stepCount, goToStep]
+  );
+
+  const swipeHandlers = { onTouchStart, onTouchEnd };
+
   return {
     activeStep,
     displayProgress,
@@ -120,5 +151,6 @@ export function useCarousel({
     goToStep,
     setVideoProgress,
     setStepDuration,
+    swipeHandlers,
   };
 }
