@@ -28,7 +28,7 @@ export function LazyVideo({
   onTimeUpdate,
   onDuration,
   fetchPriority,
-  lazyRootMargin = "200px",
+  lazyRootMargin = "400px",
 }: LazyVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

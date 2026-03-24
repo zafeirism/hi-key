@@ -92,7 +92,7 @@ export function Comparison() {
           });
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "600px" }
     );
 
     observer.observe(container);

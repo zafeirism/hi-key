@@ -147,6 +147,7 @@ export function HowItWorks() {
                     poster={step.poster}
                     playing={i === activeStep}
                     loop={false}
+                    lazyRootMargin="600px"
                     onEnded={i === activeStep ? onVideoEnded : undefined}
                     onTimeUpdate={i === activeStep ? setVideoProgress : undefined}
                     onDuration={(d) => setStepDuration(i, d)}
@@ -188,6 +189,7 @@ export function HowItWorks() {
                     poster={step.poster}
                     playing={i === activeStep}
                     loop={false}
+                    lazyRootMargin="600px"
                     onEnded={i === activeStep ? onVideoEnded : undefined}
                     onTimeUpdate={i === activeStep ? setVideoProgress : undefined}
                     onDuration={(d) => setStepDuration(i, d)}

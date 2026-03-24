@@ -48,7 +48,7 @@ export function useLottiePlayOnce(path: string | null) {
           });
         });
       },
-      { rootMargin: "200px" },
+      { rootMargin: "400px" },
     );
 
     preloadObserver.observe(el);
