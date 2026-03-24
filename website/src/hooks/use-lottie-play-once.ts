@@ -35,14 +35,14 @@ export function useLottiePlayOnce(path: string | null) {
 
           anim.addEventListener("DOMLoaded", () => {
             setIsLoaded(true);
-            // Play observer: start playback only when 80% visible
+            // Play observer: start playback only when fully visible
             const playObserver = new IntersectionObserver(
               ([e]) => {
                 if (!e.isIntersecting) return;
                 playObserver.disconnect();
                 anim?.play();
               },
-              { threshold: 0.8 },
+              { threshold: 1.0 },
             );
             playObserver.observe(el);
           });
