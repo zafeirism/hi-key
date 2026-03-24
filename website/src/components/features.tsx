@@ -99,8 +99,9 @@ const features = [
     title: "Your privacy, respected",
     description:
       "hi-key only processes your prompts — never your messages, passwords, or personal data. Prompts are not stored after generation.",
-    animationPath: null,
-    aspect: "aspect-square" as const,
+    animationPath: "/animations/features-privacy.json",
+    aspect: "aspect-[4/3]" as const,
+    maxW: "max-w-lg" as const,
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -120,14 +121,14 @@ const features = [
   },
 ];
 
-function FeatureLottie({ path, aspect = "aspect-square" }: { path: string | null; aspect?: string }) {
+function FeatureLottie({ path, aspect = "aspect-square", maxW = "max-w-md" }: { path: string | null; aspect?: string; maxW?: string }) {
   const { containerRef, isLoaded } = useLottiePlayOnce(path);
 
-  if (!path) return <div className={`w-full max-w-md ${aspect}`} />;
+  if (!path) return <div className={`w-full ${maxW} ${aspect}`} />;
 
   return (
     <div
-      className={`w-full max-w-md ${aspect} transition-opacity duration-500 ${
+      className={`w-full ${maxW} ${aspect} transition-opacity duration-500 ${
         isLoaded ? "opacity-100" : "opacity-0"
       }`}
     >
@@ -193,7 +194,7 @@ export function Features() {
                     >
                       {/* Animation side (2/3) */}
                       <div className="flex w-full items-center justify-center lg:w-2/3">
-                        <FeatureLottie path={feature.animationPath} aspect={feature.aspect} />
+                        <FeatureLottie path={feature.animationPath} aspect={feature.aspect} maxW={"maxW" in feature ? (feature.maxW as string) : undefined} />
                       </div>
 
                       {/* Text side (1/3), bottom-aligned on desktop */}
