@@ -64,7 +64,7 @@ export function LazyVideo({
 
     const observer = new IntersectionObserver(
       ([entry]) => setVisible(entry.isIntersecting),
-      { threshold: 0.25 }
+      { threshold: 0.5 }
     );
 
     observer.observe(el);
