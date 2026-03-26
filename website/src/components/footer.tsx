@@ -3,28 +3,19 @@ export function Footer() {
     <footer className="border-t border-divider px-6 py-10">
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <p className="text-sm text-text-tertiary">
-          &copy; {new Date().getFullYear()} hi-key. All rights reserved.
+          &copy; {new Date().getFullYear()} hi-key
         </p>
-        <nav className="flex gap-6" aria-label="Footer">
+        <p className="text-sm text-text-tertiary">
+          made with fun by{" "}
           <a
-            href="/privacy"
-            className="text-sm text-text-secondary transition-colors hover:text-text-primary"
+            href="https://x.com/zafeirism"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-secondary transition-colors hover:text-text-primary"
           >
-            Privacy Policy
+            zaf
           </a>
-          <a
-            href="/terms"
-            className="text-sm text-text-secondary transition-colors hover:text-text-primary"
-          >
-            Terms of Service
-          </a>
-          <a
-            href="mailto:support@hi-key.ai"
-            className="text-sm text-text-secondary transition-colors hover:text-text-primary"
-          >
-            Support
-          </a>
-        </nav>
+        </p>
       </div>
     </footer>
   );
