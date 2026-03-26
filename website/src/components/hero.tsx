@@ -18,7 +18,8 @@ export function Hero() {
           <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
             <WaitlistForm />
             <span className="text-sm text-text-tertiary">
-              Join the waitlist. Be the first to try hi-key.
+              Early members get 2× credits.{" "}
+              <span className="text-text-primary">Forever.</span>
             </span>
           </div>
         </div>

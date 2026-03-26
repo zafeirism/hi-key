@@ -98,7 +98,7 @@ const features = [
   {
     title: "Your privacy, respected",
     description:
-      "hi-key only processes your prompts — never your messages, passwords, or personal data. Prompts are not stored after generation.",
+      "hi-key only processes your prompts. Never your messages, passwords, or personal data.",
     animationPath: "/animations/features-privacy.json",
     aspect: "aspect-[4/3]" as const,
     maxW: "max-w-lg" as const,

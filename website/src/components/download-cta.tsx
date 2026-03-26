@@ -15,7 +15,8 @@ export function DownloadCTA() {
           <div className="mt-8 mx-auto flex w-full max-w-sm flex-col items-center gap-3">
             <WaitlistForm />
             <span className="text-sm text-text-tertiary">
-              No spam. We&apos;ll only email you when it&apos;s time.
+              Early members get 2× credits.{" "}
+              <span className="text-text-primary">Forever.</span>
             </span>
           </div>
         </div>
