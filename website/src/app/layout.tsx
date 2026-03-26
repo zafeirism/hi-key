@@ -75,7 +75,15 @@ const jsonLdFaq = {
       name: "What is hi-key?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "hi-key is an iOS keyboard that generates AI images from text prompts. You type a description of what you want to see, and hi-key creates 4 images in seconds — right inside any app you're already using.",
+        text: "hi-key is an iOS keyboard that generates AI images from text prompts. Switch to it like you switch to the emoji keyboard, type a description, and hi-key creates 4 images in seconds. Right there, inside any app you're using.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How is hi-key different from Nano Banana or ChatGPT?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Most AI image tools take up to a minute for a single image. That doesn't work when you're mid-conversation. hi-key lives inside the app you already have open, no switching, no waiting. It uses ultra-fast models to generate 4 images in seconds, so you pick the one you like and keep going. It's like sending a GIF, but personal and unique.",
       },
     },
     {
@@ -83,7 +91,7 @@ const jsonLdFaq = {
       name: "How does hi-key work?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: 'Enable hi-key as a keyboard on your iPhone, switch to it in any app with a text field, type a description (e.g., "a cat wearing sunglasses on a beach"), and get 4 AI-generated images instantly. Tap any image to copy it to your clipboard.',
+        text: "Enable hi-key as a keyboard on your iPhone once and it becomes available in all your apps. Switch to it using the 🌐 icon, describe a scene, and you'll have 4 images in seconds. Tap any result to copy it, then paste it wherever you want.",
       },
     },
     {
@@ -91,7 +99,7 @@ const jsonLdFaq = {
       name: "Which apps does hi-key work in?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "hi-key works in any app that has a text input — iMessage, WhatsApp, Instagram DMs, Telegram, Slack, Notes, email, and more. It's a system keyboard, so it's available everywhere you type.",
+        text: "hi-key works in any app with a text input, like iMessage, WhatsApp, Instagram DMs, Telegram, Slack, Notes, email, and more. It's a system keyboard, so it's available everywhere you type.",
       },
     },
     {
@@ -99,7 +107,7 @@ const jsonLdFaq = {
       name: "Is hi-key free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes, hi-key is free to download and comes with 5 credits to start. Each credit generates 4 images. Subscription plans start at $4.99/month for more credits, and one-time credit packs are available from $2.99.",
+        text: "Practically no, but you can definitely try it for free. When you download hi-key you get 5 credits to start. Each credit generates 4 images. Refer a friend and you both get 5 more. For more credits, one-time packs start at $2.99 and subscriptions at $4.99/month.",
       },
     },
     {
@@ -107,23 +115,23 @@ const jsonLdFaq = {
       name: "Is hi-key safe? Can it read my messages?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "hi-key only processes the prompts you type in the hi-key prompt bar. It never reads, stores, or sends your messages, passwords, or any other content. Prompts are processed securely and not stored after image generation.",
+        text: "hi-key only processes the prompts you type in the hi-key prompt bar. It never reads, stores, or sends your messages, passwords, or any other content. Prompts are processed securely and used solely to generate your images.",
       },
     },
     {
       "@type": "Question",
-      name: "What does the hi-key watermark mean?",
+      name: "What does \"double credits forever\" mean for early members?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: 'Images generated on the free and lower-tier plans include a small "hi-key" watermark. If you received an image with this watermark, someone used hi-key to create it. The Super plan ($12.99/month) removes watermarks.',
+        text: "Everyone who joins the waitlist gets 2× credits on every purchase, forever. Buy 25 credits, get 50. Buy 10, get 20. It applies to subscriptions and one-time packs, and it never expires. Our way of saying thanks for believing in hi-key early.",
       },
     },
     {
       "@type": "Question",
-      name: "How do I get more credits?",
+      name: "I don't like spam, accounts, or subscriptions. Is hi-key for me?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "You can subscribe to a monthly plan (Starter, Plus, or Super) for recurring credits, buy one-time credit packs, or invite friends with your referral code — you both get 5 bonus credits.",
+        text: "hi-key is exactly for you. There are no accounts. Just download and go. Joining the waitlist means one email when the app is ready, nothing more. When you want more credits, there are one-time packs with no recurring costs. And if you do subscribe, you can cancel anytime. hi-key is fun to have, not a commitment.",
       },
     },
   ],
