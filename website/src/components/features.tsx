@@ -52,7 +52,7 @@ const features = [
   {
     title: "4 images in seconds",
     description:
-      "Fast enough to send in the moment. Describe and get results instantly.",
+      "Fast enough to send in the moment. Pick one and keep going.",
     animationPath: "/animations/features-fast.json",
     aspect: "aspect-[4/3]" as const,
     icon: (
@@ -96,7 +96,7 @@ const features = [
     ),
   },
   {
-    title: "Your privacy, respected",
+    title: "Private by default",
     description:
       "hi-key only processes your prompts. Never your messages, passwords, or personal data.",
     animationPath: "/animations/features-privacy.json",
@@ -161,7 +161,7 @@ export function Features() {
               Right there when it hits you
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-lg text-text-secondary">
-              Fast, seamless, and private by design.
+              Fast, simple, and private.
             </p>
           </div>
         </FadeUp>

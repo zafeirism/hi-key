@@ -10,7 +10,7 @@ const steps = [
     poster: "/twocups-switch-poster.jpg",
     title: "Switch to hi-key",
     description:
-      "Long-press the globe icon and select hi-key. One tap and you\u2019re ready to create.",
+      "Long-press the globe icon and select hi-key. One tap and you\u2019re in.",
   },
   {
     src: "/twocups-getresults.mp4",
