@@ -10,7 +10,7 @@ export function DownloadCTA() {
             Ready to try it?
           </h2>
           <p className="mt-4 text-lg text-text-secondary">
-            Generate your first AI images in under a minute.
+            Your keyboard is about to get a lot more fun.
           </p>
           <div className="mt-8 mx-auto flex w-full max-w-sm flex-col items-center gap-3">
             <WaitlistForm />

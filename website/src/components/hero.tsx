@@ -13,7 +13,7 @@ export function Hero() {
           </h1>
           <p className="mt-6 max-w-lg text-lg text-text-secondary sm:text-xl">
             Create images in seconds, right inside WhatsApp, iMessage or
-            any app you use.
+            any app you use on iPhone.
           </p>
           <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
             <WaitlistForm />
