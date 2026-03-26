@@ -44,7 +44,7 @@ export function WorksWith() {
             animRef.current?.pause();
           }
         },
-        { threshold: 0.25 },
+        { threshold: 0.5 },
       );
       observer.observe(sectionRef.current!);
     });

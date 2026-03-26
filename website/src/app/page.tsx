@@ -19,8 +19,8 @@ export default function Home() {
         <main>
           <Hero />
           <Comparison />
-          <WorksWith />
           <HowItWorks />
+          <WorksWith />
           <Features />
           <FAQ />
           <DownloadCTA />
