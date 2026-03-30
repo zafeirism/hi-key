@@ -16,24 +16,34 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "hi-key — AI Images From Your Keyboard",
+  title: "hi-key | AI images, right from your keyboard",
   description:
-    "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds. Works in iMessage, WhatsApp, Instagram, and more.",
+    "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
   metadataBase: new URL("https://hi-key.ai"),
   openGraph: {
-    title: "hi-key — AI Images From Your Keyboard",
+    title: "hi-key | AI images, right from your keyboard",
     description:
-      "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds.",
+      "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
     url: "https://hi-key.ai",
     siteName: "hi-key",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "hi-key keyboard showing AI-generated images of a penguin with sunglasses surfing",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "hi-key — AI Images From Your Keyboard",
+    title: "hi-key | AI images, right from your keyboard",
     description:
-      "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds.",
+      "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
+    images: ["/og-image.png"],
   },
   manifest: "/site.webmanifest",
 };
@@ -43,7 +53,7 @@ const jsonLdApp = {
   "@type": "MobileApplication",
   name: "hi-key",
   description:
-    "Generate AI images instantly from your keyboard in any app. Describe a scene, get 4 images in seconds.",
+    "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
   operatingSystem: "iOS",
   applicationCategory: "UtilitiesApplication",
   offers: {

@@ -4,10 +4,5 @@
 
 ## Pages
 
-- [Home](https://hi-key.ai/): Landing page with app overview, features, pricing, and download links
-- [Privacy Policy](https://hi-key.ai/privacy): Privacy policy
-- [Terms of Service](https://hi-key.ai/terms): Terms of service
-
-## App
-
+- [Home](https://hi-key.ai/): Landing page with app overview, features, and waitlist signup
 - [Waitlist](https://hi-key.ai/#waitlist): Join the waitlist to be notified when hi-key launches
