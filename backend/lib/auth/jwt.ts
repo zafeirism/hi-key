@@ -62,17 +62,24 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
       if (token === '***REMOVED***') {
         const demoUser: AuthUser = {
           id: `demo-${Date.now()}`, // Unique ID per request
-          email: 'demo@havingfunwith.ai',
+          email: 'hello@hi-key.ai',
           role: 'authenticated',
         };
         return handler(request, demoUser);
       } else if (token === '***REMOVED***') {
         const warmupUser: AuthUser = {
           id: `warmup-${Date.now()}`, // Unique ID per request
-          email: 'warmup@havingfunwith.ai',
+          email: 'hello@hi-key.ai',
           role: 'authenticated',
         };
         return handler(request, warmupUser);
+      } else if (token === '***REMOVED***') {
+        const socialUser: AuthUser = {
+          id: `social-***REMOVED***`, // Unique ID per request
+          email: 'hello@hi-key.ai',
+          role: 'authenticated',
+        };
+        return handler(request, socialUser);
       }
 
       // Verify JWT using Supabase's JWKS endpoint
