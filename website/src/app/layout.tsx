@@ -45,6 +45,31 @@ export const metadata: Metadata = {
       "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
     images: ["/og-image.png"],
   },
+  keywords: [
+    "ai keyboard",
+    "ai image keyboard",
+    "ai images iphone",
+    "keyboard image generator",
+    "hi-key",
+    "hikey",
+    "hi key",
+    "hi-key app",
+    "hi-key keyboard",
+    "hikey app",
+    "hikey iOS",
+    "hi key app",
+    "hi key keyboard",
+    "hi-key ai",
+    "hikey ai",
+    "hi key ai",
+    "ai image generator for texting",
+    "send ai images",
+    "ai images imessage",
+    "generate images from keyboard",
+  ],
+  alternates: {
+    canonical: "https://hi-key.ai",
+  },
   manifest: "/site.webmanifest",
 };
 
@@ -52,10 +77,16 @@ const jsonLdApp = {
   "@context": "https://schema.org",
   "@type": "MobileApplication",
   name: "hi-key",
+  alternateName: ["hikey", "hi key", "hi key ai", "hikey ai"],
   description:
     "Create AI images in seconds, right from your keyboard. Works inside iMessage, WhatsApp, and any app you use on iPhone.",
   operatingSystem: "iOS",
   applicationCategory: "UtilitiesApplication",
+  applicationSubCategory: "AI Image Generation",
+  inLanguage: "en",
+  featureList:
+    "AI image generation, Works in any app, 4 images per prompt, Privacy-first, Custom iOS keyboard",
+  screenshot: "https://hi-key.ai/og-image.png",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -73,7 +104,17 @@ const jsonLdWebsite = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "hi-key",
+  alternateName: ["hikey", "hi key", "hi key ai", "hikey ai"],
   url: "https://hi-key.ai",
+};
+
+const jsonLdOrg = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "hi-key",
+  url: "https://hi-key.ai",
+  logo: "https://hi-key.ai/app-icon.png",
+  sameAs: ["https://x.com/hikey_ai"],
 };
 
 const jsonLdFaq = {
@@ -163,6 +204,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebsite) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
         />
         <script
           type="application/ld+json"
