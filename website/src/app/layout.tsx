@@ -131,14 +131,6 @@ const jsonLdFaq = {
     },
     {
       "@type": "Question",
-      name: "How is hi-key different from Nano Banana or ChatGPT?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Most AI image tools take up to a minute for a single image. That doesn't work when you're mid-conversation. hi-key lives inside the app you already have open, no switching, no waiting. It uses ultra-fast models to generate 4 images in seconds, so you pick the one you like and keep going. It's like sending a GIF, but personal and unique.",
-      },
-    },
-    {
-      "@type": "Question",
       name: "How does hi-key work?",
       acceptedAnswer: {
         "@type": "Answer",
@@ -155,10 +147,10 @@ const jsonLdFaq = {
     },
     {
       "@type": "Question",
-      name: "Is hi-key free?",
+      name: "Can I try hi-key for free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Practically no, but you can definitely try it for free. When you download hi-key you get 5 credits to start. Each credit generates 4 images. Refer a friend and you both get 5 more. For more credits, one-time packs start at $2.99 and subscriptions at $4.99/month.",
+        text: "Absolutely. There's a free trial to get started. Also, when you refer a friend, you both get free credits. And when you decide you want more, one-off credit packs and subscriptions start under a dollar.",
       },
     },
     {
@@ -174,7 +166,7 @@ const jsonLdFaq = {
       name: "What does \"double credits forever\" mean for early members?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Everyone who joins the waitlist gets 2× credits on every purchase, forever. Buy 25 credits, get 50. Buy 10, get 20. It applies to subscriptions and one-time packs, and it never expires. Our way of saying thanks for believing in hi-key early.",
+        text: "Everyone who joins the waitlist gets 2× credits on every purchase, forever. Buy 50 credits, get 100. Buy 100, get 200. It applies to subscriptions and one-time packs, and it never expires. Our way of saying thanks for believing in hi-key early.",
       },
     },
     {
