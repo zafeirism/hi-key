@@ -54,6 +54,16 @@ struct HiKeyboardView: View {
                 style.fontWeight = .regular
                 return style
             }
+            // TODO: Uncomment this to hide keyboard effects when screen recording for videos
+            // .keyboardCalloutStyle(
+            //     .init(
+            //         backgroundColor: .clear,
+            //         borderColor: .clear,
+            //         foregroundColor: .clear,
+            //         shadowColor: .clear,
+            //         shadowRadius: 0
+            //     )
+            // )
             
             VStack {
                 SuggestionBarView(viewModel: viewModel)

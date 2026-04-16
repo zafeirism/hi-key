@@ -3,7 +3,7 @@ import Foundation
 class APIClient {
     static let shared = APIClient()
     
-    private let baseURL = "https://app.havingfunwith.ai"
+    private let baseURL = "https://app.hi-key.ai"
     
     private init() {}
     

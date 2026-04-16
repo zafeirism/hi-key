@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 hi-key is an iOS app with a custom keyboard extension that generates AI images from text prompts. Users open the keyboard in any app (iMessage, WhatsApp, etc.), describe a scene, and receive AI-generated images within seconds that can be copied anywhere.
 
 **Two targets:**
+
 - `hi` - Main iOS app (onboarding, settings, home dashboard)
 - `hi-keyboard` - Custom keyboard extension (image generation UI)
 
@@ -29,23 +30,27 @@ xcodebuild -scheme hi -configuration Release build
 ## Architecture
 
 ### State Management
+
 - **Singleton managers** with `@MainActor` and `@Published` properties
 - **App Groups** (`group.ai.hi-key`) for sharing state between app and keyboard extension
 - Key managers: `AuthManager`, `OnboardingManager`, `CreditsManager`, `SettingsManager`
 
 ### Networking
+
 - `APIClient.swift` - Backend communication with async/await
-- Base URL: `https://app.havingfunwith.ai`
+- Base URL: `https://app.hi-key.ai`
 - Bearer token auth via Supabase session
 - Auto-retry with token refresh on 401
 
 ### Keyboard Extension
+
 - `KeyboardViewController.swift` - UIInputViewController bridging to SwiftUI
 - `HiKeyboardViewModel.swift` - Keyboard state machine (composing → results → browsingSuggestions)
 - Uses KeyboardKit framework for input handling
 - **Styling:** The keyboard extension intentionally has no hi-key branding or accent colors — it lives inside third-party apps and must remain visually neutral. Do not apply `HiTheme` colors or button styles to keyboard extension views.
 
 ### Design System
+
 > For any aesthetic or visual design decisions, consult `hi/mood-board.md` first — it covers color philosophy, typography rules, motion guidelines, and brand personality.
 
 - `HiTheme.swift` - All design tokens (colors, spacing, animations, button styles)
@@ -67,15 +72,19 @@ xcodebuild -scheme hi -configuration Release build
   - `HiSheetHeader` — header for sheet presentations; centered `title` with optional `onClose` (xmark icon, right). Use this instead of building a custom ZStack header in sheets.
 
 ### Shared Code Between Targets
+
 Files in `hi/` folder used by keyboard extension:
+
 - `APIClient.swift`, `AuthManager.swift`, `SupabaseManager.swift`, `AuthKeychainStorage.swift`
 
 Files in `hi-keyboard/` folder used by main app:
+
 - `GeneratedImage.swift`, `ImageLoader.swift`, `Logger.swift`, `Watermark.swift`
 
 ## Key Patterns
 
 ### Manager Pattern
+
 ```swift
 @MainActor
 class SomeManager: ObservableObject {
@@ -86,13 +95,17 @@ class SomeManager: ObservableObject {
 ```
 
 ### API Calls
+
 All use async/await with Bearer token:
+
 ```swift
 let response = try await APIClient.shared.generate(prompt: prompt)
 ```
 
 ### Persistence
+
 UserDefaults with app group for cross-target sharing:
+
 ```swift
 UserDefaults(suiteName: "group.ai.hi-key")
 ```
@@ -155,6 +168,7 @@ The flow is driven by `OnboardingManager.shared.currentStep`. `ContentView.swift
 ## Logging
 
 Use `HiLogger` (in keyboard extension) for Sentry + OSLog:
+
 ```swift
 HiLogger.info("Message", category: .keyboard)
 HiLogger.error("Error occurred", error: error)
