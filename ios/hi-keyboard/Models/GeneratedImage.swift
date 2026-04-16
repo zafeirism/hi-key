@@ -1,7 +1,7 @@
 import Foundation
 
 struct GeneratedImage: Identifiable {
-    let id = UUID()
+    let id: String
     let url: String
     let prompt: String
     var isCopied = false

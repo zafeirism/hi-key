@@ -13,8 +13,13 @@ class APIClient {
         let request_id: String  // UUID for this specific request
     }
     
+    struct GenerateImageEntry: Codable {
+        let id: String
+        let signedUrl: String
+    }
+
     struct GenerateResponse: Codable {
-        let signedUrls: [String]  // 4 signed URLs for images
+        let images: [GenerateImageEntry]
     }
     
     struct AutocompleteRequest: Codable {
@@ -80,11 +85,11 @@ class APIClient {
         
         if !baseURL.hasPrefix("https://") {
             try? await Task.sleep(nanoseconds: 1_250_000_000)
-            return GenerateResponse(signedUrls: [
-                "***REMOVED***",
-                "***REMOVED***",
-                "***REMOVED***",
-                "***REMOVED***"
+            return GenerateResponse(images: [
+                GenerateImageEntry(id: "ac2bf379-2906-47d9-b03f-f5c7eac01be5", signedUrl: "***REMOVED***"),
+                GenerateImageEntry(id: "1a07605d-fadc-4d64-9515-af433e3efedd", signedUrl: "***REMOVED***"),
+                GenerateImageEntry(id: "b73e268e-f247-4162-b686-aa676d4c8b54", signedUrl: "***REMOVED***"),
+                GenerateImageEntry(id: "5dc3b27c-15db-4b0e-83ea-bb214cdbb8c4", signedUrl: "***REMOVED***"),
             ])
         }
         
@@ -151,6 +156,38 @@ class APIClient {
         
         let result = try JSONDecoder().decode(AutocompleteResponse.self, from: data)
         return result
+    }
+
+    // MARK: - Copy Tracking
+
+    struct CopyRequest: Codable {
+        let generationId: String
+    }
+
+    func reportCopy(generationId: String) async throws {
+        let accessToken = try await getValidAccessToken()
+
+        guard let url = URL(string: "\(baseURL)/api/copy") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let body = CopyRequest(generationId: generationId)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
     }
 
     // MARK: - Token Management

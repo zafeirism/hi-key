@@ -172,11 +172,11 @@ class HiKeyboardViewModel: ObservableObject {
                 requestID: requestID
             )
             
-            HiLogger.info("✅ Got \(response.signedUrls.count) urls back for requestID \(requestID)", category: .keyboard)
-            
+            HiLogger.info("✅ Got \(response.images.count) urls back for requestID \(requestID)", category: .keyboard)
+
             // Create new image entries
-            let newImages = response.signedUrls.map { url in
-                GeneratedImage(url: url, prompt: prompt)
+            let newImages = response.images.map { image in
+                GeneratedImage(id: image.id, url: image.signedUrl, prompt: prompt)
             }
             
             let totalAfterAdd = allImages.count + newImages.count
@@ -201,13 +201,17 @@ class HiKeyboardViewModel: ObservableObject {
     func copyImage(_ image: GeneratedImage) {
         guard let data = image.imageData, let watermarkedImage = Watermark.add(to: data)
         else { return }
-        
+
         UIPasteboard.general.image = watermarkedImage
         HiLogger.info("Image copied to pasteboard: \(image.url)")
         markAsCopied(image.id)
+
+        Task {
+            try? await apiClient.reportCopy(generationId: image.id)
+        }
     }
     
-    func markImageLoaded(_ imageID: UUID, data: Data) {
+    func markImageLoaded(_ imageID: String, data: Data) {
         if let index = allImages.firstIndex(where: { $0.id == imageID }) {
             allImages[index].isLoaded = true
             allImages[index].loadedAt = Date()
@@ -215,7 +219,7 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
     
-    private func markAsCopied(_ imageID: UUID) {
+    private func markAsCopied(_ imageID: String) {
         if let index = allImages.firstIndex(where: { $0.id == imageID }) {
             allImages[index].isCopied = true
         }
