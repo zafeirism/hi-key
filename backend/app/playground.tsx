@@ -61,7 +61,7 @@ export default function Playground() {
       }
 
       const data = await response.json();
-      setImageUrls(data.signedUrls);
+      setImageUrls(data.images.map((img: { id: string; signedUrl: string }) => img.signedUrl));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
