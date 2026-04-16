@@ -7,8 +7,8 @@ class SupabaseManager {
     let client: SupabaseClient
     
     private init() {
-        let supabaseURL = URL(string: "https://qeomdidcpphbgbjiirte.supabase.co")!
-        let supabasePublishableKey = "sb_publishable_Qmjivd_W2xcGaeM38Tgycg_pQkD6mqq"
+        let supabaseURL = URL(string: "https://lsssxrudfajjfidqbngl.supabase.co")!
+        let supabasePublishableKey = "sb_publishable_mkY5IS0IqUD-VxeoaNFOyg_QCT-Fvek"
         
         self.client = SupabaseClient(
             supabaseURL: supabaseURL,

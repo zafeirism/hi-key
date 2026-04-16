@@ -39,7 +39,7 @@ enum HiLogger {
                 $0.sessionSampleRate = 0.2
                 $0.lifecycle = .trace
             }
-            options.experimental.enableLogs = true
+            options.enableLogs = true
         }
         // #endif
     }
