@@ -10,7 +10,7 @@ Pricing: Free (5 one-time credits), Starter ($4.99/mo, 25 credits), Plus ($6.99/
 
 ## Project Overview
 
-hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serves as a headless API — no meaningful frontend UI. Deployed at `https://app.havingfunwith.ai`. The iOS app (`APIClient.swift`) communicates with this backend using Bearer token auth (Supabase JWT) with auto-retry on 401.
+hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serves as a headless API — no meaningful frontend UI. Deployed at `https://app.hi-key.ai`. The iOS app (`APIClient.swift`) communicates with this backend using Bearer token auth (Supabase JWT) with auto-retry on 401.
 
 ### Sibling Projects
 
