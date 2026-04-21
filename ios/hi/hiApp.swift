@@ -1,5 +1,6 @@
 import SwiftUI
 import Supabase
+import RevenueCat
 
 @main
 struct hiApp: App {
@@ -12,6 +13,8 @@ struct hiApp: App {
         Task {
             await hiApp.initializeAuth()
         }
+        
+        Purchases.configure(withAPIKey: "***REMOVED***")
     }
     
     var body: some Scene {

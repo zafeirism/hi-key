@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0364C5CD0EDD4C35A3B14D9D /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = C547159CE0EE47B4878E6F09 /* Sentry */; };
 		33066A962F1F9EFD000E37BF /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 33066A952F1F9EFD000E37BF /* Lottie */; };
+		331052562F921203008AB956 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 331052552F921203008AB956 /* RevenueCat */; };
+		331052582F921203008AB956 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 331052572F921203008AB956 /* RevenueCatUI */; };
 		33347A9D2ED89699001BD688 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33347A9C2ED89699001BD688 /* Supabase */; };
 		33347AA02ED896B7001BD688 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33347A9F2ED896B7001BD688 /* Supabase */; };
 		33347AC42ED8F204001BD688 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33347AC32ED8F204001BD688 /* KeyboardKit */; };
@@ -140,7 +142,9 @@
 			files = (
 				33066A962F1F9EFD000E37BF /* Lottie in Frameworks */,
 				3362C56A2F465411009DE2D9 /* FluidGradient in Frameworks */,
+				331052562F921203008AB956 /* RevenueCat in Frameworks */,
 				33347ACA2ED8FEB3001BD688 /* KeyboardKit in Frameworks */,
+				331052582F921203008AB956 /* RevenueCatUI in Frameworks */,
 				33347A9D2ED89699001BD688 /* Supabase in Frameworks */,
 				3388FD332EF171DE001B2AA4 /* (null) in Frameworks */,
 				3388FD342EF171DE001B2AA4 /* Sentry in Frameworks */,
@@ -234,6 +238,8 @@
 				C547159CE0EE47B4878E6F09 /* Sentry */,
 				33066A952F1F9EFD000E37BF /* Lottie */,
 				3362C5692F465411009DE2D9 /* FluidGradient */,
+				331052552F921203008AB956 /* RevenueCat */,
+				331052572F921203008AB956 /* RevenueCatUI */,
 			);
 			productName = hi;
 			productReference = 33B4B51B2ED8765100120BAA /* hi.app */;
@@ -350,6 +356,7 @@
 				7E499F1AEE95488EA6E3957C /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				33066A942F1F9EFD000E37BF /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				3362C5682F465411009DE2D9 /* XCRemoteSwiftPackageReference "FluidGradient" */,
+				331052542F921203008AB956 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 33B4B51C2ED8765100120BAA /* Products */;
@@ -861,6 +868,14 @@
 				minimumVersion = 4.6.0;
 			};
 		};
+		331052542F921203008AB956 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.68.0;
+			};
+		};
 		33347A972ED893D4001BD688 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -900,6 +915,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 33066A942F1F9EFD000E37BF /* XCRemoteSwiftPackageReference "lottie-spm" */;
 			productName = Lottie;
+		};
+		331052552F921203008AB956 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 331052542F921203008AB956 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		331052572F921203008AB956 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 331052542F921203008AB956 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
 		};
 		33347A9C2ED89699001BD688 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
