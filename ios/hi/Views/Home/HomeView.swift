@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
+    @ObservedObject var purchasesManager = PurchasesManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
     @Environment(\.scenePhase) private var scenePhase
 
@@ -57,10 +58,12 @@ struct HomeView: View {
             isFirstVisit = !hasSeenHomeScreen
             hasSeenHomeScreen = true
             checkKeyboardStatus()
+            Task { await creditsManager.refresh() }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 checkKeyboardStatus()
+                Task { await creditsManager.refresh() }
             }
         }
     }
@@ -89,14 +92,27 @@ struct HomeView: View {
     }
 
     private var subscriptionProgress: Double {
-        let monthly = creditsManager.subscriptionTier.monthlyPrompts
-        guard monthly > 0 else { return 0 }
-        return Double(creditsManager.credits) / Double(monthly)
+        let weekly = weeklyCreditAllowance
+        guard weekly > 0 else { return 0 }
+        return Double(creditsManager.credits) / Double(weekly)
     }
 
-    private var monthlyCreditsCaption: String {
-        let monthly = creditsManager.subscriptionTier.monthlyPrompts
-        return "\(creditsManager.credits) of \(monthly) monthly · resets Feb 23"
+    private var weeklyCreditAllowance: Int {
+        guard let id = purchasesManager.activeSubscriptionProductID else { return 0 }
+        return purchasesManager.weeklyCredits(for: id) ?? 0
+    }
+
+    private var weeklyCreditsCaption: String {
+        let weekly = weeklyCreditAllowance
+        let suffix: String
+        if let date = purchasesManager.subscriptionRenewsAt {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            suffix = " · resets \(formatter.string(from: date))"
+        } else {
+            suffix = ""
+        }
+        return "\(creditsManager.credits) of \(weekly) weekly\(suffix)"
     }
 
     private var extraCreditsText: String {
@@ -145,7 +161,7 @@ struct HomeView: View {
 
                 // Subscriber: progress bar + captions
                 // Free user: descriptive text
-                if creditsManager.subscriptionTier != .none {
+                if purchasesManager.hasActiveSubscription {
                     creditsProgressSection
                 } else {
                     Text("Buy one-time credit packs or subscribe for auto-renew")
@@ -165,25 +181,18 @@ struct HomeView: View {
     }
 
     private var planBadge: some View {
-        Text(creditsManager.subscriptionTier.displayName.uppercased())
+        let isSubscribed = purchasesManager.hasActiveSubscription
+        let label = (purchasesManager.tierDisplayName ?? "Free").uppercased()
+        return Text(label)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(
-                creditsManager.subscriptionTier == .none
-                    ? HiTheme.textSecondary
-                    : HiTheme.accentSecondary
-            )
+            .foregroundStyle(isSubscribed ? HiTheme.accentSecondary : HiTheme.textSecondary)
             .padding(.horizontal, HiTheme.spacingSM)
             .padding(.vertical, HiTheme.spacingXS)
             .background(HiTheme.surfaceSecondary)
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusSM)
-                    .stroke(
-                        creditsManager.subscriptionTier == .none
-                            ? HiTheme.divider
-                            : HiTheme.accentSecondary,
-                        lineWidth: 1
-                    )
+                    .stroke(isSubscribed ? HiTheme.accentSecondary : HiTheme.divider, lineWidth: 1)
             )
     }
 
@@ -205,7 +214,7 @@ struct HomeView: View {
             }
             .frame(height: 6)
 
-            Text(monthlyCreditsCaption)
+            Text(weeklyCreditsCaption)
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
 
@@ -399,9 +408,6 @@ struct HomeView: View {
             UserDefaults.standard.set(true, forKey: "hasSeenHomeScreen")
             let manager = CreditsManager.shared
             manager.setUserName("Alexandros")
-            manager.setSubscription(.pro)
-            manager.addCredits(20)
-            manager.addExtraCredits(5)
             _ = manager.generateReferralCode()
         }
 }

@@ -8,13 +8,14 @@ struct hiApp: App {
     
     init() {
         HiLogger.configure()
-        
+
+        Purchases.configure(withAPIKey: "appl_gStvCEIADqZHDbIEUHXckUEFiDo")
+        PurchasesManager.shared.bootstrap()
+
         // Initialize Supabase anonymous auth
         Task {
             await hiApp.initializeAuth()
         }
-        
-        Purchases.configure(withAPIKey: "***REMOVED***")
     }
     
     var body: some Scene {
@@ -43,10 +44,14 @@ struct hiApp: App {
         // Use Supabase anonymous sign in
         // This creates a user without requiring email/password
         do {
-            let session = try? await SupabaseManager.shared.client.auth.session
+            var session = try? await SupabaseManager.shared.client.auth.session
             if session == nil {
-                // No existing session - sign in anonymously
                 try await SupabaseManager.shared.client.auth.signInAnonymously()
+                session = try? await SupabaseManager.shared.client.auth.session
+            }
+            if let userID = session?.user.id.uuidString.lowercased() {
+                await PurchasesManager.shared.logIn(userID: userID)
+                await CreditsManager.shared.refresh()
             }
         } catch {
             HiLogger.error("Anonymous auth failed", error: error)

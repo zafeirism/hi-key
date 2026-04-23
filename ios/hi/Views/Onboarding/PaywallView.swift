@@ -1,21 +1,14 @@
 import SwiftUI
+import RevenueCat
 
 // MARK: - PaywallView
 
 struct PaywallView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    @ObservedObject var creditsManager = CreditsManager.shared
+    @ObservedObject var purchasesManager = PurchasesManager.shared
 
-    // MARK: - State
-
-    enum PaywallState {
-        case main
-        case finalOffer
-    }
-
-    @State private var paywallState: PaywallState = .main
-    @State private var selectedSubscription: SubscriptionTier = .pro
-    @State private var selectedPack: CreditPack? = nil
+    @State private var selectedPackage: Package? = nil
+    @State private var selectedPackInOnlyPacks: Package? = nil
     @State private var showAllPlans: Bool = false
     @State private var showOnlyPacks: Bool = false
     @State private var isProcessing: Bool = false
@@ -27,26 +20,18 @@ struct PaywallView: View {
         ZStack {
             // Lottie animation in background (upper half area)
             VStack {
-                if paywallState == .finalOffer {
-                    LottieView(name: "paywall-offer", loop: false, scaleAspectFill: true)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: UIScreen.main.bounds.height * 0.5)
-                }
-                else {
-                    LottieView(name: "paywall", loop: false, scaleAspectFill: true)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: UIScreen.main.bounds.height * 0.5)
-                }
+                LottieView(name: "paywall", loop: false, scaleAspectFill: true)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: UIScreen.main.bounds.height * 0.5)
                 Spacer()
             }
             .ignoresSafeArea()
 
             // Main content
             VStack(spacing: 0) {
-                // Close button
                 HStack {
                     Spacer()
-                    
+
                     HiIconButton("xmark", size: .topBarTranslucent) {
                         handleDismiss()
                     }
@@ -56,17 +41,9 @@ struct PaywallView: View {
 
                 Spacer()
 
-                // Content area
                 mainContent
                     .padding(.horizontal, HiTheme.spacingMD)
             }
-            .id(paywallState)
-            .transition(.asymmetric(
-                insertion: .opacity
-                    .animation(.easeInOut(duration: 0.3).delay(0.65)),
-                removal: .opacity
-                    .animation(.easeInOut(duration: 0.1))
-            ))
         }
         .sheet(isPresented: $showAllPlans) {
             AllPlansSheet(onComplete: { onboardingManager.completeOnboarding() })
@@ -74,18 +51,14 @@ struct PaywallView: View {
                 .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showOnlyPacks, onDismiss: {
-            selectedPack = nil
+            selectedPackInOnlyPacks = nil
         }) {
             OnlyPacksSheet(
-                selectedPack: $selectedPack,
-                onPurchase: { processPurchase() },
+                selectedPackage: $selectedPackInOnlyPacks,
+                onPurchase: { processPackPurchase() },
                 onNotNow: {
                     showOnlyPacks = false
-                    withAnimation {
-                        paywallState = .finalOffer
-                        selectedSubscription = .pro
-                        selectedPack = nil
-                    }
+                    onboardingManager.completeOnboarding()
                 },
                 onRestore: { restorePurchases() },
                 isProcessing: $isProcessing,
@@ -98,43 +71,38 @@ struct PaywallView: View {
         .sheet(isPresented: $showTerms) {
             TermsSheet()
         }
+        .onAppear { selectDefaultPackageIfNeeded() }
+        .onReceive(purchasesManager.$offerings) { _ in selectDefaultPackageIfNeeded() }
     }
 
     // MARK: - Main Content
 
     private var mainContent: some View {
         VStack(spacing: 0) {
-            // Header
             headerSection
                 .padding(.bottom, HiTheme.spacingXL)
 
-            // Option cards
             optionCards
                 .padding(.bottom, HiTheme.spacingSM)
 
-            // View all plans link
-            if paywallState == .main {
-                HStack {
-                    Spacer()
+            HStack {
+                Spacer()
 
-                    Button {
-                        showAllPlans = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("View all plans")
-                            Image(systemName: "chevron.right")
-                        }
+                Button {
+                    showAllPlans = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("View all plans")
+                        Image(systemName: "chevron.right")
                     }
-                    .buttonStyle(HiTertiaryButtonStyle())
                 }
+                .buttonStyle(HiTertiaryButtonStyle())
             }
 
-            // Hint
-            PaywallHintView(type: paywallState == .main ? .subscription : .offer)
+            PaywallHintView(type: .subscription)
                 .padding(.top, HiTheme.spacingXXL)
                 .padding(.bottom, HiTheme.spacingMD)
 
-            // Purchase button
             PaywallCTAButton(
                 text: purchaseButtonText,
                 isProcessing: isProcessing,
@@ -142,7 +110,6 @@ struct PaywallView: View {
             )
             .padding(.bottom, HiTheme.spacingXL)
 
-            // Footer links
             PaywallFooterLinks(
                 onRestore: { restorePurchases() },
                 onTerms: { showTerms = true }
@@ -155,29 +122,15 @@ struct PaywallView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-            Group {
-                switch paywallState {
-                case .main:
-                    Text("Keep your creativity\nflowing.")
-                case .finalOffer:
-                    Text("25% discount on Super.")
-                }
-            }
-            .font(.system(.title, design: .rounded, weight: .semibold))
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Keep your creativity\nflowing.")
+                .font(.system(.title, design: .rounded, weight: .semibold))
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            Group {
-                switch paywallState {
-                case .main:
-                    Text("Never run out of credits. One credit generates 4 images from your prompt.")
-                case .finalOffer:
-                    Text("We really want you to try hi-key. 25% off on the already best-value plan. Claim it now.")
-                }
-            }
-            .font(.body.weight(.medium))
-            .foregroundStyle(HiTheme.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Never run out of credits. One credit generates 4 images from your prompt.")
+                .font(.body.weight(.medium))
+                .foregroundStyle(HiTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -185,89 +138,130 @@ struct PaywallView: View {
 
     private var optionCards: some View {
         VStack(spacing: HiTheme.spacingSM) {
-            // Plus subscription
-            PaywallOptionCard(
-                title: SubscriptionTier.plus.displayName,
-                subtitle: SubscriptionTier.plus.creditsText,
-                price: SubscriptionTier.plus.price,
-                isSelected: selectedSubscription == .plus,
-                onSelect: {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        selectedPack = nil
-                        selectedSubscription = .plus
-                    }
-                }
-            )
-
-            // Super subscription
-            PaywallOptionCard(
-                title: SubscriptionTier.pro.displayName,
-                subtitle: SubscriptionTier.pro.creditsText,
-                price: paywallState == .finalOffer ? "$9.99 / mo" : SubscriptionTier.pro.price,
-                isSelected: selectedSubscription == .pro,
-                onSelect: {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        selectedPack = nil
-                        selectedSubscription = .pro
-                    }
-                },
-                discountBadge: paywallState == .finalOffer ? "-25%" : nil,
-                originalPrice: paywallState == .finalOffer ? "$12.99" : nil,
-                label: paywallState == .finalOffer ? nil : "BEST VALUE"
-            )
+            ForEach(visibleSubscriptionPackages, id: \.storeProduct.productIdentifier) { package in
+                let productID = package.storeProduct.productIdentifier
+                PaywallOptionCard(
+                    title: purchasesManager.tierDisplayName(for: productID) ?? package.storeProduct.localizedTitle,
+                    subtitle: subtitleForPackage(package),
+                    price: priceForPackage(package),
+                    isSelected: selectedPackage?.storeProduct.productIdentifier == productID,
+                    onSelect: {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            selectedPackage = package
+                        }
+                    },
+                    label: productID == "super.weekly" ? "BEST VALUE" : nil
+                )
+            }
         }
     }
 
-    private var purchaseButtonText: String {
-        switch paywallState {
-        case .main:
-            return "Subscribe for \(selectedSubscription == .pro ? "$12.99" : "$6.99")/month"
-        case .finalOffer:
-            return "Subscribe for \(selectedSubscription == .pro ? "$9.99" : "$6.99")/month"
+    // Starter is only surfaced through "View all plans" so the primary paywall stays focused.
+    private var visibleSubscriptionPackages: [Package] {
+        purchasesManager.subscriptionPackages().filter {
+            $0.storeProduct.productIdentifier != "starter.weekly"
         }
+    }
+
+    private func subtitleForPackage(_ package: Package) -> String {
+        let id = package.storeProduct.productIdentifier
+        if let credits = purchasesManager.weeklyCredits(for: id) {
+            return "\(credits) credits / week"
+        }
+        if let credits = purchasesManager.packCredits(for: id) {
+            return "\(credits) credits, one-time"
+        }
+        return ""
+    }
+
+    private func priceForPackage(_ package: Package) -> String {
+        let base = package.storeProduct.localizedPriceString
+        if purchasesManager.weeklyCredits(for: package.storeProduct.productIdentifier) != nil {
+            return "\(base)/week"
+        }
+        return base
+    }
+
+    private var purchaseButtonText: String {
+        guard let package = selectedPackage else {
+            return "Choose a plan"
+        }
+        let id = package.storeProduct.productIdentifier
+        if purchasesManager.weeklyCredits(for: id) != nil {
+            return "Subscribe for \(package.storeProduct.localizedPriceString)/week"
+        }
+        return "Buy for \(package.storeProduct.localizedPriceString)"
     }
 
     // MARK: - Actions
 
+    private func selectDefaultPackageIfNeeded() {
+        guard selectedPackage == nil else { return }
+        selectedPackage = purchasesManager.package(forProductID: "super.weekly")
+            ?? visibleSubscriptionPackages.first
+    }
+
     private func handleDismiss() {
-        switch paywallState {
-        case .main:
-            showOnlyPacks = true
-        case .finalOffer:
-            onboardingManager.completeOnboarding()
-        }
+        showOnlyPacks = true
     }
 
     private func processPurchase() {
+        guard let package = selectedPackage else { return }
         isProcessing = true
-
-        // TODO: Implement StoreKit purchase
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            if let pack = selectedPack {
-                creditsManager.addCredits(pack.credits)
-            } else {
-                creditsManager.setSubscription(selectedSubscription)
-                creditsManager.addCredits(selectedSubscription.monthlyPrompts)
+        Task {
+            do {
+                _ = try await PurchasesManager.shared.purchase(package)
+                isProcessing = false
+                onboardingManager.completeOnboarding()
+            } catch PurchasesManagerError.cancelled {
+                isProcessing = false
+            } catch {
+                isProcessing = false
+                HiLogger.error("Paywall purchase failed", error: error)
             }
-            isProcessing = false
-            onboardingManager.completeOnboarding()
+        }
+    }
+
+    private func processPackPurchase() {
+        guard let package = selectedPackInOnlyPacks else { return }
+        isProcessing = true
+        Task {
+            do {
+                _ = try await PurchasesManager.shared.purchase(package)
+                isProcessing = false
+                showOnlyPacks = false
+                onboardingManager.completeOnboarding()
+            } catch PurchasesManagerError.cancelled {
+                isProcessing = false
+            } catch {
+                isProcessing = false
+                HiLogger.error("Paywall pack purchase failed", error: error)
+            }
         }
     }
 
     private func restorePurchases() {
         isProcessing = true
-
-        // TODO: Implement StoreKit restore
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isProcessing = false
+        Task {
+            do {
+                let info = try await PurchasesManager.shared.restore()
+                isProcessing = false
+                if !info.entitlements.active.isEmpty || !info.activeSubscriptions.isEmpty {
+                    onboardingManager.completeOnboarding()
+                }
+            } catch {
+                isProcessing = false
+                HiLogger.error("Paywall restore failed", error: error)
+            }
         }
     }
 }
 
-// MARK: - Dismiss Offer Sheet
+// MARK: - Only Packs Sheet
 
 private struct OnlyPacksSheet: View {
-    @Binding var selectedPack: CreditPack?
+    @ObservedObject var purchasesManager = PurchasesManager.shared
+    @Binding var selectedPackage: Package?
     let onPurchase: () -> Void
     let onNotNow: () -> Void
     let onRestore: () -> Void
@@ -286,17 +280,17 @@ private struct OnlyPacksSheet: View {
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.bottom, HiTheme.spacingXXL)
 
-            // Pack options
             VStack(spacing: HiTheme.spacingSM) {
-                ForEach(CreditPack.allCases, id: \.self) { pack in
+                ForEach(purchasesManager.packPackages(), id: \.storeProduct.productIdentifier) { package in
+                    let id = package.storeProduct.productIdentifier
                     PaywallOptionCard(
-                        title: pack.displayName,
-                        subtitle: pack.creditsText,
-                        price: pack.price,
-                        isSelected: selectedPack == pack,
+                        title: purchasesManager.packDisplayName(for: id) ?? package.storeProduct.localizedTitle,
+                        subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits, one-time" } ?? "",
+                        price: package.storeProduct.localizedPriceString,
+                        isSelected: selectedPackage?.storeProduct.productIdentifier == id,
                         onSelect: {
                             withAnimation(.easeOut(duration: 0.15)) {
-                                selectedPack = pack
+                                selectedPackage = package
                             }
                         }
                     )
@@ -306,19 +300,16 @@ private struct OnlyPacksSheet: View {
 
             Spacer()
 
-            // Hint
             PaywallHintView(type: .onDemand)
                 .padding(.bottom, HiTheme.spacingMD)
 
-            // Purchase button
             PaywallCTAButton(
-                text: "Buy for \(selectedPack?.price ?? "$2.99")",
+                text: selectedPackage.map { "Buy for \($0.storeProduct.localizedPriceString)" } ?? "Choose a pack",
                 isProcessing: isProcessing,
                 action: onPurchase
             )
             .padding(.bottom, HiTheme.spacingSM)
 
-            // Not now button
             Button(action: onNotNow) {
                 Text("Not now, thanks")
                     .foregroundStyle(HiTheme.textSecondary)
@@ -326,7 +317,6 @@ private struct OnlyPacksSheet: View {
             .buttonStyle(HiTertiaryButtonStyle())
             .padding(.bottom, HiTheme.spacingMD)
 
-            // Footer links
             PaywallFooterLinks(
                 onRestore: onRestore,
                 onTerms: { showTerms = true }
@@ -335,8 +325,9 @@ private struct OnlyPacksSheet: View {
         }
         .padding(.horizontal, HiTheme.spacingMD)
         .onAppear {
-            if selectedPack == nil {
-                selectedPack = .mini
+            if selectedPackage == nil {
+                selectedPackage = purchasesManager.package(forProductID: "pack.mini")
+                    ?? purchasesManager.packPackages().first
             }
         }
     }

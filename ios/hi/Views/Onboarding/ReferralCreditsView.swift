@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ReferralCreditsView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
-    @ObservedObject var creditsManager = CreditsManager.shared
 
     @State private var referralCode: String = OnboardingManager.shared.referrerCode ?? ""
     @State private var codeApplied: Bool = OnboardingManager.shared.referralApplied
@@ -36,7 +35,6 @@ struct ReferralCreditsView: View {
             Group {
                 if codeApplied {
                     Button {
-                        creditsManager.grantInitialCredits(withReferral: true)
                         onboardingManager.goToNextStep()
                     } label: {
                         Text("Continue")
@@ -44,7 +42,6 @@ struct ReferralCreditsView: View {
                     .buttonStyle(HiPrimaryButtonStyle())
                 } else {
                     Button {
-                        creditsManager.grantInitialCredits(withReferral: false)
                         onboardingManager.goToNextStep()
                     } label: {
                         Text("I don't have a code")

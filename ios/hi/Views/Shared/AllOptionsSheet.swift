@@ -1,14 +1,15 @@
 import SwiftUI
+import RevenueCat
 
 struct AllPlansSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var creditsManager = CreditsManager.shared
+    @ObservedObject private var purchasesManager = PurchasesManager.shared
 
     let onComplete: (() -> Void)?
 
     @State private var selectedTab: Tab = .subscriptions
-    @State private var selectedSubscription: SubscriptionTier = .pro
-    @State private var selectedPack: CreditPack? = nil
+    @State private var selectedSubscriptionPackage: Package? = nil
+    @State private var selectedPackPackage: Package? = nil
     @State private var isProcessing: Bool = false
     @State private var showTerms: Bool = false
 
@@ -35,11 +36,9 @@ struct AllPlansSheet: View {
 
             Spacer()
 
-            // Hint
             PaywallHintView(type: selectedTab == .subscriptions ? .subscription : .onDemand)
                 .padding(.bottom, HiTheme.spacingMD)
 
-            // Purchase button
             PaywallCTAButton(
                 text: purchaseButtonText,
                 isProcessing: isProcessing,
@@ -48,7 +47,6 @@ struct AllPlansSheet: View {
             )
             .padding(.bottom, HiTheme.spacingXL)
 
-            // Footer links
             PaywallFooterLinks(
                 onRestore: { restorePurchases() },
                 onTerms: { showTerms = true }
@@ -59,9 +57,8 @@ struct AllPlansSheet: View {
         .sheet(isPresented: $showTerms) {
             TermsSheet()
         }
-        .onAppear {
-            configureDefaults()
-        }
+        .onAppear { configureDefaults() }
+        .onReceive(purchasesManager.$offerings) { _ in configureDefaults() }
     }
 
     // MARK: - Tab Switcher
@@ -80,10 +77,9 @@ struct AllPlansSheet: View {
         Button {
             withAnimation(.spring(response: 0.3)) {
                 selectedTab = tab
-                if tab == .onDemand && selectedPack == nil {
-                    selectedPack = .mini
-                } else if tab == .subscriptions {
-                    selectedPack = nil
+                if tab == .onDemand && selectedPackPackage == nil {
+                    selectedPackPackage = purchasesManager.package(forProductID: "pack.mini")
+                        ?? purchasesManager.packPackages().first
                 }
             }
         } label: {
@@ -105,20 +101,21 @@ struct AllPlansSheet: View {
     // MARK: - Subscription Options
 
     private var subscriptionOptions: some View {
-        ForEach(SubscriptionTier.allCases.filter { $0 != .none }, id: \.self) { tier in
-            let isCurrent = creditsManager.subscriptionTier == tier
+        ForEach(purchasesManager.subscriptionPackages(), id: \.storeProduct.productIdentifier) { package in
+            let id = package.storeProduct.productIdentifier
+            let isCurrent = purchasesManager.activeSubscriptionProductID == id
+            let isBestValue = id == "super.weekly" && !isCurrent
             PaywallOptionCard(
-                title: tier.displayName,
-                subtitle: tier.creditsText,
-                price: tier.price,
-                isSelected: selectedSubscription == tier && selectedPack == nil,
+                title: purchasesManager.tierDisplayName(for: id) ?? package.storeProduct.localizedTitle,
+                subtitle: (purchasesManager.weeklyCredits(for: id).map { "\($0) credits / week" }) ?? "",
+                price: "\(package.storeProduct.localizedPriceString)/week",
+                isSelected: selectedSubscriptionPackage?.storeProduct.productIdentifier == id,
                 onSelect: {
                     withAnimation(.easeOut(duration: 0.15)) {
-                        selectedPack = nil
-                        selectedSubscription = tier
+                        selectedSubscriptionPackage = package
                     }
                 },
-                label: tier == .pro && !isCurrent ? "BEST VALUE" : nil,
+                label: isBestValue ? "BEST VALUE" : nil,
                 isCurrentPlan: isCurrent
             )
         }
@@ -127,15 +124,16 @@ struct AllPlansSheet: View {
     // MARK: - Pack Options
 
     private var packOptions: some View {
-        ForEach(CreditPack.allCases, id: \.self) { pack in
+        ForEach(purchasesManager.packPackages(), id: \.storeProduct.productIdentifier) { package in
+            let id = package.storeProduct.productIdentifier
             PaywallOptionCard(
-                title: pack.displayName,
-                subtitle: pack.creditsText,
-                price: pack.price,
-                isSelected: selectedPack == pack,
+                title: purchasesManager.packDisplayName(for: id) ?? package.storeProduct.localizedTitle,
+                subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits, one-time" } ?? "",
+                price: package.storeProduct.localizedPriceString,
+                isSelected: selectedPackPackage?.storeProduct.productIdentifier == id,
                 onSelect: {
                     withAnimation(.easeOut(duration: 0.15)) {
-                        selectedPack = pack
+                        selectedPackPackage = package
                     }
                 }
             )
@@ -145,78 +143,117 @@ struct AllPlansSheet: View {
     // MARK: - CTA State
 
     private var isDowngrade: Bool {
-        guard selectedPack == nil else { return false }
-        let currentTier = creditsManager.subscriptionTier
-        return currentTier != .none && selectedSubscription.monthlyAmount < currentTier.monthlyAmount
+        guard selectedTab == .subscriptions,
+              let selectedID = selectedSubscriptionPackage?.storeProduct.productIdentifier,
+              let currentID = purchasesManager.activeSubscriptionProductID,
+              let selectedLevel = purchasesManager.level(for: selectedID),
+              let currentLevel = purchasesManager.level(for: currentID) else {
+            return false
+        }
+        // Lower level = higher tier, so downgrade = selected level number greater than current.
+        return selectedLevel > currentLevel
     }
 
     private var purchaseButtonText: String {
-        if let pack = selectedPack {
-            return "Buy for \(pack.price)"
+        if selectedTab == .onDemand {
+            return selectedPackPackage.map { "Buy for \($0.storeProduct.localizedPriceString)" } ?? "Choose a pack"
         }
 
-        let currentTier = creditsManager.subscriptionTier
-        let price = selectedSubscription.price.replacingOccurrences(of: " / mo", with: "/month")
-
-        if currentTier == .none {
-            return "Subscribe for \(price)"
-        } else if selectedSubscription.monthlyAmount > currentTier.monthlyAmount {
-            return "Upgrade for \(price)"
-        } else if selectedSubscription.monthlyAmount < currentTier.monthlyAmount {
-            return "Downgrade for \(price)"
+        guard let selectedID = selectedSubscriptionPackage?.storeProduct.productIdentifier,
+              let price = selectedSubscriptionPackage?.storeProduct.localizedPriceString else {
+            return "Choose a plan"
         }
-        return "Subscribe for \(price)"
+        let formattedPrice = "\(price)/week"
+
+        guard let currentID = purchasesManager.activeSubscriptionProductID,
+              let selectedLevel = purchasesManager.level(for: selectedID),
+              let currentLevel = purchasesManager.level(for: currentID) else {
+            return "Subscribe for \(formattedPrice)"
+        }
+
+        if selectedID == currentID {
+            return "Subscribe for \(formattedPrice)"
+        }
+        if selectedLevel < currentLevel {
+            return "Upgrade for \(formattedPrice)"
+        }
+        return "Downgrade for \(formattedPrice)"
     }
 
     // MARK: - Configuration
 
     private func configureDefaults() {
-        let currentTier = creditsManager.subscriptionTier
+        if selectedTab == .onDemand && selectedPackPackage == nil {
+            selectedPackPackage = purchasesManager.package(forProductID: "pack.mini")
+                ?? purchasesManager.packPackages().first
+        }
 
-        // If user is on pro, default to one-time tab
-        if currentTier == .pro {
+        guard selectedSubscriptionPackage == nil else { return }
+
+        let currentID = purchasesManager.activeSubscriptionProductID
+
+        // If already on Super, bias toward one-time top-ups.
+        if currentID == "super.weekly" {
             selectedTab = .onDemand
-            selectedPack = .mini
-            selectedSubscription = .plus
+            if selectedPackPackage == nil {
+                selectedPackPackage = purchasesManager.package(forProductID: "pack.mini")
+                    ?? purchasesManager.packPackages().first
+            }
+            selectedSubscriptionPackage = purchasesManager.package(forProductID: "plus.weekly")
             return
         }
 
-        // Default selection is the next tier up from current
-        switch currentTier {
-        case .none:
-            selectedSubscription = .pro
-        case .lite:
-            selectedSubscription = .plus
-        case .plus, .pro:
-            selectedSubscription = .pro
+        // Default selection is the next tier up from current (or Super if free).
+        let defaultProductID: String
+        switch currentID {
+        case "starter.weekly": defaultProductID = "plus.weekly"
+        case "plus.weekly":    defaultProductID = "super.weekly"
+        default:               defaultProductID = "super.weekly"
         }
+        selectedSubscriptionPackage = purchasesManager.package(forProductID: defaultProductID)
+            ?? purchasesManager.subscriptionPackages().first
     }
 
     // MARK: - Actions
 
     private func processPurchase() {
-        isProcessing = true
+        let package: Package?
+        switch selectedTab {
+        case .subscriptions: package = selectedSubscriptionPackage
+        case .onDemand:      package = selectedPackPackage
+        }
+        guard let package else { return }
 
-        // TODO: Implement StoreKit purchase
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            if let pack = selectedPack {
-                creditsManager.addCredits(pack.credits)
-            } else {
-                creditsManager.setSubscription(selectedSubscription)
-                creditsManager.addCredits(selectedSubscription.monthlyPrompts)
+        isProcessing = true
+        Task {
+            do {
+                _ = try await PurchasesManager.shared.purchase(package)
+                isProcessing = false
+                onComplete?()
+                dismiss()
+            } catch PurchasesManagerError.cancelled {
+                isProcessing = false
+            } catch {
+                isProcessing = false
+                HiLogger.error("AllPlans purchase failed", error: error)
             }
-            isProcessing = false
-            onComplete?()
-            dismiss()
         }
     }
 
     private func restorePurchases() {
         isProcessing = true
-
-        // TODO: Implement StoreKit restore
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isProcessing = false
+        Task {
+            do {
+                let info = try await PurchasesManager.shared.restore()
+                isProcessing = false
+                if !info.entitlements.active.isEmpty || !info.activeSubscriptions.isEmpty {
+                    onComplete?()
+                    dismiss()
+                }
+            } catch {
+                isProcessing = false
+                HiLogger.error("AllPlans restore failed", error: error)
+            }
         }
     }
 }

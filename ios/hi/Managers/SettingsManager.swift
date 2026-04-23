@@ -69,11 +69,14 @@ class SettingsManager: ObservableObject {
     private init() {
         loadState()
 
-        // Reset watermark setting when user loses eligibility (e.g. downgrade)
-        CreditsManager.shared.$subscriptionTier
-            .sink { [weak self] tier in
-                if !tier.canRemoveWatermark {
-                    self?.removeWatermarkEnabled = false
+        // Reset watermark setting when user loses eligibility (e.g. downgrade,
+        // sub expiration, refund). PurchasesManager republishes customerInfo
+        // whenever RC reports a change.
+        PurchasesManager.shared.$customerInfo
+            .sink { [weak self] _ in
+                guard let self else { return }
+                if !PurchasesManager.shared.canRemoveWatermark {
+                    self.removeWatermarkEnabled = false
                 }
             }
             .store(in: &cancellables)
@@ -159,10 +162,10 @@ class SettingsManager: ObservableObject {
         return Array(available.shuffled().prefix(count))
     }
     
-    // MARK: - Watermark (derived from subscription)
-    
+    // MARK: - Watermark (derived from RC entitlement)
+
     var canRemoveWatermark: Bool {
-        CreditsManager.shared.subscriptionTier.canRemoveWatermark
+        PurchasesManager.shared.canRemoveWatermark
     }
     
     // MARK: - Debug
