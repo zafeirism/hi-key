@@ -19,7 +19,7 @@ export type EventOutcome =
   | { handled: false; summary: string };
 
 export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<EventOutcome> {
-  const userId = event.app_user_id ?? event.original_app_user_id;
+  const userId = (event.app_user_id ?? event.original_app_user_id)?.toLowerCase();
   if (!userId) {
     return { handled: false, summary: `missing app_user_id (type=${event.type})` };
   }
