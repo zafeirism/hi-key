@@ -122,21 +122,30 @@ export type Database = {
         }
         Relationships: []
       }
-      user_balances: {
+      user_profiles: {
         Row: {
           extra_credits_mills: number
+          name: string | null
+          referral_code: string | null
+          referred_by: string | null
           sub_credits_mills: number
           updated_at: string
           user_id: string
         }
         Insert: {
           extra_credits_mills?: number
+          name?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           sub_credits_mills?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           extra_credits_mills?: number
+          name?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           sub_credits_mills?: number
           updated_at?: string
           user_id?: string
@@ -187,6 +196,14 @@ export type Database = {
           p_reason: string
           p_source_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      redeem_referral: {
+        Args: {
+          p_bonus_mills: number
+          p_redeemer_id: string
+          p_referrer_id: string
         }
         Returns: Json
       }

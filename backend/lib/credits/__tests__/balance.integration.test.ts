@@ -15,7 +15,7 @@ const testUserId = `test-credits-${Date.now()}`;
 
 async function cleanup(userId: string) {
   await supabaseAdmin.from('credit_transactions').delete().eq('user_id', userId);
-  await supabaseAdmin.from('user_balances').delete().eq('user_id', userId);
+  await supabaseAdmin.from('user_profiles').delete().eq('user_id', userId);
 }
 
 describe.skipIf(!shouldRunTests)('credits balance integration', () => {

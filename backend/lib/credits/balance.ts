@@ -21,7 +21,7 @@ export class InsufficientCreditsError extends Error {
 
 export async function getBalance(userId: string): Promise<Balance> {
   const { data, error } = await supabaseAdmin
-    .from('user_balances')
+    .from('user_profiles')
     .select('sub_credits_mills, extra_credits_mills')
     .eq('user_id', userId)
     .maybeSingle();

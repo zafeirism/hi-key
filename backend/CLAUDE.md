@@ -46,6 +46,10 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 5. **`/api/warmup`** — Warms up all endpoints and external connections (Supabase, QStash, Replicate webhook).
 
+6. **`/api/referral`** — `POST` creates the user's immutable referral code from a name (`NAME-XXXXXX`, Crockford Base32 suffix). Idempotent: returns the existing code on subsequent calls.
+
+7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code, atomically marks the redeemer's `referred_by`, and grants 500 mills (50 credits) to both sides. One-shot per redeemer (409 on retry with a different code). See `PURCHASES.md` for the redeem flow.
+
 ### Key Modules
 
 - **`lib/auth/jwt.ts`** — `withAuth()` HOF for JWT-authenticated routes. Verifies Supabase JWTs via JWKS. Has demo/warmup token bypass.
@@ -57,6 +61,7 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 - **`lib/qstash/backgroundScheduler.ts`** — QStash client for dispatching background work.
 - **`lib/supabase/`** — Supabase admin client and generated types. Run `npm run types:generate` after schema changes.
 - **`lib/credits/`** — Credits system. `catalog.ts` maps RC product IDs to mill amounts; `balance.ts` wraps the `debit_credits`/`grant_credits`/`reset_sub_credits` RPCs and exposes `InsufficientCreditsError`; `webhook.ts` routes RC events to balance mutations. Mills are the internal unit (1 credit = 10 mills); `toDisplayCredits()` converts for client responses.
+- **`lib/referrals/`** — Referral system. `code.ts` has `sanitizeName` and Crockford Base32 suffix generation; `service.ts` wraps the `redeem_referral` RPC and exposes `InvalidNameError`, `InvalidCodeError`, `CodeNotFoundError`, `SelfReferralError`, `AlreadyRedeemedError`. Referral fields live on `user_profiles` alongside credit balances.
 
 ### External Services
 
@@ -84,8 +89,8 @@ Two Supabase projects exist — **always verify which one is linked before runni
 
 | Environment | Project Ref | Usage |
 |-------------|-------------|-------|
-| **Dev** | `hkbiesbunzigkhkjikkd` | Day-to-day development and testing |
-| **Prod** | `qeomdidcpphbgbjiirte` | Production database |
+| **Dev** | `rtmrehcevyoqafyscpaj` (hi-key-dev) | Day-to-day development and testing |
+| **Prod** | `lsssxrudfajjfidqbngl` (hi-key-production) | Production database |
 
 - `npm run types:generate` is hardcoded to the **dev** project in `package.json`
 - `npx supabase db push` targets whichever project is **linked** — check with `npx supabase projects list` (the `●` marker)
@@ -94,16 +99,20 @@ Two Supabase projects exist — **always verify which one is linked before runni
 ### Migration Workflow
 
 1. Create migration SQL in `supabase/migrations/<timestamp>_<name>.sql`
-2. Link to dev: `npx supabase link --project-ref hkbiesbunzigkhkjikkd`
+2. Link to dev: `npx supabase link --project-ref rtmrehcevyoqafyscpaj`
 3. Push to dev: `npx supabase db push`
 4. Regenerate types: `npm run types:generate`
 5. Develop and test against dev
-6. When ready for prod: `npx supabase link --project-ref qeomdidcpphbgbjiirte` then `npx supabase db push`
-7. Switch back to dev: `npx supabase link --project-ref hkbiesbunzigkhkjikkd`
+6. When ready for prod: `npx supabase link --project-ref lsssxrudfajjfidqbngl` then `npx supabase db push`
+7. Switch back to dev: `npx supabase link --project-ref rtmrehcevyoqafyscpaj`
 
 ## Credits & Purchases
 
-See **[PURCHASES.md](./PURCHASES.md)** for everything about credits, RevenueCat events, the debit/refund flow, upgrade/downgrade handling, and known future work (e.g. `TRANSFER` events). Read this before touching `lib/credits/*`, the RC webhook, or `/api/generate` debit logic.
+See **[PURCHASES.md](./PURCHASES.md)** for everything about credits, RevenueCat events, the debit/refund flow, upgrade/downgrade handling, referrals, and known future work (e.g. `TRANSFER` events). Read this before touching `lib/credits/*`, `lib/referrals/*`, the RC webhook, or `/api/generate` debit logic.
+
+## Referrals
+
+Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford Base32 suffix) via `POST /api/referral`. A new user redeems via `POST /api/referral/redeem` during onboarding; both sides get 50 non-expiring credits (500 mills on `extra_credits_mills`). The atomic work happens inside the `redeem_referral` Supabase RPC — see `PURCHASES.md#referrals` and `supabase/migrations/20260423120000_add_referrals.sql` for the ledger + locking details. `user_profiles.referral_code` is covered by a partial unique index (`WHERE referral_code IS NOT NULL`) which is both the uniqueness gate and the code → user lookup path.
 
 ## Waitlist
 
