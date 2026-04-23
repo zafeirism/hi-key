@@ -2,10 +2,13 @@ import SwiftUI
 import Combine
 
 // MARK: - Credits Manager
-// Thin read-only cache over the backend-authoritative ledger (/api/me).
-// Balance is never mutated locally — purchases, generations, and refunds
-// all round-trip through the backend. The app-group UserDefaults mirror
-// lets the keyboard extension render the balance without its own fetch.
+// Thin read-only cache over the backend-authoritative ledger and profile
+// (/api/me). Balance and referral fields are never mutated locally —
+// purchases, generations, refunds, and referral code mint/redeem all
+// round-trip through the backend. Display name is the only locally-owned
+// field (user-editable, used for "Welcome, {name}"). Credits and referral
+// code mirror into app-group UserDefaults so the keyboard extension can
+// render them without its own fetch.
 
 @MainActor
 class CreditsManager: ObservableObject {
@@ -22,6 +25,7 @@ class CreditsManager: ObservableObject {
     @Published private(set) var extraCredits: Int = 0
     @Published private(set) var userName: String = ""
     @Published private(set) var referralCode: String? = nil
+    @Published private(set) var referredBy: String? = nil
 
     // MARK: - Keys
 
@@ -45,70 +49,66 @@ class CreditsManager: ObservableObject {
         referralCode = userDefaults?.string(forKey: Keys.referralCode)
     }
 
-    // MARK: - Balance Refresh
+    // MARK: - /api/me Sync
 
-    /// Pull the latest balance from the backend. Safe to call often —
+    /// Pull the latest balance + profile from the backend. Safe to call often —
     /// triggered on app foreground, purchase success, generation response.
     func refresh() async {
         do {
             let response = try await APIClient.shared.me()
-            apply(balance: response.credits)
+            apply(me: response)
         } catch {
             HiLogger.error("CreditsManager refresh failed", error: error)
         }
     }
 
-    /// Update balance from a backend-provided snapshot (e.g. /api/generate
-    /// response `balance`, insufficient-credits 402 payload).
+    /// Update cached state from a full /api/me response.
+    func apply(me response: APIClient.MeResponse) {
+        apply(balance: response.credits)
+        referralCode = response.profile?.referral_code
+        referredBy = response.referred_by
+        userDefaults?.set(referralCode, forKey: Keys.referralCode)
+    }
+
+    /// Update balance-only from a backend snapshot (e.g. /api/generate
+    /// response `balance`, insufficient-credits 402 payload, redeem response).
     func apply(balance: APIClient.CreditsBalance) {
         credits = balance.sub_credits
         extraCredits = balance.extra_credits
         userDefaults?.set(credits, forKey: Keys.credits)
         userDefaults?.set(extraCredits, forKey: Keys.extraCredits)
-        objectWillChange.send()
     }
 
     var hasCredits: Bool {
         credits > 0 || extraCredits > 0
     }
 
-    // MARK: - User Profile
+    // MARK: - User Profile (local display name)
 
     func setUserName(_ name: String) {
         userName = name
         userDefaults?.set(name, forKey: Keys.userName)
-        objectWillChange.send()
     }
 
-    // MARK: - Referral Code Generation
+    // MARK: - Referral Code Mint / Redeem
 
-    /// Generate a unique referral code for this user
-    func generateReferralCode() -> String? {
-        // Need a name to generate code
-        guard !userName.isEmpty else { return nil }
-
-        // If already generated, return existing
-        if let existing = referralCode {
-            return existing
-        }
-
-        // Generate: NAME-XXXXXX (NAME is first 6 chars uppercase, CODE is 6 char Crockford Base32)
-        let namePrefix = String(userName.uppercased().filter { $0.isLetter }.prefix(6))
-        let randomCode = generateCrockfordBase32(length: 6)
-        let code = "\(namePrefix)-\(randomCode)"
-
-        referralCode = code
-        userDefaults?.set(code, forKey: Keys.referralCode)
-        objectWillChange.send()
-
-        return code
+    /// Mint this user's immutable referral code from a display name. Backend
+    /// sanitizes (letters only, uppercased, truncated to 6 chars) and builds
+    /// `{PREFIX}-{6-char Crockford Base32}`. Idempotent on the backend —
+    /// repeated calls return the existing code.
+    func createReferralCode(name: String) async throws -> String {
+        let response = try await APIClient.shared.createReferralCode(name: name)
+        referralCode = response.code
+        userDefaults?.set(response.code, forKey: Keys.referralCode)
+        return response.code
     }
 
-    /// Generate random Crockford Base32 string
-    private func generateCrockfordBase32(length: Int) -> String {
-        // Crockford Base32 alphabet (excludes I, L, O, U to avoid confusion)
-        let alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
-        return String((0..<length).map { _ in alphabet.randomElement()! })
+    /// Redeem a friend's referral code. Backend grants 50 credits to both
+    /// sides and stamps `referred_by` on this user. One-shot — a second call
+    /// with a different code returns `alreadyRedeemed`.
+    func redeemReferralCode(_ code: String) async throws {
+        let balance = try await APIClient.shared.redeemReferralCode(code: code)
+        apply(balance: balance)
     }
 
     // MARK: - Debug
@@ -118,10 +118,10 @@ class CreditsManager: ObservableObject {
         extraCredits = 0
         userName = ""
         referralCode = nil
+        referredBy = nil
         userDefaults?.removeObject(forKey: Keys.credits)
         userDefaults?.removeObject(forKey: Keys.extraCredits)
         userDefaults?.removeObject(forKey: Keys.userName)
         userDefaults?.removeObject(forKey: Keys.referralCode)
-        objectWillChange.send()
     }
 }

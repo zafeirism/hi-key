@@ -28,13 +28,34 @@ class APIClient {
         let balance: CreditsBalance?
     }
 
+    struct ProfileDTO: Codable {
+        let name: String?
+        let referral_code: String?
+    }
+
     struct MeResponse: Codable {
         let credits: CreditsBalance
+        let profile: ProfileDTO?
+        let referred_by: String?
     }
 
     struct InsufficientCreditsPayload: Codable {
         let error: String
         let balance: CreditsBalance
+    }
+
+    struct ReferralCodeResponse: Codable {
+        let name: String
+        let code: String
+    }
+
+    struct ReferralRedeemResponse: Codable {
+        let credits: CreditsBalance
+    }
+
+    private struct ReferralErrorPayload: Codable {
+        let error: String?
+        let credits: CreditsBalance?
     }
     
     struct AutocompleteRequest: Codable {
@@ -247,6 +268,107 @@ class APIClient {
         }
     }
 
+    // MARK: - Referrals
+
+    struct ReferralCodeRequest: Codable {
+        let name: String
+    }
+
+    struct ReferralRedeemRequest: Codable {
+        let code: String
+    }
+
+    func createReferralCode(name: String) async throws -> ReferralCodeResponse {
+        let accessToken = try await getValidAccessToken()
+        do {
+            return try await performCreateReferralCode(name: name, accessToken: accessToken)
+        } catch APIError.httpError(statusCode: 401) {
+            let newToken = try await getValidAccessToken()
+            return try await performCreateReferralCode(name: name, accessToken: newToken)
+        }
+    }
+
+    private func performCreateReferralCode(name: String, accessToken: String) async throws -> ReferralCodeResponse {
+        guard let url = URL(string: "\(baseURL)/api/referral") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(ReferralCodeRequest(name: name))
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            return try JSONDecoder().decode(ReferralCodeResponse.self, from: data)
+        }
+
+        let payload = try? JSONDecoder().decode(ReferralErrorPayload.self, from: data)
+        switch (httpResponse.statusCode, payload?.error) {
+        case (400, "invalid_name"):
+            throw APIError.invalidReferralName
+        case (403, _):
+            throw APIError.referralBypassUser
+        default:
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
+    }
+
+    func redeemReferralCode(code: String) async throws -> CreditsBalance {
+        let accessToken = try await getValidAccessToken()
+        do {
+            return try await performRedeemReferralCode(code: code, accessToken: accessToken)
+        } catch APIError.httpError(statusCode: 401) {
+            let newToken = try await getValidAccessToken()
+            return try await performRedeemReferralCode(code: code, accessToken: newToken)
+        }
+    }
+
+    private func performRedeemReferralCode(code: String, accessToken: String) async throws -> CreditsBalance {
+        guard let url = URL(string: "\(baseURL)/api/referral/redeem") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(ReferralRedeemRequest(code: code))
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try JSONDecoder().decode(ReferralRedeemResponse.self, from: data)
+            return decoded.credits
+        }
+
+        let payload = try? JSONDecoder().decode(ReferralErrorPayload.self, from: data)
+        switch (httpResponse.statusCode, payload?.error) {
+        case (400, "invalid_code"):
+            throw APIError.invalidReferralCode
+        case (400, "self_referral"):
+            throw APIError.selfReferral
+        case (404, "code_not_found"):
+            throw APIError.referralCodeNotFound
+        case (409, "already_redeemed"):
+            throw APIError.referralAlreadyRedeemed(balance: payload?.credits)
+        case (403, _):
+            throw APIError.referralBypassUser
+        default:
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
+    }
+
     // MARK: - Token Management
     
     private func getValidAccessToken() async throws -> String {
@@ -265,6 +387,12 @@ class APIClient {
         case httpError(statusCode: Int)
         case notAuthenticated
         case insufficientCredits(balance: CreditsBalance?)
+        case invalidReferralName
+        case invalidReferralCode
+        case selfReferral
+        case referralCodeNotFound
+        case referralAlreadyRedeemed(balance: CreditsBalance?)
+        case referralBypassUser
 
         var errorDescription: String? {
             switch self {
@@ -278,6 +406,18 @@ class APIClient {
                 return "Please login in the hi app first"
             case .insufficientCredits:
                 return "You're out of credits"
+            case .invalidReferralName:
+                return "That name isn't valid. Use at least one letter."
+            case .invalidReferralCode:
+                return "That code doesn't look right."
+            case .selfReferral:
+                return "That's your own code."
+            case .referralCodeNotFound:
+                return "We couldn't find that code."
+            case .referralAlreadyRedeemed:
+                return "You've already used a referral code."
+            case .referralBypassUser:
+                return "Referrals aren't available for this account."
             }
         }
     }

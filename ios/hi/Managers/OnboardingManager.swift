@@ -133,21 +133,25 @@ class OnboardingManager: ObservableObject {
         }
     }
     
-    /// Apply a referral code from a friend
-    func applyReferralCode(_ code: String) -> Bool {
-        // Validate format: NAME-CODE (NAME up to 6 chars, CODE is 6 chars Crockford Base32)
+    /// Redeem a friend's referral code against the backend. Persists the code
+    /// locally on success so the onboarding step can re-render in the applied
+    /// state without a network round-trip. Errors propagate to the caller for
+    /// user-facing messaging.
+    func applyReferralCode(_ code: String) async throws {
         guard isValidReferralCodeFormat(code) else {
-            return false
+            throw APIClient.APIError.invalidReferralCode
         }
-        
-        referrerCode = code.uppercased()
+
+        let normalized = code.uppercased()
+        try await CreditsManager.shared.redeemReferralCode(normalized)
+        referrerCode = normalized
         referralApplied = true
-        return true
     }
-    
-    /// Validate referral code format (client-side only)
+
+    /// Client-side shape check for the Apply button's enabled state. Actual
+    /// validation happens on the backend.
     func isValidReferralCodeFormat(_ code: String) -> Bool {
-        let pattern = "^[A-Z0-9]{1,6}-[0-9A-HJKMNP-TV-Z]{6}$"
+        let pattern = "^[A-Z]{1,6}-[0-9A-HJKMNP-TV-Z]{6}$"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(code.startIndex..., in: code)
         return regex?.firstMatch(in: code, options: [], range: range) != nil

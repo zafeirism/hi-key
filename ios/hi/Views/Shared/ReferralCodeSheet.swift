@@ -3,19 +3,20 @@ import SwiftUI
 struct ReferralCodeSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var creditsManager = CreditsManager.shared
-    
+
     @State private var name: String = ""
+    @State private var isGenerating: Bool = false
+    @State private var errorMessage: String? = nil
     @FocusState private var isNameFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
             HiSheetHeader(title: "Invite friends", onClose: { dismiss() })
 
-            Text("Earn 5 credits for each friend who joins using your code.")
+            Text("Earn 50 credits for each friend who joins using your code.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .multilineTextAlignment(.leading)
-                //.padding(.horizontal)
                 .padding(.bottom, HiTheme.spacingXL)
 
             // Name input or generated code
@@ -35,7 +36,7 @@ struct ReferralCodeSheet: View {
             }
         }
     }
-    
+
     // MARK: - Name Entry
 
     private var nameEntry: some View {
@@ -49,22 +50,46 @@ struct ReferralCodeSheet: View {
                 .background(HiTheme.surfacePrimary)
                 .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
                 .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
                 .focused($isNameFocused)
                 .padding(.bottom, HiTheme.spacingSM)
+                .disabled(isGenerating)
+                .onChange(of: name) { _, newValue in
+                    let filtered = filterLetters(newValue)
+                    if filtered != newValue {
+                        name = filtered
+                    }
+                    errorMessage = nil
+                }
 
-            Text("Part of your name will appear in your referral code and be shown to friends who use it. Enter at least 3 chars.")
+            Text("Letters only. The first 6 letters become the prefix of your referral code.")
                 .font(.footnote)
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.horizontal)
                 .padding(.bottom, HiTheme.spacingLG)
-                
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(HiTheme.statusError)
+                    .padding(.horizontal)
+                    .padding(.bottom, HiTheme.spacingSM)
+            }
+
             Button {
                 generateCode()
             } label: {
-                Text("Generate Code")
+                HStack(spacing: HiTheme.spacingSM) {
+                    if isGenerating {
+                        ProgressView()
+                            .tint(HiTheme.backgroundRoot)
+                            .scaleEffect(0.8)
+                    }
+                    Text(isGenerating ? "Generating…" : "Generate Code")
+                }
             }
             .buttonStyle(HiPrimaryButtonStyle())
-            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            .disabled(trimmedName.isEmpty || isGenerating)
         }
     }
 
@@ -101,35 +126,54 @@ struct ReferralCodeSheet: View {
                 .font(.footnote)
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.horizontal)
-                //.multilineTextAlignment(.center)
         }
-        //.padding(.horizontal)
     }
-    
-    // MARK: - Actions
-    
-    private func generateCode() {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmedName.isEmpty else { return }
-        
-        creditsManager.setUserName(trimmedName)
 
-        withAnimation(HiTheme.animationNormal) {
-            _ = creditsManager.generateReferralCode()
-        }
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+    // MARK: - Actions
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespaces)
     }
-    
+
+    private func filterLetters(_ input: String) -> String {
+        String(input.filter { $0.isLetter || $0.isWhitespace })
+    }
+
+    private func generateCode() {
+        let cleaned = trimmedName
+        guard !cleaned.isEmpty else { return }
+
+        creditsManager.setUserName(cleaned)
+
+        isGenerating = true
+        errorMessage = nil
+
+        Task {
+            do {
+                _ = try await creditsManager.createReferralCode(name: cleaned)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                withAnimation(HiTheme.animationNormal) {
+                    isGenerating = false
+                }
+            } catch {
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+                isGenerating = false
+                errorMessage = error.localizedDescription
+                HiLogger.error("Failed to create referral code", error: error)
+            }
+        }
+    }
+
     private func copyCode(_ code: String) {
         UIPasteboard.general.string = code
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
     }
-    
+
     private func shareText(code: String) -> String {
-        "Try hi-key! Generate AI images right from your keyboard. Use my code \(code) and we both get 5 free credits! Download: https://apps.apple.com/app/hi-key"
+        "Try hi-key! Generate AI images right from your keyboard. Use my code \(code) and we both get 50 free credits! Download: https://apps.apple.com/app/hi-key"
     }
 }
 

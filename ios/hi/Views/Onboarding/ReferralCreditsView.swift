@@ -5,7 +5,7 @@ struct ReferralCreditsView: View {
 
     @State private var referralCode: String = OnboardingManager.shared.referrerCode ?? ""
     @State private var codeApplied: Bool = OnboardingManager.shared.referralApplied
-    @State private var showError: Bool = false
+    @State private var errorMessage: String? = nil
     @State private var isProcessing: Bool = false
 
     var body: some View {
@@ -21,7 +21,7 @@ struct ReferralCreditsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, HiTheme.spacingMD)
 
-            Text("Enter it now and you'll both get 5 free credits.")
+            Text("Enter it now and you'll both get 50 free credits.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -104,20 +104,20 @@ struct ReferralCreditsView: View {
             .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusMD))
             .overlay(
                 RoundedRectangle(cornerRadius: HiTheme.radiusMD)
-                    .stroke(showError ? HiTheme.statusError : HiTheme.divider, lineWidth: 1)
+                    .stroke(errorMessage != nil ? HiTheme.statusError : HiTheme.divider, lineWidth: 1)
             )
             .onChange(of: referralCode) { _, newValue in
                 referralCode = formatReferralCode(newValue)
-                showError = false
+                errorMessage = nil
             }
-            
+
             Text("Shared by a friend who already uses hi-key.")
                 .font(.footnote)
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.leading, HiTheme.spacingMD)
 
-            if showError {
-                Text("Invalid code. Try again.")
+            if let errorMessage {
+                Text(errorMessage)
                     .font(.caption)
                     .foregroundStyle(HiTheme.statusError)
                     .padding(.leading, HiTheme.spacingXS)
@@ -149,21 +149,22 @@ struct ReferralCreditsView: View {
         guard isValidFormat else { return }
 
         isProcessing = true
-        showError = false
+        errorMessage = nil
 
-        let generator = UINotificationFeedbackGenerator()
-        // Fake API call - 2 seconds delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            if onboardingManager.applyReferralCode(referralCode) {
+        Task {
+            let generator = UINotificationFeedbackGenerator()
+            do {
+                try await onboardingManager.applyReferralCode(referralCode)
                 generator.notificationOccurred(.success)
                 withAnimation(.spring(response: 0.4)) {
                     isProcessing = false
                     codeApplied = true
                 }
-            } else {
+            } catch {
                 generator.notificationOccurred(.error)
                 isProcessing = false
-                showError = true
+                errorMessage = error.localizedDescription
+                HiLogger.error("Failed to redeem referral code", error: error)
             }
         }
     }

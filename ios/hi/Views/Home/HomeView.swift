@@ -173,7 +173,7 @@ struct HomeView: View {
                 Button {
                     showAllOptions = true
                 } label: {
-                    Text("Top up credits")
+                    Text("Buy credits")
                 }
                 .buttonStyle(HiSecondaryButtonStyle())
             }
@@ -342,7 +342,7 @@ struct HomeView: View {
                                 .foregroundStyle(HiTheme.textPrimary)
                         }
 
-                        Text("Get 5 free credits for every friend who joins")
+                        Text("Get 50 free credits for every friend who joins")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(HiTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -408,7 +408,6 @@ struct HomeView: View {
             UserDefaults.standard.set(true, forKey: "hasSeenHomeScreen")
             let manager = CreditsManager.shared
             manager.setUserName("Alexandros")
-            _ = manager.generateReferralCode()
         }
 }
 
