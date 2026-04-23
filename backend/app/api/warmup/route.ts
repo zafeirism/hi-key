@@ -7,6 +7,7 @@ export async function POST() {
   await warmupGenerate();
   await warmupDatabase();
   await warmupWebhooks();
+  await warmupRevenueCatWebhook();
   await warmupWorker();
 
   return NextResponse.json({ success: true });
@@ -44,6 +45,16 @@ async function warmupWebhooks() {
     headers: {
       'Content-Type': 'application/json',
     },
+  });
+}
+
+async function warmupRevenueCatWebhook() {
+  await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/revenuecat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ warmup: true }),
   });
 }
 

@@ -8,3 +8,19 @@ export type GenerationStatus = 'initializing' | 'generating' | 'ready' | 'error'
 
 export type WaitlistEntry = Tables<'waitlist'>;
 export type WaitlistInsert = TablesInsert<'waitlist'>;
+
+export type UserBalance = Tables<'user_balances'>;
+export type UserBalanceInsert = TablesInsert<'user_balances'>;
+
+export type CreditTransaction = Tables<'credit_transactions'>;
+export type CreditTransactionInsert = TablesInsert<'credit_transactions'>;
+
+export type CreditReason =
+  | 'initial_purchase'
+  | 'renewal'
+  | 'pack'
+  | 'generation_debit'
+  | 'generation_refund'
+  | 'refund'
+  | 'expiration_reset'
+  | 'referral';

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/auth/jwt';
+import { isBypassUser, withAuth } from '@/lib/auth/jwt';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { GenerationInsert, GenerationStatus } from '@/lib/supabase/helpers';
 import { generateImage } from '@/lib/ai/image-generator';
@@ -10,6 +10,18 @@ import { getKey, getSignedImageUrl } from '@/lib/storage/r2';
 import { hasStyle } from '@/lib/ai/detectPromptStyle';
 import { proofread } from '@/lib/ai/proofread';
 import { pickStylesRandomly } from '@/lib/ai/imageStyles';
+import {
+  debit,
+  grant,
+  InsufficientCreditsError,
+  toDisplayCredits,
+  type Balance,
+} from '@/lib/credits/balance';
+
+// The 4th image runs in /api/worker, which picks FLUX_2_DEV (12 mills) or FLUX_2_KLEIN (1 mill)
+// at runtime based on whether the prompt has text phrases. We reserve the ceiling at /generate
+// time and let the Replicate webhook refund the delta once the actual cost_usd_mills is known.
+const WORKER_IMAGE_RESERVED_MILLS = IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_DEV].costPerImage;
 
 export const POST = withAuth(async (request, user) => {
   const requestStartedAt = new Date();
@@ -41,6 +53,41 @@ export const POST = withAuth(async (request, user) => {
     null, // We're creating an extra that will run on the background
   ];
 
+  const reservedPerImage = [
+    imageModels[0]!.costPerImage,
+    imageModels[1]!.costPerImage,
+    imageModels[2]!.costPerImage,
+    WORKER_IMAGE_RESERVED_MILLS,
+  ];
+  const totalReservedMills = reservedPerImage.reduce((a, b) => a + b, 0);
+
+  // 2. Debit credits up-front (bypass tokens skip this).
+  const bypass = isBypassUser(user);
+  let balanceAfterDebit: Balance | null = null;
+  if (!bypass) {
+    try {
+      balanceAfterDebit = await debit(user.id, totalReservedMills, {
+        reason: 'generation_debit',
+        sourceId: request_id,
+        generationId: generationIds[0]!,
+      });
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError) {
+        return NextResponse.json(
+          {
+            error: 'insufficient_credits',
+            balance: {
+              sub_credits: toDisplayCredits(err.balance.sub_credits_mills),
+              extra_credits: toDisplayCredits(err.balance.extra_credits_mills),
+            },
+          },
+          { status: 402 }
+        );
+      }
+      throw err;
+    }
+  }
+
   const records: GenerationInsert[] = generationIds.map((id, idx) => ({
     id,
     user_id: user.id,
@@ -51,6 +98,7 @@ export const POST = withAuth(async (request, user) => {
     model: imageModels[idx]?.id,
     file_extension: imageModels[idx]?.outputFormat,
     cost_usd_mills: imageModels[idx]?.costPerImage,
+    reserved_usd_mills: reservedPerImage[idx]!,
     status: (imageModels[idx] ? 'generating' : 'initializing') as GenerationStatus,
     generation_started_at: imageModels[idx] ? new Date().toISOString() : null,
     comments: { dbTimes: [] },
@@ -64,6 +112,19 @@ export const POST = withAuth(async (request, user) => {
     console.error(
       `${new Date().toISOString()} Failed to create generations: ${JSON.stringify(insertError)}`
     );
+    if (!bypass) {
+      // Refund the reservation since no generation rows exist to drive per-image webhook refunds.
+      await grant(user.id, {
+        deltaSubMills: totalReservedMills,
+        deltaExtraMills: 0,
+        reason: 'generation_refund',
+        sourceId: request_id,
+      }).catch((e) =>
+        console.error(
+          `${new Date().toISOString()} Refund-on-insert-failure failed: ${JSON.stringify(e)}`
+        )
+      );
+    }
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 
@@ -130,5 +191,11 @@ export const POST = withAuth(async (request, user) => {
   return NextResponse.json({
     success: true,
     images,
+    ...(balanceAfterDebit && {
+      balance: {
+        sub_credits: toDisplayCredits(balanceAfterDebit.sub_credits_mills),
+        extra_credits: toDisplayCredits(balanceAfterDebit.extra_credits_mills),
+      },
+    }),
   });
 });

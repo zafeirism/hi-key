@@ -3,6 +3,35 @@ import { validateWebhook } from 'replicate';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { GenerationStatus } from '@/lib/supabase/helpers';
 import { uploadImage } from '@/lib/storage/r2';
+import { grant } from '@/lib/credits/balance';
+
+function isBypassUserId(userId: string | null | undefined): boolean {
+  if (!userId) return true;
+  return (
+    userId.startsWith('demo-') || userId.startsWith('warmup-') || userId.startsWith('social-')
+  );
+}
+
+async function refundGeneration(
+  userId: string,
+  generationId: string,
+  amountMills: number
+): Promise<void> {
+  if (amountMills <= 0) return;
+  try {
+    await grant(userId, {
+      deltaSubMills: amountMills,
+      deltaExtraMills: 0,
+      reason: 'generation_refund',
+      sourceId: generationId,
+      generationId,
+    });
+  } catch (err) {
+    console.error(
+      `${new Date().toISOString()} Refund failed for generation ${generationId} (${amountMills} mills): ${JSON.stringify(err)}`
+    );
+  }
+}
 
 /**
  * Webhook endpoint for Replicate predictions
@@ -53,6 +82,17 @@ export async function POST(request: NextRequest) {
     console.error(
       `${new Date().toISOString()} Replicate failed:  ${generationId}: ${status} - error: ${JSON.stringify(error)}`
     );
+    if (!isBypassUserId(generation.user_id) && generation.reserved_usd_mills) {
+      await refundGeneration(
+        generation.user_id!,
+        generation.id,
+        generation.reserved_usd_mills
+      );
+    }
+    await supabaseAdmin
+      .from('generations')
+      .update({ status: 'error' as GenerationStatus })
+      .eq('id', generationId);
     return NextResponse.json(
       { detail: `${generationId}: ${status} - Replicate prediction failed: ${error}` },
       { status: 200 }
@@ -93,6 +133,17 @@ export async function POST(request: NextRequest) {
       `${new Date().toISOString()} Failed to update generation: ${generationId} - error: ${JSON.stringify(updateError)}`
     );
     return NextResponse.json({ error: 'Failed to update generation' }, { status: 200 });
+  }
+
+  if (
+    !isBypassUserId(generation.user_id) &&
+    generation.reserved_usd_mills != null &&
+    generation.cost_usd_mills != null
+  ) {
+    const refundMills = generation.reserved_usd_mills - generation.cost_usd_mills;
+    if (refundMills > 0) {
+      await refundGeneration(generation.user_id!, generation.id, refundMills);
+    }
   }
 
   console.log(`${new Date().toISOString()} Replicate completed for generation ${generationId}`);

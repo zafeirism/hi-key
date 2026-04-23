@@ -10,10 +10,43 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      credit_transactions: {
+        Row: {
+          created_at: string
+          delta_extra_mills: number
+          delta_sub_mills: number
+          generation_id: string | null
+          id: string
+          reason: string
+          source_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta_extra_mills?: number
+          delta_sub_mills?: number
+          generation_id?: string | null
+          id?: string
+          reason: string
+          source_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta_extra_mills?: number
+          delta_sub_mills?: number
+          generation_id?: string | null
+          id?: string
+          reason?: string
+          source_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       generations: {
         Row: {
           comments: Json | null
@@ -29,6 +62,7 @@ export type Database = {
           improved_prompt: string | null
           model: string | null
           request_id: string | null
+          reserved_usd_mills: number | null
           session_id: string | null
           shared_at: string | null
           status: string | null
@@ -52,6 +86,7 @@ export type Database = {
           improved_prompt?: string | null
           model?: string | null
           request_id?: string | null
+          reserved_usd_mills?: number | null
           session_id?: string | null
           shared_at?: string | null
           status?: string | null
@@ -75,6 +110,7 @@ export type Database = {
           improved_prompt?: string | null
           model?: string | null
           request_id?: string | null
+          reserved_usd_mills?: number | null
           session_id?: string | null
           shared_at?: string | null
           status?: string | null
@@ -83,6 +119,27 @@ export type Database = {
           upsampling_duration_ms?: number | null
           user_id?: string | null
           user_prompt?: string | null
+        }
+        Relationships: []
+      }
+      user_balances: {
+        Row: {
+          extra_credits_mills: number
+          sub_credits_mills: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          extra_credits_mills?: number
+          sub_credits_mills?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          extra_credits_mills?: number
+          sub_credits_mills?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -112,7 +169,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      debit_credits: {
+        Args: {
+          p_amount_mills: number
+          p_generation_id?: string
+          p_reason: string
+          p_source_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      grant_credits: {
+        Args: {
+          p_delta_extra_mills: number
+          p_delta_sub_mills: number
+          p_generation_id?: string
+          p_reason: string
+          p_source_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      reset_sub_credits: {
+        Args: {
+          p_reason: string
+          p_source_id: string
+          p_target_mills: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

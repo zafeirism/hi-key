@@ -115,3 +115,15 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
     }
   };
 }
+
+/**
+ * True for demo/warmup/social bypass tokens — credit logic should skip these.
+ * Real Supabase user IDs are UUIDs and never match these prefixes.
+ */
+export function isBypassUser(user: AuthUser): boolean {
+  return (
+    user.id.startsWith('demo-') ||
+    user.id.startsWith('warmup-') ||
+    user.id.startsWith('social-')
+  );
+}

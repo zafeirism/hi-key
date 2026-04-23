@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Product Context
 
-**hi-key** is an iOS app with a custom keyboard extension that generates AI images from text prompts. Users open the keyboard in any app (iMessage, WhatsApp, etc.), describe a scene, and receive 4 AI-generated images within seconds. 1 credit = 1 prompt = 4 images.
+**hi-key** is an iOS app with a custom keyboard extension that generates AI images from text prompts. Users open the keyboard in any app (iMessage, WhatsApp, etc.), describe a scene, and receive 4 AI-generated images within seconds.
 
-Pricing: Free (5 one-time credits), Starter ($4.99/mo, 25 credits), Plus ($6.99/mo, 50 credits), Super ($12.99/mo, 110 credits, no watermark). One-time packs also available. Referral: +5 credits per friend.
+Weekly subs (Starter/Plus/Super) + consumable packs (`pack.mini`/`pack.mega`). 1 credit = 1¢ of underlying AI cost. Full catalog, pricing, and credit mechanics in [PURCHASES.md](./PURCHASES.md).
 
 ## Project Overview
 
@@ -56,6 +56,7 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 - **`lib/storage/r2.ts`** — Cloudflare R2 operations via AWS S3 SDK. Images stored at `users/{userId}/images/{generationId}.{ext}`.
 - **`lib/qstash/backgroundScheduler.ts`** — QStash client for dispatching background work.
 - **`lib/supabase/`** — Supabase admin client and generated types. Run `npm run types:generate` after schema changes.
+- **`lib/credits/`** — Credits system. `catalog.ts` maps RC product IDs to mill amounts; `balance.ts` wraps the `debit_credits`/`grant_credits`/`reset_sub_credits` RPCs and exposes `InsufficientCreditsError`; `webhook.ts` routes RC events to balance mutations. Mills are the internal unit (1 credit = 10 mills); `toDisplayCredits()` converts for client responses.
 
 ### External Services
 
@@ -64,7 +65,7 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 - **Cloudflare R2** — Image storage (S3-compatible), signed URLs valid 7 days
 - **Upstash QStash** — Background job queue (worker endpoint verification via signature)
 - **OpenAI** — Prompt processing (autocomplete, proofreading, upsampling)
-- **RevenueCat** — Payment/subscription management (API key in env, used for credit validation)
+- **RevenueCat** — Subscription & purchase source of truth. The iOS app calls `Purchases.logIn(supabaseUserId)` after auth, and RC posts events to `/api/webhooks/revenuecat` (auth via `Bearer $REVENUECAT_WEBHOOK_TOKEN`). Idempotent on `event.id`.
 
 ## Code Conventions
 
@@ -99,6 +100,10 @@ Two Supabase projects exist — **always verify which one is linked before runni
 5. Develop and test against dev
 6. When ready for prod: `npx supabase link --project-ref qeomdidcpphbgbjiirte` then `npx supabase db push`
 7. Switch back to dev: `npx supabase link --project-ref hkbiesbunzigkhkjikkd`
+
+## Credits & Purchases
+
+See **[PURCHASES.md](./PURCHASES.md)** for everything about credits, RevenueCat events, the debit/refund flow, upgrade/downgrade handling, and known future work (e.g. `TRANSFER` events). Read this before touching `lib/credits/*`, the RC webhook, or `/api/generate` debit logic.
 
 ## Waitlist
 
