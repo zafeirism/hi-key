@@ -61,9 +61,11 @@ export async function POST(request: NextRequest) {
       to: email,
     });
 
-    // Fire-and-forget confirmation email (only for new signups)
-    getResend()
-      .emails.send({
+    // Awaited so the send completes before the serverless function freezes.
+    // If email latency becomes a UX issue, switch to waitUntil() from
+    // @vercel/functions to return early while the send runs in the background.
+    try {
+      const result = await getResend().emails.send({
         from: process.env.RESEND_FROM_EMAIL!,
         to: email,
         subject: "You're on the hi-key waitlist!",
@@ -81,18 +83,17 @@ export async function POST(request: NextRequest) {
             </p>
           </div>
         `,
-      })
-      .then((result) => {
-        log("resend send resolved", {
-          id: result.data?.id,
-          error: result.error,
-        });
-      })
-      .catch((err) => {
-        console.error(`[waitlist:${requestId}] resend error:`, err);
       });
+      log("resend send resolved", {
+        id: result.data?.id,
+        error: result.error,
+      });
+    } catch (err) {
+      // Signup already succeeded in Supabase, so don't fail the request.
+      console.error(`[waitlist:${requestId}] resend error:`, err);
+    }
 
-    log("returning success (email send still in flight)");
+    log("returning success");
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(`[waitlist:${requestId}] unhandled error:`, err);
