@@ -113,17 +113,30 @@ export const POST = withAuth(async (request, user) => {
       `${new Date().toISOString()} Failed to create generations: ${JSON.stringify(insertError)}`
     );
     if (!bypass) {
-      // Refund the reservation since no generation rows exist to drive per-image webhook refunds.
-      await grant(user.id, {
-        deltaSubMills: totalReservedMills,
-        deltaExtraMills: 0,
-        reason: 'generation_refund',
-        sourceId: request_id,
-      }).catch((e) =>
+      // Refund the reservation since no generation rows exist to drive per-image
+      // webhook refunds. Mirror the debit row's split so credits land back in the
+      // same buckets they came from.
+      try {
+        const { data: debitRow } = await supabaseAdmin
+          .from('credit_transactions')
+          .select('delta_sub_mills, delta_extra_mills')
+          .eq('user_id', user.id)
+          .eq('reason', 'generation_debit')
+          .eq('source_id', request_id)
+          .maybeSingle();
+        if (debitRow) {
+          await grant(user.id, {
+            deltaSubMills: -debitRow.delta_sub_mills,
+            deltaExtraMills: -debitRow.delta_extra_mills,
+            reason: 'generation_refund',
+            sourceId: request_id,
+          });
+        }
+      } catch (e) {
         console.error(
           `${new Date().toISOString()} Refund-on-insert-failure failed: ${JSON.stringify(e)}`
-        )
-      );
+        );
+      }
     }
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }

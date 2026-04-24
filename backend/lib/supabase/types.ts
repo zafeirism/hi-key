@@ -226,6 +226,15 @@ export type Database = {
         }
         Returns: Json
       }
+      refund_generation: {
+        Args: {
+          p_amount_mills: number
+          p_generation_id: string
+          p_request_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       reset_sub_credits: {
         Args: {
           p_reason: string

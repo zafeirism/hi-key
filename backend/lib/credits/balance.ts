@@ -9,13 +9,20 @@ export type Balance = {
 type RpcResult = Balance & {
   success: boolean;
   idempotent?: boolean;
-  reason?: 'insufficient_credits';
+  reason?: 'insufficient_credits' | 'debit_not_found';
 };
 
 export class InsufficientCreditsError extends Error {
   constructor(public balance: Balance) {
     super('insufficient_credits');
     this.name = 'InsufficientCreditsError';
+  }
+}
+
+export class DebitNotFoundError extends Error {
+  constructor(public balance: Balance) {
+    super('debit_not_found');
+    this.name = 'DebitNotFoundError';
   }
 }
 
@@ -85,6 +92,29 @@ export async function grant(
     sub_credits_mills: result.sub_credits_mills,
     extra_credits_mills: result.extra_credits_mills,
   };
+}
+
+export async function refundGeneration(
+  userId: string,
+  opts: { requestId: string; generationId: string; amountMills: number }
+): Promise<Balance> {
+  const { data, error } = await supabaseAdmin.rpc('refund_generation', {
+    p_user_id: userId,
+    p_request_id: opts.requestId,
+    p_generation_id: opts.generationId,
+    p_amount_mills: opts.amountMills,
+  });
+
+  if (error) throw error;
+  const result = data as unknown as RpcResult;
+  const balance = {
+    sub_credits_mills: result.sub_credits_mills,
+    extra_credits_mills: result.extra_credits_mills,
+  };
+  if (!result.success && result.reason === 'debit_not_found') {
+    throw new DebitNotFoundError(balance);
+  }
+  return balance;
 }
 
 export async function resetSub(
