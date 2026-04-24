@@ -50,6 +50,8 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code, atomically marks the redeemer's `referred_by`, and grants 500 mills (50 credits) to both sides. One-shot per redeemer (409 on retry with a different code). See `PURCHASES.md` for the redeem flow.
 
+8. **`/api/me/claim-code`** — `POST` with `{ code }`. Applies a waitlist claim code: marks the waitlist row as claimed, sets `user_profiles.double_credits = true` (all future sub renewals and pack purchases grant 2x), and tops up the current sub balance by one full tier so the remainder of the active cycle is effectively doubled. One-shot per user (409 `already_doubled` on retry with a different code).
+
 ### Key Modules
 
 - **`lib/auth/jwt.ts`** — `withAuth()` HOF for JWT-authenticated routes. Verifies Supabase JWTs via JWKS. Has demo/warmup token bypass.
@@ -62,6 +64,7 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 - **`lib/supabase/`** — Supabase admin client and generated types. Run `npm run types:generate` after schema changes.
 - **`lib/credits/`** — Credits system. `catalog.ts` maps RC product IDs to mill amounts; `balance.ts` wraps the `debit_credits`/`grant_credits`/`reset_sub_credits` RPCs and exposes `InsufficientCreditsError`; `webhook.ts` routes RC events to balance mutations. Mills are the internal unit (1 credit = 10 mills); `toDisplayCredits()` converts for client responses.
 - **`lib/referrals/`** — Referral system. `code.ts` has `sanitizeName` and Crockford Base32 suffix generation; `service.ts` wraps the `redeem_referral` RPC and exposes `InvalidNameError`, `InvalidCodeError`, `CodeNotFoundError`, `SelfReferralError`, `AlreadyRedeemedError`. Referral fields live on `user_profiles` alongside credit balances.
+- **`lib/waitlist/`** — Waitlist claim codes. `code.ts` generates/validates `HI-XXXXXXXX` (8-char Crockford Base32) codes; `service.ts` wraps the `claim_waitlist_code` RPC and exposes `InvalidCodeError`, `CodeNotFoundError`, `AlreadyClaimedError`, `AlreadyDoubledError`. Applying a code sets `user_profiles.double_credits = true` (persists forever) and adds one tier's worth of sub credits for immediate impact.
 
 ### External Services
 
@@ -116,12 +119,13 @@ Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford B
 
 ## Waitlist
 
-The website (`../hi-key-website/`) is launching before the app goes live. A waitlist lets visitors sign up with their email.
+The website (`../hi-key-website/`) is launching before the app goes live. A waitlist lets visitors sign up with their email. Waitlist visitors get a unique claim code in the launch email that, when applied in-app, grants double credits forever on every subscription renewal and pack purchase. See `PURCHASES.md#waitlist-claim-codes`.
 
 ### Schema (owned by this project)
 
-Table `waitlist` — migration: `supabase/migrations/20260306000000_add_waitlist_table.sql`
+Table `waitlist` — migrations: `20260306000000_add_waitlist_table.sql` (base) + `20260424000000_add_waitlist_claim.sql` (claim columns)
 - `id` UUID PK, `email` TEXT NOT NULL (unique index), `referral_source` TEXT nullable, `created_at` TIMESTAMPTZ
+- `claim_code` TEXT (partial unique index, NULL until generated manually), `claimed_at` TIMESTAMPTZ nullable, `claimed_by_user_id` TEXT nullable
 - RLS enabled, no policies — only accessible via service role key (same pattern as `generations`)
 - Helper types in `lib/supabase/helpers.ts`: `WaitlistEntry`, `WaitlistInsert`
 

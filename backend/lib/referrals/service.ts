@@ -152,7 +152,7 @@ export async function redeemReferralCode(
 async function readProfile(userId: string) {
   const { data, error } = await supabaseAdmin
     .from('user_profiles')
-    .select('name, referral_code, referred_by')
+    .select('name, referral_code, referred_by, double_credits')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -160,6 +160,7 @@ async function readProfile(userId: string) {
     name: data?.name ?? null,
     referral_code: data?.referral_code ?? null,
     referred_by: data?.referred_by ?? null,
+    double_credits: data?.double_credits ?? false,
   };
 }
 

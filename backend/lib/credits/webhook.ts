@@ -1,3 +1,4 @@
+import { supabaseAdmin } from '@/lib/supabase/server';
 import { lookupProduct } from './catalog';
 import { grant, resetSub, getBalance, type Balance } from './balance';
 
@@ -18,6 +19,30 @@ export type EventOutcome =
   | { handled: true; balance: Balance; summary: string }
   | { handled: false; summary: string };
 
+async function readDoublingMultiplier(userId: string): Promise<number> {
+  const { data, error } = await supabaseAdmin
+    .from('user_profiles')
+    .select('double_credits')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.double_credits ? 2 : 1;
+}
+
+async function setActiveSubProduct(userId: string, productId: string | null): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('user_profiles')
+    .upsert(
+      {
+        user_id: userId,
+        active_sub_product_id: productId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    );
+  if (error) throw error;
+}
+
 export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<EventOutcome> {
   const userId = (event.app_user_id ?? event.original_app_user_id)?.toLowerCase();
   if (!userId) {
@@ -25,6 +50,7 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
   }
 
   const product = lookupProduct(event.product_id);
+  const multiplier = await readDoublingMultiplier(userId);
 
   switch (event.type) {
     case 'INITIAL_PURCHASE':
@@ -33,32 +59,49 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         return { handled: false, summary: `unknown product_id=${event.product_id}` };
       }
       if (product.kind === 'sub') {
+        const subMills = product.tierMaxMills * multiplier;
         const balance = await grant(userId, {
-          deltaSubMills: product.tierMaxMills,
+          deltaSubMills: subMills,
           deltaExtraMills: 0,
           reason: 'initial_purchase',
           sourceId: event.id,
         });
-        return { handled: true, balance, summary: `initial_purchase sub +${product.tierMaxMills}` };
+        await setActiveSubProduct(userId, event.product_id ?? null);
+        return {
+          handled: true,
+          balance,
+          summary: `initial_purchase sub +${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+        };
       }
+      const packMills = product.amountMills * multiplier;
       const balance = await grant(userId, {
         deltaSubMills: 0,
-        deltaExtraMills: product.amountMills,
+        deltaExtraMills: packMills,
         reason: 'pack',
         sourceId: event.id,
       });
-      return { handled: true, balance, summary: `pack +${product.amountMills}` };
+      return {
+        handled: true,
+        balance,
+        summary: `pack +${packMills}${multiplier > 1 ? ' (x2)' : ''}`,
+      };
     }
 
     case 'RENEWAL': {
       if (!product || product.kind !== 'sub') {
         return { handled: false, summary: `renewal for non-sub product=${event.product_id}` };
       }
-      const balance = await resetSub(userId, product.tierMaxMills, {
+      const subMills = product.tierMaxMills * multiplier;
+      const balance = await resetSub(userId, subMills, {
         reason: 'renewal',
         sourceId: event.id,
       });
-      return { handled: true, balance, summary: `renewal sub=${product.tierMaxMills}` };
+      await setActiveSubProduct(userId, event.product_id ?? null);
+      return {
+        handled: true,
+        balance,
+        summary: `renewal sub=${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+      };
     }
 
     case 'EXPIRATION': {
@@ -66,6 +109,7 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         reason: 'expiration_reset',
         sourceId: event.id,
       });
+      await setActiveSubProduct(userId, null);
       return { handled: true, balance, summary: 'expiration sub=0' };
     }
 
@@ -79,9 +123,11 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         const balance = await getBalance(userId);
         return { handled: true, balance, summary: `refund sub (no clawback policy)` };
       }
-      // Pack refund: claw back up to the pack size from remaining extra_credits.
+      // Pack refund: claw back up to the granted amount from remaining extra_credits.
+      // For doubled users the original grant was 2x, so claw back 2x too.
       const current = await getBalance(userId);
-      const clawback = Math.min(product.amountMills, current.extra_credits_mills);
+      const grantedMills = product.amountMills * multiplier;
+      const clawback = Math.min(grantedMills, current.extra_credits_mills);
       const balance = await grant(userId, {
         deltaSubMills: 0,
         deltaExtraMills: -clawback,

@@ -23,4 +23,5 @@ export type CreditReason =
   | 'generation_refund'
   | 'refund'
   | 'expiration_reset'
-  | 'referral';
+  | 'referral'
+  | 'waitlist_claim';

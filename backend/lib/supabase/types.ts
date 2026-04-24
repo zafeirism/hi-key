@@ -124,6 +124,8 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          active_sub_product_id: string | null
+          double_credits: boolean
           extra_credits_mills: number
           name: string | null
           referral_code: string | null
@@ -133,6 +135,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active_sub_product_id?: string | null
+          double_credits?: boolean
           extra_credits_mills?: number
           name?: string | null
           referral_code?: string | null
@@ -142,6 +146,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active_sub_product_id?: string | null
+          double_credits?: boolean
           extra_credits_mills?: number
           name?: string | null
           referral_code?: string | null
@@ -154,18 +160,27 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          claim_code: string | null
+          claimed_at: string | null
+          claimed_by_user_id: string | null
           created_at: string
           email: string
           id: string
           referral_source: string | null
         }
         Insert: {
+          claim_code?: string | null
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           email: string
           id?: string
           referral_source?: string | null
         }
         Update: {
+          claim_code?: string | null
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -178,6 +193,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_waitlist_code: {
+        Args: { p_bonus_sub_mills: number; p_code: string; p_user_id: string }
+        Returns: Json
+      }
       debit_credits: {
         Args: {
           p_amount_mills: number

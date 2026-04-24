@@ -13,6 +13,7 @@ export const GET = withAuth(async (_request, user) => {
       },
       profile: null,
       referred_by: null,
+      double_credits: false,
     });
   }
 
@@ -32,5 +33,6 @@ export const GET = withAuth(async (_request, user) => {
       referral_code: profile.referral_code,
     },
     referred_by: profile.referred_by,
+    double_credits: profile.double_credits,
   });
 });
