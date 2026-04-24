@@ -26,6 +26,7 @@ class CreditsManager: ObservableObject {
     @Published private(set) var userName: String = ""
     @Published private(set) var referralCode: String? = nil
     @Published private(set) var referredBy: String? = nil
+    @Published private(set) var doubleCredits: Bool = false
 
     // MARK: - Keys
 
@@ -34,6 +35,7 @@ class CreditsManager: ObservableObject {
         static let extraCredits = "extraCredits"
         static let userName = "userName"
         static let referralCode = "referralCode"
+        static let doubleCredits = "doubleCredits"
     }
 
     // MARK: - Init
@@ -47,6 +49,7 @@ class CreditsManager: ObservableObject {
         extraCredits = userDefaults?.integer(forKey: Keys.extraCredits) ?? 0
         userName = userDefaults?.string(forKey: Keys.userName) ?? ""
         referralCode = userDefaults?.string(forKey: Keys.referralCode)
+        doubleCredits = userDefaults?.bool(forKey: Keys.doubleCredits) ?? false
     }
 
     // MARK: - /api/me Sync
@@ -67,7 +70,9 @@ class CreditsManager: ObservableObject {
         apply(balance: response.credits)
         referralCode = response.profile?.referral_code
         referredBy = response.referred_by
+        doubleCredits = response.double_credits ?? false
         userDefaults?.set(referralCode, forKey: Keys.referralCode)
+        userDefaults?.set(doubleCredits, forKey: Keys.doubleCredits)
     }
 
     /// Update balance-only from a backend snapshot (e.g. /api/generate
@@ -111,6 +116,18 @@ class CreditsManager: ObservableObject {
         apply(balance: balance)
     }
 
+    // MARK: - Waitlist Claim Code
+
+    /// Apply a waitlist claim code. Backend flips `double_credits = true`
+    /// (permanent — 2x on all future purchases and renewals) and may top up
+    /// sub credits by one tier if the user has an active sub.
+    func claimWaitlistCode(_ code: String) async throws {
+        let balance = try await APIClient.shared.claimWaitlistCode(code: code)
+        apply(balance: balance)
+        doubleCredits = true
+        userDefaults?.set(true, forKey: Keys.doubleCredits)
+    }
+
     // MARK: - Debug
 
     func resetCredits() {
@@ -119,9 +136,11 @@ class CreditsManager: ObservableObject {
         userName = ""
         referralCode = nil
         referredBy = nil
+        doubleCredits = false
         userDefaults?.removeObject(forKey: Keys.credits)
         userDefaults?.removeObject(forKey: Keys.extraCredits)
         userDefaults?.removeObject(forKey: Keys.userName)
         userDefaults?.removeObject(forKey: Keys.referralCode)
+        userDefaults?.removeObject(forKey: Keys.doubleCredits)
     }
 }

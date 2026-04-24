@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var showReferralCode: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showSettings: Bool = false
+    @State private var showDoubleCreditsInfo: Bool = false
     @State private var keyboardEnabled: Bool = false
     @State private var fullAccessEnabled: Bool = false
     @State private var showCopiedFeedback: Bool = false
@@ -54,16 +55,25 @@ struct HomeView: View {
             SettingsView()
                 .background(HiTheme.backgroundRoot)
         }
+        .alert("2× credits", isPresented: $showDoubleCreditsInfo) {
+            Button("Got it", role: .cancel) { }
+        } message: {
+            Text("As a thank you for joining the waitlist, every purchase and renewal gives you 2× credits, forever.")
+        }
         .onAppear {
             isFirstVisit = !hasSeenHomeScreen
             hasSeenHomeScreen = true
             checkKeyboardStatus()
-            Task { await creditsManager.refresh() }
+            if !isRunningInPreview {
+                Task { await creditsManager.refresh() }
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 checkKeyboardStatus()
-                Task { await creditsManager.refresh() }
+                if !isRunningInPreview {
+                    Task { await creditsManager.refresh() }
+                }
             }
         }
     }
@@ -94,12 +104,16 @@ struct HomeView: View {
     private var subscriptionProgress: Double {
         let weekly = weeklyCreditAllowance
         guard weekly > 0 else { return 0 }
-        return Double(creditsManager.credits) / Double(weekly)
+        let raw = Double(creditsManager.credits) / Double(weekly)
+        // Clamp to [0, 1] so the bar never overflows — the numerator can
+        // temporarily exceed `weekly` (upgrade-period bonus, webhook lag).
+        return min(1.0, max(0.0, raw))
     }
 
     private var weeklyCreditAllowance: Int {
         guard let id = purchasesManager.activeSubscriptionProductID else { return 0 }
-        return purchasesManager.weeklyCredits(for: id) ?? 0
+        let base = purchasesManager.weeklyCredits(for: id) ?? 0
+        return creditsManager.doubleCredits ? base * 2 : base
     }
 
     private var weeklyCreditsCaption: String {
@@ -156,7 +170,12 @@ struct HomeView: View {
 
                     Spacer()
 
-                    planBadge
+                    HStack(spacing: HiTheme.spacingSM) {
+                        if creditsManager.doubleCredits {
+                            doubleCreditsBadge
+                        }
+                        planBadge
+                    }
                 }
 
                 // Subscriber: progress bar + captions
@@ -196,6 +215,25 @@ struct HomeView: View {
             )
     }
 
+    private var doubleCreditsBadge: some View {
+        Button {
+            showDoubleCreditsInfo = true
+        } label: {
+            Text("2×")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(HiTheme.accentPrimary)
+                .padding(.horizontal, HiTheme.spacingSM)
+                .padding(.vertical, HiTheme.spacingXS)
+                .background(HiTheme.surfaceSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                .overlay(
+                    RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                        .stroke(HiTheme.divider, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
     private var creditsProgressSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
             GeometryReader { geo in
@@ -207,7 +245,7 @@ struct HomeView: View {
                     Capsule()
                         .fill(HiTheme.accentPrimary)
                         .frame(
-                            width: max(0, geo.size.width * CGFloat(subscriptionProgress)),
+                            width: min(geo.size.width, max(0, geo.size.width * CGFloat(subscriptionProgress))),
                             height: geo.size.height
                         )
                 }
@@ -378,6 +416,10 @@ struct HomeView: View {
 
     // MARK: - Helpers
 
+    private var isRunningInPreview: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
+
     private func checkKeyboardStatus() {
         let keyboardBundleID = "ai.hi-key.keyboard"
         let appleKeyboards = UserDefaults.standard.object(forKey: "AppleKeyboards") as? [String] ?? []
@@ -418,5 +460,20 @@ struct HomeView: View {
             let manager = CreditsManager.shared
             manager.setUserName("Zaf")
             manager.resetCredits()
+        }
+}
+
+#Preview("2x Credits") {
+    HomeView()
+        .onAppear {
+            UserDefaults.standard.set(true, forKey: "hasSeenHomeScreen")
+            let manager = CreditsManager.shared
+            manager.setUserName("Zaf")
+            manager.apply(me: APIClient.MeResponse(
+                credits: APIClient.CreditsBalance(sub_credits: 400, extra_credits: 50),
+                profile: APIClient.ProfileDTO(name: "Zaf", referral_code: "ZAF-ABC123"),
+                referred_by: nil,
+                double_credits: true
+            ))
         }
 }

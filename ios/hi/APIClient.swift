@@ -37,6 +37,7 @@ class APIClient {
         let credits: CreditsBalance
         let profile: ProfileDTO?
         let referred_by: String?
+        let double_credits: Bool?
     }
 
     struct InsufficientCreditsPayload: Codable {
@@ -56,6 +57,10 @@ class APIClient {
     private struct ReferralErrorPayload: Codable {
         let error: String?
         let credits: CreditsBalance?
+    }
+
+    struct ClaimCodeResponse: Codable {
+        let credits: CreditsBalance
     }
     
     struct AutocompleteRequest: Codable {
@@ -369,6 +374,53 @@ class APIClient {
         }
     }
 
+    // MARK: - Waitlist Claim Code
+
+    struct ClaimCodeRequest: Codable {
+        let code: String
+    }
+
+    func claimWaitlistCode(code: String) async throws -> CreditsBalance {
+        let accessToken = try await getValidAccessToken()
+        do {
+            return try await performClaimWaitlistCode(code: code, accessToken: accessToken)
+        } catch APIError.httpError(statusCode: 401) {
+            let newToken = try await getValidAccessToken()
+            return try await performClaimWaitlistCode(code: code, accessToken: newToken)
+        }
+    }
+
+    private func performClaimWaitlistCode(code: String, accessToken: String) async throws -> CreditsBalance {
+        guard let url = URL(string: "\(baseURL)/api/me/claim-code") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(ClaimCodeRequest(code: code))
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try JSONDecoder().decode(ClaimCodeResponse.self, from: data)
+            return decoded.credits
+        }
+
+        // 400 invalid_code, 404 code_not_found, 409 already_claimed, 409 already_doubled
+        // all collapse to a single user-facing "invalid code" message.
+        if [400, 404, 409].contains(httpResponse.statusCode) {
+            throw APIError.invalidClaimCode
+        }
+
+        throw APIError.httpError(statusCode: httpResponse.statusCode)
+    }
+
     // MARK: - Token Management
     
     private func getValidAccessToken() async throws -> String {
@@ -393,6 +445,7 @@ class APIClient {
         case referralCodeNotFound
         case referralAlreadyRedeemed(balance: CreditsBalance?)
         case referralBypassUser
+        case invalidClaimCode
 
         var errorDescription: String? {
             switch self {
@@ -418,6 +471,8 @@ class APIClient {
                 return "You've already used a referral code."
             case .referralBypassUser:
                 return "Referrals aren't available for this account."
+            case .invalidClaimCode:
+                return "That code isn't valid. Check it and try again."
             }
         }
     }

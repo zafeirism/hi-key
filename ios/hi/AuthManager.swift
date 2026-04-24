@@ -34,6 +34,15 @@ class AuthManager {
         }
     }
 
+    func getUserID() async -> String? {
+        do {
+            let session = try await supabase.auth.session
+            return session.user.id.uuidString.lowercased()
+        } catch {
+            return nil
+        }
+    }
+
     // Logout
     func signOut() async {
         do {
