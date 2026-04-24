@@ -13,7 +13,7 @@ struct HiKeyboardView: View {
             
             if viewModel.isShowingFullscreen {
                 FullscreenImageView(
-                    images: viewModel.sortedImages,
+                    images: viewModel.visibleImages,
                     currentIndex: viewModel.fullscreenImageIndex ?? 0,
                     onClose: { viewModel.closeFullscreen() },
                     onCopy: { viewModel.copyImage($0) },
