@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const email = (body.email as string)?.trim().toLowerCase();
-    log("parsed body", { email, hasReferral: !!body.referralSource });
+    log("parsed body");
 
     if (!email || !EMAIL_REGEX.test(email)) {
-      log("validation failed", { email });
+      log("validation failed");
       return NextResponse.json(
         { error: "Please enter a valid email address." },
         { status: 400 },
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       // Unique violation — email already exists
       if (error.code === "23505") {
-        log("duplicate email, skipping confirmation email", { email });
+        log("duplicate email, skipping confirmation email");
         return NextResponse.json({ success: true });
       }
       console.error(`[waitlist:${requestId}] supabase insert error:`, error);
@@ -56,10 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log("supabase insert ok, sending confirmation email", {
-      from: process.env.RESEND_FROM_EMAIL,
-      to: email,
-    });
+    log("supabase insert ok, sending confirmation email");
 
     // Awaited so the send completes before the serverless function freezes.
     // If email latency becomes a UX issue, switch to waitUntil() from
