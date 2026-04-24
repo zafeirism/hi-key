@@ -6,11 +6,19 @@ import { getResend } from "@/lib/resend";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).slice(2, 10);
+  const log = (msg: string, extra?: Record<string, unknown>) =>
+    console.log(`[waitlist:${requestId}] ${msg}`, extra ?? "");
+
+  log("request received");
+
   try {
     const body = await request.json();
     const email = (body.email as string)?.trim().toLowerCase();
+    log("parsed body", { email, hasReferral: !!body.referralSource });
 
     if (!email || !EMAIL_REGEX.test(email)) {
+      log("validation failed", { email });
       return NextResponse.json(
         { error: "Please enter a valid email address." },
         { status: 400 },
@@ -20,6 +28,7 @@ export async function POST(request: NextRequest) {
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1";
     const { success } = await getRatelimit().limit(ip);
+    log("ratelimit check", { ip, success });
     if (!success) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -29,6 +38,7 @@ export async function POST(request: NextRequest) {
 
     const referralSource = body.referralSource as string | undefined;
 
+    log("inserting into supabase");
     const { error } = await getSupabase()
       .from("waitlist")
       .insert({ email, referral_source: referralSource ?? null });
@@ -36,14 +46,20 @@ export async function POST(request: NextRequest) {
     if (error) {
       // Unique violation — email already exists
       if (error.code === "23505") {
+        log("duplicate email, skipping confirmation email", { email });
         return NextResponse.json({ success: true });
       }
-      console.error("Supabase insert error:", error);
+      console.error(`[waitlist:${requestId}] supabase insert error:`, error);
       return NextResponse.json(
         { error: "Something went wrong. Please try again." },
         { status: 500 },
       );
     }
+
+    log("supabase insert ok, sending confirmation email", {
+      from: process.env.RESEND_FROM_EMAIL,
+      to: email,
+    });
 
     // Fire-and-forget confirmation email (only for new signups)
     getResend()
@@ -66,10 +82,20 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       })
-      .catch((err) => console.error("Resend error:", err));
+      .then((result) => {
+        log("resend send resolved", {
+          id: result.data?.id,
+          error: result.error,
+        });
+      })
+      .catch((err) => {
+        console.error(`[waitlist:${requestId}] resend error:`, err);
+      });
 
+    log("returning success (email send still in flight)");
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error(`[waitlist:${requestId}] unhandled error:`, err);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 },
