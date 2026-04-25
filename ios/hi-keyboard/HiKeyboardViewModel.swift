@@ -29,39 +29,17 @@ class HiKeyboardViewModel: ObservableObject {
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
 
-    // Number of images at the start of `allImages` that were hydrated from a
-    // previous session. Stays fixed for the lifetime of this view model.
-    private(set) var restoredCount: Int = 0
-
-    // Whether the user has expanded the restored-section peek. True when there
-    // is nothing to hide (no restored images, or no new images yet).
-    @Published var restoredSectionExpanded: Bool = true
-
-    private var hasGeneratedThisSession: Bool = false
-
     // Reference to action handler for syncing focus state
     weak var actionHandler: HiActionHandler?
-    
+
     // MARK: - Computed Properties
-    
+
     var hasResults: Bool {
         !allImages.isEmpty
     }
-    
+
     var isShowingFullscreen: Bool {
         fullscreenImageIndex != nil
-    }
-
-    var restoredImages: [GeneratedImage] {
-        Array(allImages.prefix(restoredCount))
-    }
-
-    var newImages: [GeneratedImage] {
-        Array(allImages.dropFirst(restoredCount))
-    }
-
-    var hasRestoredImages: Bool {
-        restoredCount > 0
     }
 
     // Images sorted for display: grouped into batches by generation time
@@ -124,14 +102,12 @@ class HiKeyboardViewModel: ObservableObject {
                     url: $0.url,
                     prompt: gen.prompt,
                     generatedAt: gen.generatedAt,
-                    loadedAt: $0.loadedAt,
-                    isRestored: true
+                    loadedAt: $0.loadedAt
                 )
             }
         }
 
         allImages = hydrated
-        restoredCount = hydrated.count
 
         for image in hydrated {
             startLoadTracking(for: image)
@@ -242,13 +218,6 @@ class HiKeyboardViewModel: ObservableObject {
             return
         }
 
-        // Collapse the restored section at the start of this call (not only
-        // on success) so results take focus while generation is in flight.
-        let collapsedForThisCall = !hasGeneratedThisSession && restoredCount > 0
-        if collapsedForThisCall {
-            restoredSectionExpanded = false
-        }
-
         isGenerating = true
         unfocusPrompt()
         showingResults = true
@@ -279,16 +248,10 @@ class HiKeyboardViewModel: ObservableObject {
             let totalAfterAdd = allImages.count + newImages.count
             if totalAfterAdd > maxStoredImages {
                 let removeCount = totalAfterAdd - maxStoredImages
-                // Remove oldest images (and their data). Never evict below the
-                // restored section — the peek still needs something to show.
-                let safeRemoveCount = min(removeCount, allImages.count - restoredCount)
-                if safeRemoveCount > 0 {
-                    allImages.removeFirst(safeRemoveCount)
-                }
+                allImages.removeFirst(removeCount)
             }
 
             allImages.append(contentsOf: newImages)
-            hasGeneratedThisSession = true
 
             for image in newImages {
                 startLoadTracking(for: image)
@@ -306,13 +269,6 @@ class HiKeyboardViewModel: ObservableObject {
         } catch {
             HiLogger.error("Generate failed!", error: error, category: .keyboard)
             errorMessage = error.localizedDescription
-
-            // Re-expand if the failed call is what caused the collapse, so the
-            // user still sees their previous-session images.
-            if collapsedForThisCall {
-                restoredSectionExpanded = true
-            }
-
             isGenerating = false
         }
     }
@@ -447,12 +403,6 @@ class HiKeyboardViewModel: ObservableObject {
     func navigateToImage(index: Int) {
         guard index >= 0 && index < visibleImages.count else { return }
         fullscreenImageIndex = index
-    }
-    
-    // MARK: - Restored Section
-
-    func unlockRestoredSection() {
-        restoredSectionExpanded = true
     }
 
     // MARK: - Mode Switching

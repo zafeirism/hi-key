@@ -9,6 +9,5 @@ struct GeneratedImage: Identifiable {
     var isLoaded = false
     var loadedAt: Date?
     var imageData: Data?
-    var isRestored = false
 }
 
