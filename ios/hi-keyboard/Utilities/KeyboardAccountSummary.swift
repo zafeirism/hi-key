@@ -18,7 +18,6 @@ struct KeyboardAccountSummary {
         static let doubleCredits = "doubleCredits"
         // From PurchasesManager
         static let subscriptionTier = "subscriptionTier"
-        static let subscriptionRenewsAt = "subscriptionRenewsAt"
         static let subscriptionWeeklyBaseCredits = "subscriptionWeeklyBaseCredits"
     }
 
@@ -31,7 +30,6 @@ struct KeyboardAccountSummary {
     let referralCode: String?
     let doubleCredits: Bool
     let subscriptionTier: String?
-    let subscriptionRenewsAt: Date?
     let subscriptionWeeklyBaseCredits: Int
 
     static func load() -> KeyboardAccountSummary {
@@ -42,7 +40,6 @@ struct KeyboardAccountSummary {
             referralCode: d?.string(forKey: Keys.referralCode),
             doubleCredits: d?.bool(forKey: Keys.doubleCredits) ?? false,
             subscriptionTier: d?.string(forKey: Keys.subscriptionTier),
-            subscriptionRenewsAt: d?.object(forKey: Keys.subscriptionRenewsAt) as? Date,
             subscriptionWeeklyBaseCredits: d?.integer(forKey: Keys.subscriptionWeeklyBaseCredits) ?? 0
         )
     }
@@ -78,32 +75,8 @@ struct KeyboardAccountSummary {
         return doubleCredits ? subscriptionWeeklyBaseCredits * 2 : subscriptionWeeklyBaseCredits
     }
 
-    var planLabel: String {
-        (subscriptionTier ?? "Free").uppercased()
-    }
-
-    /// Mirrors HomeView's `weeklyCreditsCaption`: "X of Y weekly · resets MMM d".
-    var weeklyCreditsCaption: String? {
-        guard hasActiveSubscription else { return nil }
-        let weekly = weeklyCreditAllowance
-        let suffix: String
-        if let date = subscriptionRenewsAt {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMM d"
-            suffix = " · resets \(formatter.string(from: date))"
-        } else {
-            suffix = ""
-        }
-        return "\(credits) of \(weekly) weekly\(suffix)"
-    }
-
-    var extraCreditsCaption: String? {
-        guard extraCredits > 0 else { return nil }
-        return "+\(extraCredits) extra \(extraCredits == 1 ? "credit" : "credits")"
-    }
-
     /// Single-line description for the keyboard menu row. Compresses plan,
-    /// weekly progress, renewal date, and extras into one caption.
+    /// weekly progress, and extras into one caption.
     var creditsRowDescription: String {
         if hasActiveSubscription {
             var parts: [String] = []

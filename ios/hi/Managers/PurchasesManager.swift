@@ -33,14 +33,12 @@ final class PurchasesManager: NSObject, ObservableObject {
 
     enum AppGroupKeys {
         static let subscriptionTier = "subscriptionTier"
-        static let subscriptionRenewsAt = "subscriptionRenewsAt"
         static let subscriptionWeeklyBaseCredits = "subscriptionWeeklyBaseCredits"
     }
 
     private func mirrorToAppGroup() {
         guard let defaults = appGroupDefaults else { return }
         defaults.set(tierDisplayName, forKey: AppGroupKeys.subscriptionTier)
-        defaults.set(subscriptionRenewsAt, forKey: AppGroupKeys.subscriptionRenewsAt)
         if let id = activeSubscriptionProductID, let weekly = weeklyCredits(for: id) {
             defaults.set(weekly, forKey: AppGroupKeys.subscriptionWeeklyBaseCredits)
         } else {
