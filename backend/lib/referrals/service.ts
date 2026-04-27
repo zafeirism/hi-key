@@ -68,13 +68,14 @@ export async function getOrCreateReferralCode(
 
   const sanitized = sanitizeName(rawName);
   if (!sanitized) throw new InvalidNameError();
+  const displayName = rawName.trim();
 
   for (let attempt = 0; attempt < MAX_CODE_GENERATION_ATTEMPTS; attempt++) {
     const code = buildReferralCode(sanitized);
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update({
-        name: sanitized,
+        name: displayName,
         referral_code: code,
         updated_at: new Date().toISOString(),
       })
@@ -88,7 +89,7 @@ export async function getOrCreateReferralCode(
     }
 
     if (data && data.length > 0) {
-      return { name: sanitized, code };
+      return { name: displayName, code };
     }
 
     // 0 rows updated: another caller set the code between our read and write.

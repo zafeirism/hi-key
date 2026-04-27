@@ -38,12 +38,37 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
     await cleanup(user);
 
     const first = await getOrCreateReferralCode(user, 'Jane');
-    expect(first.name).toBe('JANE');
+    expect(first.name).toBe('Jane');
     expect(first.code.startsWith('JANE-')).toBe(true);
 
     const second = await getOrCreateReferralCode(user, 'SomeoneElse');
     expect(second.code).toBe(first.code);
-    expect(second.name).toBe('JANE');
+    expect(second.name).toBe('Jane');
+  });
+
+  it('stores the full name when longer than the code prefix max', async () => {
+    const user = track(`${prefix}-long-name`);
+    await cleanup(user);
+
+    const result = await getOrCreateReferralCode(user, 'Johnathan');
+    expect(result.name).toBe('Johnathan');
+    expect(result.code.startsWith('JOHNAT-')).toBe(true);
+
+    const { data } = await supabaseAdmin
+      .from('user_profiles')
+      .select('name')
+      .eq('user_id', user)
+      .maybeSingle();
+    expect(data?.name).toBe('Johnathan');
+  });
+
+  it('preserves casing, diacritics, and spaces in the stored name', async () => {
+    const user = track(`${prefix}-rich-name`);
+    await cleanup(user);
+
+    const result = await getOrCreateReferralCode(user, '  Zoë Müller  ');
+    expect(result.name).toBe('Zoë Müller');
+    expect(result.code.startsWith('ZOEMUL-')).toBe(true);
   });
 
   it('rejects names that sanitize to empty', async () => {
