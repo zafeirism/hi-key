@@ -1,12 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import {
-  debit,
-  grant,
-  resetSub,
-  getBalance,
-  InsufficientCreditsError,
-} from '../balance';
+import { debit, grant, resetSub, InsufficientCreditsError } from '../balance';
+import { getProfile } from '@/lib/profile/profile';
 
 const shouldRunTests =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
@@ -28,8 +23,9 @@ describe.skipIf(!shouldRunTests)('credits balance integration', () => {
   });
 
   it('returns 0/0 when user has no row', async () => {
-    const balance = await getBalance(testUserId);
-    expect(balance).toEqual({ sub_credits_mills: 0, extra_credits_mills: 0 });
+    const profile = await getProfile(testUserId);
+    expect(profile.sub_credits_mills).toBe(0);
+    expect(profile.extra_credits_mills).toBe(0);
   });
 
   it('grants sub credits and persists the ledger', async () => {
@@ -118,8 +114,9 @@ describe.skipIf(!shouldRunTests)('credits balance integration', () => {
       })
     ).rejects.toBeInstanceOf(InsufficientCreditsError);
 
-    const balance = await getBalance(user);
-    expect(balance).toEqual({ sub_credits_mills: 5, extra_credits_mills: 0 });
+    const profile = await getProfile(user);
+    expect(profile.sub_credits_mills).toBe(5);
+    expect(profile.extra_credits_mills).toBe(0);
 
     await cleanup(user);
   });

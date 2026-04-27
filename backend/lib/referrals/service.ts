@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { Balance } from '@/lib/credits/balance';
+import { getProfile } from '@/lib/profile/profile';
 import {
   REFERRAL_CODE_REGEX,
   buildReferralCode,
@@ -60,7 +61,7 @@ export async function getOrCreateReferralCode(
     .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: true });
   if (upsertError) throw upsertError;
 
-  const existing = await readProfile(userId);
+  const existing = await getProfile(userId);
   if (existing.referral_code && existing.name) {
     return { name: existing.name, code: existing.referral_code };
   }
@@ -91,7 +92,7 @@ export async function getOrCreateReferralCode(
     }
 
     // 0 rows updated: another caller set the code between our read and write.
-    const winner = await readProfile(userId);
+    const winner = await getProfile(userId);
     if (winner.referral_code && winner.name) {
       return { name: winner.name, code: winner.referral_code };
     }
@@ -149,21 +150,3 @@ export async function redeemReferralCode(
   return balance;
 }
 
-async function readProfile(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from('user_profiles')
-    .select('name, referral_code, referred_by, double_credits')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return {
-    name: data?.name ?? null,
-    referral_code: data?.referral_code ?? null,
-    referred_by: data?.referred_by ?? null,
-    double_credits: data?.double_credits ?? false,
-  };
-}
-
-export async function getReferralProfile(userId: string) {
-  return readProfile(userId);
-}

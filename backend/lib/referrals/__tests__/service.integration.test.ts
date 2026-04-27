@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import { getBalance } from '@/lib/credits/balance';
+import { getProfile } from '@/lib/profile/profile';
 import {
   AlreadyRedeemedError,
   CodeNotFoundError,
@@ -9,7 +9,6 @@ import {
   REFERRAL_BONUS_MILLS,
   SelfReferralError,
   getOrCreateReferralCode,
-  getReferralProfile,
   redeemReferralCode,
 } from '../service';
 
@@ -88,11 +87,11 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
 
     expect(balance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
 
-    const referrerBalance = await getBalance(referrer);
-    expect(referrerBalance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+    const referrerProfile = await getProfile(referrer);
+    expect(referrerProfile.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
 
-    const profile = await getReferralProfile(redeemer);
-    expect(profile.referred_by).toBe(referrer);
+    const redeemerProfile = await getProfile(redeemer);
+    expect(redeemerProfile.referred_by).toBe(referrer);
 
     const { data: txs } = await supabaseAdmin
       .from('credit_transactions')
@@ -115,11 +114,11 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
     await redeemReferralCode(redeemer, codeA);
     await expect(redeemReferralCode(redeemer, codeB)).rejects.toBeInstanceOf(AlreadyRedeemedError);
 
-    const redeemerBalance = await getBalance(redeemer);
-    expect(redeemerBalance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+    const redeemerProfile = await getProfile(redeemer);
+    expect(redeemerProfile.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
 
-    const balanceB = await getBalance(refB);
-    expect(balanceB.extra_credits_mills).toBe(0);
+    const profileB = await getProfile(refB);
+    expect(profileB.extra_credits_mills).toBe(0);
   });
 
   it('replaying the same redemption is idempotent', async () => {

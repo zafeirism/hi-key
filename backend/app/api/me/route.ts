@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isBypassUser, withAuth } from '@/lib/auth/jwt';
-import { getBalance, toDisplayCredits } from '@/lib/credits/balance';
-import { getReferralProfile } from '@/lib/referrals/service';
+import { toDisplayCredits } from '@/lib/credits/balance';
+import { getProfile } from '@/lib/profile/profile';
 
 export const GET = withAuth(async (_request, user) => {
   if (isBypassUser(user)) {
@@ -14,18 +14,16 @@ export const GET = withAuth(async (_request, user) => {
       profile: null,
       referred_by: null,
       double_credits: false,
+      active_sub_product_id: null,
     });
   }
 
-  const [balance, profile] = await Promise.all([
-    getBalance(user.id),
-    getReferralProfile(user.id),
-  ]);
+  const profile = await getProfile(user.id);
 
   return NextResponse.json({
     credits: {
-      sub_credits: toDisplayCredits(balance.sub_credits_mills),
-      extra_credits: toDisplayCredits(balance.extra_credits_mills),
+      sub_credits: toDisplayCredits(profile.sub_credits_mills),
+      extra_credits: toDisplayCredits(profile.extra_credits_mills),
       next_reset_at: null,
     },
     profile: {
@@ -34,5 +32,6 @@ export const GET = withAuth(async (_request, user) => {
     },
     referred_by: profile.referred_by,
     double_credits: profile.double_credits,
+    active_sub_product_id: profile.active_sub_product_id,
   });
 });

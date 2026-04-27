@@ -1,14 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import {
-  debit,
-  grant,
-  resetSub,
-  getBalance,
-  refundGeneration,
-  DebitNotFoundError,
-} from '../balance';
+import { debit, grant, resetSub, refundGeneration, DebitNotFoundError } from '../balance';
+import { getProfile } from '@/lib/profile/profile';
 
 const shouldRunTests =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
@@ -226,7 +220,7 @@ describe.skipIf(!shouldRunTests)('refund_generation integration', () => {
 
   it('throws DebitNotFoundError when no debit row exists for the request', async () => {
     const { userId, generationIds } = await setupUser('no-debit', { sub: 100, extra: 0 });
-    const balanceBefore = await getBalance(userId);
+    const before = await getProfile(userId);
 
     await expect(
       refundGeneration(userId, {
@@ -236,7 +230,8 @@ describe.skipIf(!shouldRunTests)('refund_generation integration', () => {
       })
     ).rejects.toBeInstanceOf(DebitNotFoundError);
 
-    const balanceAfter = await getBalance(userId);
-    expect(balanceAfter).toEqual(balanceBefore);
+    const after = await getProfile(userId);
+    expect(after.sub_credits_mills).toBe(before.sub_credits_mills);
+    expect(after.extra_credits_mills).toBe(before.extra_credits_mills);
   });
 });

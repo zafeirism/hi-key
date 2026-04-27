@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { getProfile } from '@/lib/profile/profile';
 import { lookupProduct } from './catalog';
-import { grant, resetSub, getBalance, type Balance } from './balance';
+import { grant, resetSub, type Balance } from './balance';
 
 /**
  * Minimal subset of the RC webhook event we care about.
@@ -20,13 +21,16 @@ export type EventOutcome =
   | { handled: false; summary: string };
 
 async function readDoublingMultiplier(userId: string): Promise<number> {
-  const { data, error } = await supabaseAdmin
-    .from('user_profiles')
-    .select('double_credits')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return data?.double_credits ? 2 : 1;
+  const profile = await getProfile(userId);
+  return profile.double_credits ? 2 : 1;
+}
+
+async function readBalance(userId: string): Promise<Balance> {
+  const profile = await getProfile(userId);
+  return {
+    sub_credits_mills: profile.sub_credits_mills,
+    extra_credits_mills: profile.extra_credits_mills,
+  };
 }
 
 async function setActiveSubProduct(userId: string, productId: string | null): Promise<void> {
@@ -116,16 +120,16 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
     case 'REFUND': {
       if (!product) {
         // Log-only refund (unknown product) — record nothing, return current state.
-        const balance = await getBalance(userId);
+        const balance = await readBalance(userId);
         return { handled: true, balance, summary: `refund ignored (unknown product)` };
       }
       if (product.kind === 'sub') {
-        const balance = await getBalance(userId);
+        const balance = await readBalance(userId);
         return { handled: true, balance, summary: `refund sub (no clawback policy)` };
       }
       // Pack refund: claw back up to the granted amount from remaining extra_credits.
       // For doubled users the original grant was 2x, so claw back 2x too.
-      const current = await getBalance(userId);
+      const current = await readBalance(userId);
       const grantedMills = product.amountMills * multiplier;
       const clawback = Math.min(grantedMills, current.extra_credits_mills);
       const balance = await grant(userId, {
@@ -138,7 +142,7 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
     }
 
     case 'CANCELLATION': {
-      const balance = await getBalance(userId);
+      const balance = await readBalance(userId);
       return { handled: true, balance, summary: 'cancellation (no balance change)' };
     }
 

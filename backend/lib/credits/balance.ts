@@ -26,20 +26,6 @@ export class DebitNotFoundError extends Error {
   }
 }
 
-export async function getBalance(userId: string): Promise<Balance> {
-  const { data, error } = await supabaseAdmin
-    .from('user_profiles')
-    .select('sub_credits_mills, extra_credits_mills')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return {
-    sub_credits_mills: data?.sub_credits_mills ?? 0,
-    extra_credits_mills: data?.extra_credits_mills ?? 0,
-  };
-}
-
 export async function debit(
   userId: string,
   amountMills: number,

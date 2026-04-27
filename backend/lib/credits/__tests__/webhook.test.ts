@@ -1,27 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Balance } from '../balance';
+import type { Profile } from '@/lib/profile/profile';
 
 const grantMock = vi.fn();
 const resetSubMock = vi.fn();
-const getBalanceMock = vi.fn();
+const getProfileMock = vi.fn();
 
 vi.mock('../balance', () => ({
   grant: (...args: unknown[]) => grantMock(...args),
   resetSub: (...args: unknown[]) => resetSubMock(...args),
-  getBalance: (...args: unknown[]) => getBalanceMock(...args),
 }));
 
-const maybeSingleMock = vi.fn();
+vi.mock('@/lib/profile/profile', () => ({
+  getProfile: (...args: unknown[]) => getProfileMock(...args),
+}));
+
 const upsertMock = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   supabaseAdmin: {
     from: () => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: maybeSingleMock,
-        }),
-      }),
       upsert: upsertMock,
     }),
   },
@@ -34,16 +32,32 @@ const EVENT_ID = 'evt-123';
 
 const emptyBalance: Balance = { sub_credits_mills: 0, extra_credits_mills: 0 };
 
+const defaultProfile: Profile = {
+  name: null,
+  referral_code: null,
+  referred_by: null,
+  double_credits: false,
+  sub_credits_mills: 0,
+  extra_credits_mills: 0,
+  active_sub_product_id: null,
+};
+
+let currentProfile: Profile;
+
 beforeEach(() => {
   grantMock.mockReset();
   resetSubMock.mockReset();
-  getBalanceMock.mockReset();
-  maybeSingleMock.mockReset().mockResolvedValue({ data: null, error: null });
   upsertMock.mockReset().mockResolvedValue({ error: null });
+  currentProfile = { ...defaultProfile };
+  getProfileMock.mockReset().mockImplementation(async () => currentProfile);
 });
 
 function setDoubleCredits(enabled: boolean) {
-  maybeSingleMock.mockResolvedValue({ data: { double_credits: enabled }, error: null });
+  currentProfile = { ...currentProfile, double_credits: enabled };
+}
+
+function setBalance(balance: Balance) {
+  currentProfile = { ...currentProfile, ...balance };
 }
 
 describe('handleRevenueCatEvent', () => {
@@ -299,7 +313,7 @@ describe('handleRevenueCatEvent', () => {
 
   describe('REFUND', () => {
     it('claws back up to pack size from extra credits', async () => {
-      getBalanceMock.mockResolvedValue({ sub_credits_mills: 200, extra_credits_mills: 700 });
+      setBalance({ sub_credits_mills: 200, extra_credits_mills: 700 });
       grantMock.mockResolvedValue({ sub_credits_mills: 200, extra_credits_mills: 200 });
       await handleRevenueCatEvent({
         id: EVENT_ID,
@@ -317,7 +331,7 @@ describe('handleRevenueCatEvent', () => {
 
     it('claws back 2x pack size for doubled users', async () => {
       setDoubleCredits(true);
-      getBalanceMock.mockResolvedValue({ sub_credits_mills: 0, extra_credits_mills: 2000 });
+      setBalance({ sub_credits_mills: 0, extra_credits_mills: 2000 });
       grantMock.mockResolvedValue({ sub_credits_mills: 0, extra_credits_mills: 1000 });
       await handleRevenueCatEvent({
         id: EVENT_ID,
@@ -334,7 +348,7 @@ describe('handleRevenueCatEvent', () => {
     });
 
     it('caps clawback at current extra balance', async () => {
-      getBalanceMock.mockResolvedValue({ sub_credits_mills: 0, extra_credits_mills: 100 });
+      setBalance({ sub_credits_mills: 0, extra_credits_mills: 100 });
       grantMock.mockResolvedValue({ sub_credits_mills: 0, extra_credits_mills: 0 });
       await handleRevenueCatEvent({
         id: EVENT_ID,
@@ -351,7 +365,7 @@ describe('handleRevenueCatEvent', () => {
     });
 
     it('does not mutate balance for sub refunds', async () => {
-      getBalanceMock.mockResolvedValue(emptyBalance);
+      setBalance(emptyBalance);
       await handleRevenueCatEvent({
         id: EVENT_ID,
         type: 'REFUND',
@@ -363,7 +377,7 @@ describe('handleRevenueCatEvent', () => {
     });
 
     it('ignores unknown products but still returns handled', async () => {
-      getBalanceMock.mockResolvedValue(emptyBalance);
+      setBalance(emptyBalance);
       const out = await handleRevenueCatEvent({
         id: EVENT_ID,
         type: 'REFUND',
@@ -377,7 +391,7 @@ describe('handleRevenueCatEvent', () => {
 
   describe('CANCELLATION', () => {
     it('does not mutate balance', async () => {
-      getBalanceMock.mockResolvedValue({ sub_credits_mills: 1000, extra_credits_mills: 0 });
+      setBalance({ sub_credits_mills: 1000, extra_credits_mills: 0 });
       const out = await handleRevenueCatEvent({
         id: EVENT_ID,
         type: 'CANCELLATION',

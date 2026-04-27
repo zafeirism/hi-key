@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll, beforeEach } from 'vitest';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import { getBalance } from '@/lib/credits/balance';
+import { getProfile } from '@/lib/profile/profile';
 import { generateClaimCode } from '../code';
 import {
   AlreadyClaimedError,
@@ -78,7 +78,7 @@ describe.skipIf(!shouldRunTests)('waitlist service integration', () => {
     await cleanupUser(user);
     await seedWaitlistRow(email, code);
 
-    const before = await getBalance(user);
+    const before = await getProfile(user);
     const after = await claimWaitlistCode(user, code);
 
     expect(after.sub_credits_mills).toBe(before.sub_credits_mills);
@@ -101,7 +101,7 @@ describe.skipIf(!shouldRunTests)('waitlist service integration', () => {
     await setActiveSub(user, 'plus.weekly');
     await seedWaitlistRow(email, code);
 
-    const before = await getBalance(user);
+    const before = await getProfile(user);
     const after = await claimWaitlistCode(user, code);
 
     // plus.weekly tierMaxMills = 2000
