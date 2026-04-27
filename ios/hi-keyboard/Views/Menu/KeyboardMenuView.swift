@@ -1,12 +1,11 @@
 import SwiftUI
 
 // MARK: - Keyboard Menu View
-// Replaces the keyboard area / results carousel when `mode == .menu`. Shows
-// credits, referral code, and an "open app" row, plus deep-link CTAs that
-// hand off to the host app via `extensionContext.open(_:)`.
-//
-// Styling stays visually neutral on purpose — the keyboard lives inside
-// third-party apps and must not adopt hi-key brand colors.
+// Replaces the keyboard area / results carousel when `mode == .menu`. Renders
+// as a flat, action-sheet-style list — system list look, no row backgrounds,
+// hairline dividers between rows. Stays visually neutral on purpose, since
+// the keyboard lives inside third-party apps and must not adopt hi-key
+// brand colors.
 
 struct KeyboardMenuView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
@@ -16,13 +15,13 @@ struct KeyboardMenuView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: 0) {
                 creditsRow
+                Divider()
                 referralRow
+                Divider()
                 openAppRow
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
         }
         .frame(height: 264)
         .onAppear {
@@ -30,159 +29,60 @@ struct KeyboardMenuView: View {
         }
     }
 
-    // MARK: - Credits Row
+    // MARK: - Rows
 
     private var creditsRow: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(summary.totalCredits)")
-                        .font(.system(.title, design: .rounded, weight: .heavy))
-                        .foregroundColor(.primary)
-
-                    Text("credits")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                HStack(spacing: 6) {
-                    if summary.doubleCredits {
-                        pill(text: "2×")
-                    }
-                    pill(text: summary.planLabel)
-                }
-            }
-
-            if let caption = summary.weeklyCreditsCaption {
-                Text(caption)
-                    .font(.footnote.weight(.medium))
-                    .foregroundColor(.secondary)
-            }
-
-            if let extra = summary.extraCreditsCaption {
-                Text(extra)
-                    .font(.footnote.weight(.medium))
-                    .foregroundColor(.secondary)
-            }
-
-            Button {
-                openURL("hi-key://buy-credits")
-            } label: {
-                Text("Buy credits")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
-                    )
-                    .foregroundColor(.primary)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(12)
-        .background(rowBackground)
+        MenuRow(
+            icon: "creditcard",
+            title: "\(summary.totalCredits) credits",
+            description: summary.creditsRowDescription,
+            trailingLabel: "Buy credits",
+            action: { openURL("hi-key://buy-credits") }
+        )
     }
 
-    // MARK: - Referral Row
-
+    @ViewBuilder
     private var referralRow: some View {
-        Button {
-            if let code = summary.referralCode {
-                copyReferral(code)
-            } else {
-                openURL("hi-key://referral")
-            }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "person.2")
-                    .font(.title3.weight(.semibold))
-                    .foregroundColor(.primary)
-                    .frame(width: 28)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(summary.referralCode == nil ? "Set up referral code" : "Invite friends")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-
-                    Text(summary.referralCode == nil
-                         ? "Get 50 credits per friend who joins"
-                         : "Tap to copy your code")
-                        .font(.caption.weight(.medium))
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                if let code = summary.referralCode {
-                    Text(code)
-                        .font(.subheadline.monospaced().bold())
-                        .foregroundColor(.primary)
-
-                    Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .contentTransition(.symbolEffect(.replace))
-                } else {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(12)
-            .background(rowBackground)
+        if let code = summary.referralCode {
+            MenuRow(
+                icon: "person.2",
+                title: "Invite friends",
+                description: "Tap to copy your code",
+                trailing: {
+                    HStack(spacing: 8) {
+                        Text(code)
+                            .font(.subheadline.monospaced().weight(.medium))
+                            .foregroundColor(.secondary)
+                        Image(systemName: showCopiedFeedback ? "checkmark" : "square.on.square")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.secondary)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                },
+                action: { copyReferral(code) }
+            )
+        } else {
+            MenuRow(
+                icon: "person.2",
+                title: "Set up referral code",
+                description: "Get 50 credits per friend who joins",
+                trailingLabel: nil,
+                action: { openURL("hi-key://referral") }
+            )
         }
-        .buttonStyle(.plain)
     }
-
-    // MARK: - Open App Row
 
     private var openAppRow: some View {
-        Button {
-            openURL("hi-key://")
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.up.forward.app")
-                    .font(.title3.weight(.semibold))
-                    .foregroundColor(.primary)
-                    .frame(width: 28)
-
-                Text("Open hi-key")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.secondary)
-            }
-            .padding(12)
-            .background(rowBackground)
-        }
-        .buttonStyle(.plain)
+        MenuRow(
+            icon: "arrow.up.forward.app",
+            title: "Open hi-key",
+            description: nil,
+            trailingLabel: nil,
+            action: { openURL("hi-key://") }
+        )
     }
 
     // MARK: - Helpers
-
-    private var rowBackground: some View {
-        RoundedRectangle(cornerRadius: 12)
-            .fill(Color(.systemBackground).opacity(0.6))
-    }
-
-    private func pill(text: String) -> some View {
-        Text(text)
-            .font(.caption.weight(.semibold))
-            .foregroundColor(.primary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.secondary.opacity(0.5), lineWidth: 1)
-            )
-    }
 
     private func openURL(_ string: String) {
         guard let url = URL(string: string) else { return }
@@ -199,6 +99,81 @@ struct KeyboardMenuView: View {
             withAnimation(.easeInOut(duration: 0.2)) {
                 showCopiedFeedback = false
             }
+        }
+    }
+}
+
+// MARK: - Menu Row
+
+private struct MenuRow<Trailing: View>: View {
+    let icon: String
+    let title: String
+    let description: String?
+    @ViewBuilder let trailing: () -> Trailing
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundColor(.primary)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .foregroundColor(.primary)
+
+                    if let description {
+                        Text(description)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                trailing()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.secondary.opacity(0.6))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// Convenience initializer for rows whose only trailing element is a text label
+// (or nothing). Keeps the call sites tidy.
+extension MenuRow where Trailing == AnyView {
+    init(
+        icon: String,
+        title: String,
+        description: String?,
+        trailingLabel: String?,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.title = title
+        self.description = description
+        self.action = action
+        self.trailing = {
+            AnyView(
+                Group {
+                    if let trailingLabel {
+                        Text(trailingLabel)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            )
         }
     }
 }

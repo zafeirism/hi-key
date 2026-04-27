@@ -81,4 +81,27 @@ struct KeyboardAccountSummary {
         guard extraCredits > 0 else { return nil }
         return "+\(extraCredits) extra \(extraCredits == 1 ? "credit" : "credits")"
     }
+
+    /// Single-line description for the keyboard menu row. Compresses plan,
+    /// weekly progress, renewal date, and extras into one caption.
+    var creditsRowDescription: String {
+        if hasActiveSubscription {
+            var parts: [String] = []
+            if let tier = subscriptionTier { parts.append(tier) }
+            if subscriptionWeeklyBaseCredits > 0 {
+                parts.append("\(credits) of \(weeklyCreditAllowance) weekly")
+            }
+            if let date = subscriptionRenewsAt {
+                let f = DateFormatter()
+                f.dateFormat = "MMM d"
+                parts.append("resets \(f.string(from: date))")
+            }
+            if extraCredits > 0 {
+                parts.append("+\(extraCredits) extra")
+            }
+            return parts.joined(separator: " · ")
+        } else {
+            return "Free plan"
+        }
+    }
 }
