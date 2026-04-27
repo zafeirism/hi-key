@@ -10,8 +10,9 @@ import SwiftUI
 struct KeyboardMenuView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
 
-    @State private var summary: KeyboardAccountSummary = .load()
     @State private var showCopiedFeedback = false
+
+    private var summary: KeyboardAccountSummary { viewModel.accountSummary }
 
     var body: some View {
         ScrollView {
@@ -24,9 +25,6 @@ struct KeyboardMenuView: View {
             }
         }
         .frame(height: 264)
-        .onAppear {
-            summary = .load()
-        }
     }
 
     // MARK: - Rows
@@ -48,6 +46,7 @@ struct KeyboardMenuView: View {
                 icon: "person.2",
                 title: "Invite friends",
                 description: "Tap to copy your code",
+                showsChevron: false,
                 trailing: {
                     HStack(spacing: 8) {
                         Text(code)
@@ -109,8 +108,25 @@ private struct MenuRow<Trailing: View>: View {
     let icon: String
     let title: String
     let description: String?
+    let showsChevron: Bool
     @ViewBuilder let trailing: () -> Trailing
     let action: () -> Void
+
+    init(
+        icon: String,
+        title: String,
+        description: String?,
+        showsChevron: Bool = true,
+        @ViewBuilder trailing: @escaping () -> Trailing,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.title = title
+        self.description = description
+        self.showsChevron = showsChevron
+        self.trailing = trailing
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
@@ -138,9 +154,11 @@ private struct MenuRow<Trailing: View>: View {
 
                 trailing()
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.secondary.opacity(0.6))
+                if showsChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
@@ -158,22 +176,26 @@ extension MenuRow where Trailing == AnyView {
         title: String,
         description: String?,
         trailingLabel: String?,
+        showsChevron: Bool = true,
         action: @escaping () -> Void
     ) {
-        self.icon = icon
-        self.title = title
-        self.description = description
-        self.action = action
-        self.trailing = {
-            AnyView(
-                Group {
-                    if let trailingLabel {
-                        Text(trailingLabel)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.secondary)
+        self.init(
+            icon: icon,
+            title: title,
+            description: description,
+            showsChevron: showsChevron,
+            trailing: {
+                AnyView(
+                    Group {
+                        if let trailingLabel {
+                            Text(trailingLabel)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.secondary)
+                        }
                     }
-                }
-            )
-        }
+                )
+            },
+            action: action
+        )
     }
 }

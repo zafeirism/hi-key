@@ -47,6 +47,26 @@ struct KeyboardAccountSummary {
         )
     }
 
+    // MARK: - Writers
+    // Called from the keyboard when generate or /api/me returns fresh data,
+    // so the menu reflects the latest server-authoritative balance without
+    // needing the main app to be opened. Subscription tier/renewal stay
+    // owned by the main app's PurchasesManager (RevenueCat-derived).
+
+    static func applyMe(_ response: APIClient.MeResponse) {
+        let d = defaults
+        d?.set(response.credits.sub_credits, forKey: Keys.credits)
+        d?.set(response.credits.extra_credits, forKey: Keys.extraCredits)
+        d?.set(response.profile?.referral_code, forKey: Keys.referralCode)
+        d?.set(response.double_credits ?? false, forKey: Keys.doubleCredits)
+    }
+
+    static func applyBalance(_ balance: APIClient.CreditsBalance) {
+        let d = defaults
+        d?.set(balance.sub_credits, forKey: Keys.credits)
+        d?.set(balance.extra_credits, forKey: Keys.extraCredits)
+    }
+
     // MARK: - Derived
 
     var totalCredits: Int { credits + extraCredits }
@@ -89,12 +109,7 @@ struct KeyboardAccountSummary {
             var parts: [String] = []
             if let tier = subscriptionTier { parts.append(tier) }
             if subscriptionWeeklyBaseCredits > 0 {
-                parts.append("\(credits) of \(weeklyCreditAllowance) weekly")
-            }
-            if let date = subscriptionRenewsAt {
-                let f = DateFormatter()
-                f.dateFormat = "MMM d"
-                parts.append("resets \(f.string(from: date))")
+                parts.append("\(credits) of \(weeklyCreditAllowance)")
             }
             if extraCredits > 0 {
                 parts.append("+\(extraCredits) extra")

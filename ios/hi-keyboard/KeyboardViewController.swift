@@ -32,6 +32,10 @@ class KeyboardViewController: KeyboardInputViewController {
         Task {
             try await APIClient.shared.warmup()
         }
+
+        Task { [weak self] in
+            await self?.hiViewModel.refreshFromBackend()
+        }
     }
 
     /// Open a hi-key:// URL from the keyboard. `extensionContext.open(_:)`

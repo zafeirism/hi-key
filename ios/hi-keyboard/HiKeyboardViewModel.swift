@@ -27,6 +27,12 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var fullscreenImageIndex: Int?
     @Published var mode: KeyboardMode = .composing
 
+    // Snapshot of credits / referral / subscription state pulled from the
+    // App Group. Refreshed after /api/me on keyboard load and after every
+    // /api/generate so the menu reflects fresh balance without the user
+    // having to reopen the main app.
+    @Published var accountSummary: KeyboardAccountSummary = .load()
+
     // Tracks the mode the user was in before opening the menu, so closing
     // the menu returns them to results vs composing as appropriate.
     private var modeBeforeMenu: KeyboardMode = .composing
@@ -274,6 +280,11 @@ class HiKeyboardViewModel: ObservableObject {
             )
             RecentGenerationsStore.append(stored)
 
+            if let balance = response.balance {
+                KeyboardAccountSummary.applyBalance(balance)
+                accountSummary = .load()
+            }
+
             isGenerating = false
 
         } catch {
@@ -448,6 +459,19 @@ class HiKeyboardViewModel: ObservableObject {
         showingResults = (modeBeforeMenu == .results)
         if modeBeforeMenu == .composing {
             isPromptFocused = true
+        }
+    }
+
+    /// Pull the latest credits / referral / double-credits state from the
+    /// backend so the keyboard menu doesn't go stale when the user hasn't
+    /// opened the main app for weeks (e.g. across a subscription renewal).
+    func refreshFromBackend() async {
+        do {
+            let response = try await apiClient.me()
+            KeyboardAccountSummary.applyMe(response)
+            accountSummary = .load()
+        } catch {
+            HiLogger.error("Keyboard /api/me refresh failed", error: error, category: .keyboard)
         }
     }
 
