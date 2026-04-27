@@ -35,6 +35,9 @@ struct hiApp: App {
             }
             .animation(.easeInOut(duration: 0.3), value: showSplash)
             .preferredColorScheme(.dark)
+            .onOpenURL { url in
+                DeepLinkRouter.shared.handle(url)
+            }
         }
     }
     

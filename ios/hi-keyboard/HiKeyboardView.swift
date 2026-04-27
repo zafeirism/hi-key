@@ -31,8 +31,10 @@ struct HiKeyboardView: View {
     private var mainContent: some View {
         VStack(spacing: 0) {
             PromptBarView(viewModel: viewModel)
-            
-            if viewModel.showingResults || viewModel.isGenerating {
+
+            if viewModel.isShowingMenu {
+                KeyboardMenuView(viewModel: viewModel)
+            } else if viewModel.showingResults || viewModel.isGenerating {
                 ResultsView(viewModel: viewModel)
             } else {
                 KeyboardArea

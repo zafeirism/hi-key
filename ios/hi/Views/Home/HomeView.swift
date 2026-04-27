@@ -4,6 +4,7 @@ struct HomeView: View {
     @ObservedObject var creditsManager = CreditsManager.shared
     @ObservedObject var purchasesManager = PurchasesManager.shared
     @ObservedObject var onboardingManager = OnboardingManager.shared
+    @ObservedObject var deepLinkRouter = DeepLinkRouter.shared
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var showReferralCode: Bool = false
@@ -67,6 +68,7 @@ struct HomeView: View {
             if !isRunningInPreview {
                 Task { await creditsManager.refresh() }
             }
+            handlePendingRoute()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
@@ -76,6 +78,22 @@ struct HomeView: View {
                 }
             }
         }
+        .onChange(of: deepLinkRouter.pendingRoute) { _, _ in
+            handlePendingRoute()
+        }
+    }
+
+    private func handlePendingRoute() {
+        guard let route = deepLinkRouter.pendingRoute else { return }
+        switch route {
+        case .openApp:
+            break
+        case .buyCredits:
+            showAllOptions = true
+        case .referral:
+            showReferralCode = true
+        }
+        deepLinkRouter.consume()
     }
 
     // MARK: - Derived State

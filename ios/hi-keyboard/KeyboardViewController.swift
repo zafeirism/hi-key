@@ -12,17 +12,21 @@ class KeyboardViewController: KeyboardInputViewController {
         
         setup(for: .hi) { [weak self] result in
             guard let self else { return }
-            
+
             switch result {
             case .success:
                 print("KeyboardKit setup succeeded")
                 let handler = HiActionHandler(controller: self, viewModel: self.hiViewModel)
                 self.services.actionHandler = handler
                 self.hiViewModel.actionHandler = handler
-                
+
             case .failure(let error):
                 HiLogger.error("KeyboardKit setup failed", error: error, category: .keyboard)
             }
+        }
+
+        hiViewModel.openURLHandler = { [weak self] url in
+            self?.extensionContext?.open(url, completionHandler: nil)
         }
         
         Task {

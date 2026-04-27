@@ -7,6 +7,7 @@ enum KeyboardMode: Equatable {
     case composing              // Typing prompt, showing suggestions + keyboard
     case browsingSuggestions    // Showing category picker instead of keyboard
     case results                // Showing image carousel
+    case menu                   // Showing settings / credits / referral menu
 }
 
 // MARK: - View Model
@@ -26,11 +27,20 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var fullscreenImageIndex: Int?
     @Published var mode: KeyboardMode = .composing
 
+    // Tracks the mode the user was in before opening the menu, so closing
+    // the menu returns them to results vs composing as appropriate.
+    private var modeBeforeMenu: KeyboardMode = .composing
+
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
 
     // Reference to action handler for syncing focus state
     weak var actionHandler: HiActionHandler?
+
+    // Injected by KeyboardViewController so the menu can open hi-key:// URLs
+    // through `extensionContext.open(_:completionHandler:)` — the only
+    // sanctioned way for a keyboard extension to launch its host app.
+    var openURLHandler: ((URL) -> Void)?
 
     // MARK: - Computed Properties
 
@@ -413,5 +423,43 @@ class HiKeyboardViewModel: ObservableObject {
         } else {
             mode = .browsingSuggestions
         }
+    }
+
+    var isShowingMenu: Bool { mode == .menu }
+
+    func toggleMenu() {
+        if mode == .menu {
+            closeMenu()
+        } else {
+            openMenu()
+        }
+    }
+
+    func openMenu() {
+        guard mode != .menu else { return }
+        modeBeforeMenu = mode
+        unfocusPrompt()
+        mode = .menu
+    }
+
+    func closeMenu() {
+        guard mode == .menu else { return }
+        mode = modeBeforeMenu
+        showingResults = (modeBeforeMenu == .results)
+        if modeBeforeMenu == .composing {
+            isPromptFocused = true
+        }
+    }
+
+    /// Open a hi-key:// URL via the host extensionContext. Closes the menu
+    /// first so the keyboard isn't sitting in menu mode when the user comes
+    /// back from the app.
+    func openURL(_ url: URL) {
+        closeMenu()
+        guard let handler = openURLHandler else {
+            HiLogger.error("openURL called without a handler", category: .keyboard)
+            return
+        }
+        handler(url)
     }
 }

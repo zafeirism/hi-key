@@ -13,10 +13,40 @@ final class PurchasesManager: NSObject, ObservableObject {
 
     // MARK: - Published State
 
-    @Published private(set) var customerInfo: CustomerInfo?
+    @Published private(set) var customerInfo: CustomerInfo? {
+        didSet { mirrorToAppGroup() }
+    }
     @Published private(set) var offerings: Offerings?
 
     var currentOffering: Offering? { offerings?.current }
+
+    // MARK: - App Group Mirror
+    // Subscription fields mirror to the app-group defaults so the keyboard
+    // extension can render the same credits/renewal info without its own RC
+    // fetch. Written on every customerInfo update; read by the keyboard via
+    // `KeyboardAccountSummary`.
+
+    private static let appGroupID = "group.ai.hi-key"
+    private var appGroupDefaults: UserDefaults? {
+        UserDefaults(suiteName: Self.appGroupID)
+    }
+
+    enum AppGroupKeys {
+        static let subscriptionTier = "subscriptionTier"
+        static let subscriptionRenewsAt = "subscriptionRenewsAt"
+        static let subscriptionWeeklyBaseCredits = "subscriptionWeeklyBaseCredits"
+    }
+
+    private func mirrorToAppGroup() {
+        guard let defaults = appGroupDefaults else { return }
+        defaults.set(tierDisplayName, forKey: AppGroupKeys.subscriptionTier)
+        defaults.set(subscriptionRenewsAt, forKey: AppGroupKeys.subscriptionRenewsAt)
+        if let id = activeSubscriptionProductID, let weekly = weeklyCredits(for: id) {
+            defaults.set(weekly, forKey: AppGroupKeys.subscriptionWeeklyBaseCredits)
+        } else {
+            defaults.removeObject(forKey: AppGroupKeys.subscriptionWeeklyBaseCredits)
+        }
+    }
 
     // MARK: - Internal Catalog
     // Throwaway map: product ID → client-side metadata that RC can't give us
