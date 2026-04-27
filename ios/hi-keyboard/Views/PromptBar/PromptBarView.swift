@@ -38,13 +38,18 @@ struct PromptBarView: View {
         Button {
             viewModel.toggleMenu()
         } label: {
-            Image(systemName: viewModel.isShowingMenu ? "xmark" : "slider.horizontal.3")
-                .font(.system(.title3, weight: .medium))
-                .foregroundColor(.primary)
-                .frame(width: 36, height: 36)
-                .background(Color.white.opacity(0.001))
-                .cornerRadius(8)
-                .contentTransition(.symbolEffect(.replace))
+            ZStack {
+                Image(systemName: "slider.horizontal.3")
+                    .opacity(viewModel.isShowingMenu ? 0 : 1)
+                Image(systemName: "xmark")
+                    .opacity(viewModel.isShowingMenu ? 1 : 0)
+            }
+            .font(.system(.title3, weight: .medium))
+            .foregroundColor(.primary)
+            .frame(width: 36, height: 36)
+            .background(Color.white.opacity(0.001))
+            .cornerRadius(8)
+            .animation(.easeOut(duration: 0.12), value: viewModel.isShowingMenu)
         }
     }
 }
