@@ -26,12 +26,30 @@ class KeyboardViewController: KeyboardInputViewController {
         }
 
         hiViewModel.openURLHandler = { [weak self] url in
-            self?.extensionContext?.open(url, completionHandler: nil)
+            self?.openHostApp(url: url)
         }
-        
+
         Task {
             try await APIClient.shared.warmup()
         }
+    }
+
+    /// Open a hi-key:// URL from the keyboard. `extensionContext.open(_:)`
+    /// is not honored for keyboard extensions, and `UIApplication.open(_:)`
+    /// is marked unavailable in extension targets. The working path is to
+    /// walk the responder chain to the connected `UIScene` and call its
+    /// typed `open(_:options:completionHandler:)` API — that one IS
+    /// available in extensions. Full Access is required.
+    private func openHostApp(url: URL) {
+        var responder: UIResponder? = self
+        while let r = responder {
+            if let scene = r as? UIScene {
+                scene.open(url, options: nil, completionHandler: nil)
+                return
+            }
+            responder = r.next
+        }
+        HiLogger.error("No UIScene found up the responder chain", category: .keyboard)
     }
     
     override func viewWillSetupKeyboardView() {
