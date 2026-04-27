@@ -76,6 +76,7 @@
 				AuthKeychainStorage.swift,
 				AuthManager.swift,
 				KeyboardAppHi.swift,
+				SubscriptionCatalog.swift,
 				SupabaseManager.swift,
 			);
 			target = 33B4B5482ED877D200120BAA /* hi-keyboard */;

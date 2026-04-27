@@ -491,7 +491,8 @@ struct HomeView: View {
                 credits: APIClient.CreditsBalance(sub_credits: 400, extra_credits: 50),
                 profile: APIClient.ProfileDTO(name: "Zaf", referral_code: "ZAF-ABC123"),
                 referred_by: nil,
-                double_credits: true
+                double_credits: true,
+                active_sub_product_id: nil
             ))
         }
 }

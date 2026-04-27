@@ -46,29 +46,15 @@ final class PurchasesManager: NSObject, ObservableObject {
         }
     }
 
-    // MARK: - Internal Catalog
-    // Throwaway map: product ID → client-side metadata that RC can't give us
-    // (credit allowance per tier, upgrade/downgrade ordering, pack sizes).
-    // Moves to the backend in Step 6 of purchases.md.
-
-    private struct TierInfo {
-        let displayName: String
-        let weeklyCredits: Int
-        /// Lower level = higher tier. Super=1, Plus=2, Starter=3.
-        /// Drives upgrade/downgrade labels in AllPlansSheet.
-        let level: Int
-    }
+    // MARK: - Pack Catalog
+    // One-time credit packs. Tier subscription catalog lives in
+    // SubscriptionCatalog (shared with the keyboard extension). Both move
+    // to the backend in Step 6 of purchases.md.
 
     private struct PackInfo {
         let displayName: String
         let credits: Int
     }
-
-    private let tierCatalog: [String: TierInfo] = [
-        "starter.weekly": TierInfo(displayName: "Starter", weeklyCredits: 100, level: 3),
-        "plus.weekly":    TierInfo(displayName: "Plus",    weeklyCredits: 200, level: 2),
-        "super.weekly":   TierInfo(displayName: "Super",   weeklyCredits: 300, level: 1),
-    ]
 
     private let packCatalog: [String: PackInfo] = [
         "pack.mini": PackInfo(displayName: "Mini pack", credits: 50),
@@ -176,7 +162,7 @@ final class PurchasesManager: NSObject, ObservableObject {
 
     var tierDisplayName: String? {
         guard let id = activeSubscriptionProductID else { return nil }
-        return tierCatalog[id]?.displayName
+        return SubscriptionCatalog.displayName(for: id)
     }
 
     var subscriptionRenewsAt: Date? {
@@ -197,11 +183,11 @@ final class PurchasesManager: NSObject, ObservableObject {
     func subscriptionPackages() -> [Package] {
         guard let packages = currentOffering?.availablePackages else { return [] }
         return packages
-            .filter { tierCatalog[$0.storeProduct.productIdentifier] != nil }
+            .filter { SubscriptionCatalog.tiers[$0.storeProduct.productIdentifier] != nil }
             .sorted { lhs, rhs in
                 // Starter (level 3) first, Super (level 1) last.
-                let lhsLevel = tierCatalog[lhs.storeProduct.productIdentifier]?.level ?? .max
-                let rhsLevel = tierCatalog[rhs.storeProduct.productIdentifier]?.level ?? .max
+                let lhsLevel = SubscriptionCatalog.level(for: lhs.storeProduct.productIdentifier) ?? .max
+                let rhsLevel = SubscriptionCatalog.level(for: rhs.storeProduct.productIdentifier) ?? .max
                 return lhsLevel > rhsLevel
             }
     }
@@ -224,11 +210,11 @@ final class PurchasesManager: NSObject, ObservableObject {
     // MARK: - Catalog Lookups
 
     func tierDisplayName(for productID: String) -> String? {
-        tierCatalog[productID]?.displayName
+        SubscriptionCatalog.displayName(for: productID)
     }
 
     func weeklyCredits(for productID: String) -> Int? {
-        tierCatalog[productID]?.weeklyCredits
+        SubscriptionCatalog.weeklyCredits(for: productID)
     }
 
     func packDisplayName(for productID: String) -> String? {
@@ -240,7 +226,7 @@ final class PurchasesManager: NSObject, ObservableObject {
     }
 
     func level(for productID: String) -> Int? {
-        tierCatalog[productID]?.level
+        SubscriptionCatalog.level(for: productID)
     }
 }
 

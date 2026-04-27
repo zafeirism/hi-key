@@ -38,6 +38,7 @@ class APIClient {
         let profile: ProfileDTO?
         let referred_by: String?
         let double_credits: Bool?
+        let active_sub_product_id: String?
     }
 
     struct InsufficientCreditsPayload: Codable {

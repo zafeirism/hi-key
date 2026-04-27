@@ -56,6 +56,19 @@ struct KeyboardAccountSummary {
         d?.set(response.credits.extra_credits, forKey: Keys.extraCredits)
         d?.set(response.profile?.referral_code, forKey: Keys.referralCode)
         d?.set(response.double_credits ?? false, forKey: Keys.doubleCredits)
+
+        // Subscription tier + weekly base credits — derived from the
+        // server-authoritative product ID via SubscriptionCatalog. Same
+        // App Group keys that PurchasesManager (RC source) writes from
+        // the main app, so both writers converge on the same values.
+        if let productID = response.active_sub_product_id {
+            d?.set(SubscriptionCatalog.displayName(for: productID), forKey: Keys.subscriptionTier)
+            d?.set(SubscriptionCatalog.weeklyCredits(for: productID) ?? 0,
+                   forKey: Keys.subscriptionWeeklyBaseCredits)
+        } else {
+            d?.removeObject(forKey: Keys.subscriptionTier)
+            d?.removeObject(forKey: Keys.subscriptionWeeklyBaseCredits)
+        }
     }
 
     static func applyBalance(_ balance: APIClient.CreditsBalance) {
