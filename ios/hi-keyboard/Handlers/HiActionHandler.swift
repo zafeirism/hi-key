@@ -54,7 +54,8 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             
         case (.release, .primary):
             MainActor.assumeIsolated {
-                guard NetworkMonitor.shared.isOnline else {
+                guard FullAccessMonitor.shared.hasFullAccess,
+                      NetworkMonitor.shared.isOnline else {
                     errorHapticGenerator.notificationOccurred(.error)
                     return
                 }

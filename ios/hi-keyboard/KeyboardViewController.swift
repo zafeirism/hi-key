@@ -9,7 +9,9 @@ class KeyboardViewController: KeyboardInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         HiLogger.configure()
-        
+
+        FullAccessMonitor.shared.update(hasFullAccess)
+
         setup(for: .hi) { [weak self] result in
             guard let self else { return }
 
@@ -56,6 +58,11 @@ class KeyboardViewController: KeyboardInputViewController {
         HiLogger.error("No UIScene found up the responder chain", category: .keyboard)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        FullAccessMonitor.shared.update(hasFullAccess)
+    }
+
     override func viewWillSetupKeyboardView() {
         setupKeyboardView { [unowned self] controller in
             HiKeyboardView(

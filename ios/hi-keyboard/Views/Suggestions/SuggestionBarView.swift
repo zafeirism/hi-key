@@ -4,6 +4,7 @@ import Combine
 struct SuggestionBarView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
     @ObservedObject private var network = NetworkMonitor.shared
+    @ObservedObject private var fullAccess = FullAccessMonitor.shared
 
     @State private var suggestions: [String] = []
     @State private var autocompleteTask: Task<Void, Never>?
@@ -12,13 +13,23 @@ struct SuggestionBarView: View {
     private let apiClient = APIClient.shared
     private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
 
+    // Full access takes precedence over connectivity — the keyboard cannot
+    // reach the network at all without the permission, so naming the
+    // proximate cause is more useful to the user than reporting "offline".
+    private var showsFullAccessStatus: Bool {
+        !fullAccess.hasFullAccess || fullAccess.showJustEnabled
+    }
+
     private var showsNetworkStatus: Bool {
         !network.isOnline || network.showBackOnline
     }
 
     var body: some View {
         ZStack {
-            if showsNetworkStatus {
+            if showsFullAccessStatus {
+                FullAccessStatusView(isJustEnabled: fullAccess.hasFullAccess)
+                    .transition(.opacity)
+            } else if showsNetworkStatus {
                 NetworkStatusView(isBackOnline: network.isOnline)
                     .transition(.opacity)
             } else {
@@ -26,6 +37,7 @@ struct SuggestionBarView: View {
                     .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: showsFullAccessStatus)
         .animation(.easeInOut(duration: 0.25), value: showsNetworkStatus)
         .background(Color.clear)
         .onAppear {
@@ -123,6 +135,25 @@ struct SuggestionBarView: View {
         
         // Clear suggestions with animation
         suggestions = []
+    }
+}
+
+// MARK: - Full Access Status View
+
+private struct FullAccessStatusView: View {
+    let isJustEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: isJustEnabled ? "checkmark.circle" : "lock")
+                .contentTransition(.symbolEffect(.replace))
+            Text(isJustEnabled ? "Full access enabled" : "Open hi-key to enable Full Access")
+                .contentTransition(.opacity)
+        }
+        .font(.callout)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 8)
+        .animation(.easeInOut(duration: 0.2), value: isJustEnabled)
     }
 }
 
