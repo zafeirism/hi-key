@@ -3,15 +3,40 @@ import Combine
 
 struct SuggestionBarView: View {
     @ObservedObject var viewModel: HiKeyboardViewModel
-    
+    @ObservedObject private var network = NetworkMonitor.shared
+
     @State private var suggestions: [String] = []
     @State private var autocompleteTask: Task<Void, Never>?
     @State private var debounceTimer: Timer?
-    
+
     private let apiClient = APIClient.shared
     private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
-    
+
+    private var showsNetworkStatus: Bool {
+        !network.isOnline || network.showBackOnline
+    }
+
     var body: some View {
+        ZStack {
+            if showsNetworkStatus {
+                NetworkStatusView(isBackOnline: network.isOnline)
+                    .transition(.opacity)
+            } else {
+                suggestionsScroll
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: showsNetworkStatus)
+        .background(Color.clear)
+        .onAppear {
+            handlePromptChange(viewModel.promptUpToCursor())
+        }
+        .onChange(of: viewModel.prompt) { _, _ in
+            handlePromptChange(viewModel.promptUpToCursor())
+        }
+    }
+
+    private var suggestionsScroll: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(suggestions, id: \.self) { suggestion in
@@ -23,13 +48,6 @@ struct SuggestionBarView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
             .animation(.easeOut(duration: 0.2), value: suggestions)
-        }
-        .background(Color.clear)
-        .onAppear {
-            handlePromptChange(viewModel.promptUpToCursor())
-        }
-        .onChange(of: viewModel.prompt) { _, _ in
-            handlePromptChange(viewModel.promptUpToCursor())
         }
     }
     
@@ -105,6 +123,25 @@ struct SuggestionBarView: View {
         
         // Clear suggestions with animation
         suggestions = []
+    }
+}
+
+// MARK: - Network Status View
+
+private struct NetworkStatusView: View {
+    let isBackOnline: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: isBackOnline ? "checkmark.circle" : "wifi.slash")
+                .contentTransition(.symbolEffect(.replace))
+            Text(isBackOnline ? "Back online" : "No internet")
+                .contentTransition(.opacity)
+        }
+        .font(.callout)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 8)
+        .animation(.easeInOut(duration: 0.2), value: isBackOnline)
     }
 }
 

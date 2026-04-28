@@ -1,8 +1,10 @@
 import KeyboardKit
+import UIKit
 
 class HiActionHandler: KeyboardAction.StandardActionHandler {
-    
+
     private weak var viewModel: HiKeyboardViewModel?
+    private let errorHapticGenerator = UINotificationFeedbackGenerator()
     
     init(controller: KeyboardInputViewController, viewModel: HiKeyboardViewModel) {
         self.viewModel = viewModel
@@ -52,6 +54,10 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             
         case (.release, .primary):
             MainActor.assumeIsolated {
+                guard NetworkMonitor.shared.isOnline else {
+                    errorHapticGenerator.notificationOccurred(.error)
+                    return
+                }
                 Task {
                     await viewModel?.generate()
                 }
