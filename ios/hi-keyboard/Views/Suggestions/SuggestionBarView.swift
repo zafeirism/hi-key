@@ -16,12 +16,18 @@ struct SuggestionBarView: View {
     // Full access takes precedence over connectivity — the keyboard cannot
     // reach the network at all without the permission, so naming the
     // proximate cause is more useful to the user than reporting "offline".
+    // Network in turn takes precedence over low credits, since "Buy credits"
+    // can't complete a purchase while offline.
     private var showsFullAccessStatus: Bool {
         !fullAccess.hasFullAccess || fullAccess.showJustEnabled
     }
 
     private var showsNetworkStatus: Bool {
         !network.isOnline || network.showBackOnline
+    }
+
+    private var showsLowCreditsStatus: Bool {
+        !viewModel.accountSummary.hasEnoughCredits
     }
 
     var body: some View {
@@ -32,6 +38,9 @@ struct SuggestionBarView: View {
             } else if showsNetworkStatus {
                 NetworkStatusView(isBackOnline: network.isOnline)
                     .transition(.opacity)
+            } else if showsLowCreditsStatus {
+                LowCreditsStatusView(onBuyCredits: openBuyCredits)
+                    .transition(.opacity)
             } else {
                 suggestionsScroll
                     .transition(.opacity)
@@ -39,6 +48,7 @@ struct SuggestionBarView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: showsFullAccessStatus)
         .animation(.easeInOut(duration: 0.25), value: showsNetworkStatus)
+        .animation(.easeInOut(duration: 0.25), value: showsLowCreditsStatus)
         .background(Color.clear)
         .onAppear {
             handlePromptChange(viewModel.promptUpToCursor())
@@ -46,6 +56,11 @@ struct SuggestionBarView: View {
         .onChange(of: viewModel.prompt) { _, _ in
             handlePromptChange(viewModel.promptUpToCursor())
         }
+    }
+
+    private func openBuyCredits() {
+        guard let url = URL(string: "hi-key://buy-credits") else { return }
+        viewModel.openURL(url)
     }
 
     private var suggestionsScroll: some View {
@@ -138,6 +153,36 @@ struct SuggestionBarView: View {
     }
 }
 
+// MARK: - Low Credits Status View
+
+private struct LowCreditsStatusView: View {
+    let onBuyCredits: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.triangle")
+            .foregroundColor(.orange)
+            Text("You don't have enough credits.")
+
+            Button(action: onBuyCredits) {
+                HStack(spacing: 2) {
+                    Text("Buy now")
+                    Image(systemName: "chevron.right")
+                        .font(.callout.weight(.semibold))
+                }
+                .font(.callout.weight(.medium))
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+        }
+        .font(.callout)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 8)
+    }
+}
+
 // MARK: - Full Access Status View
 
 private struct FullAccessStatusView: View {
@@ -145,7 +190,8 @@ private struct FullAccessStatusView: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: isJustEnabled ? "checkmark.circle" : "lock")
+            Image(systemName: isJustEnabled ? "checkmark.circle" : "exclamationmark.triangle")
+            .foregroundColor(isJustEnabled ? .secondary : .orange)
                 .contentTransition(.symbolEffect(.replace))
             Text(isJustEnabled ? "Full access enabled" : "Open hi-key to enable Full Access")
                 .contentTransition(.opacity)

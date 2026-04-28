@@ -457,7 +457,7 @@ class APIClient {
             case .httpError(let code):
                 return "Server error: \(code)"
             case .notAuthenticated:
-                return "Please login in the hi app first"
+                return "Please re-install the hi-key app."
             case .insufficientCredits:
                 return "You're out of credits"
             case .invalidReferralName:

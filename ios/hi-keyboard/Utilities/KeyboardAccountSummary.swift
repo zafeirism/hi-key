@@ -79,7 +79,15 @@ struct KeyboardAccountSummary {
 
     // MARK: - Derived
 
+    // Minimum credits needed to attempt a generation. A generate currently
+    // costs ~8.4 credits, so 9 is the smallest integer balance that
+    // guarantees the request will be accepted server-side. If model
+    // selection ships and per-generate cost diverges, update this here.
+    static let minCreditsForGeneration: Int = 9
+
     var totalCredits: Int { credits + extraCredits }
+
+    var hasEnoughCredits: Bool { totalCredits >= Self.minCreditsForGeneration }
 
     var hasActiveSubscription: Bool { subscriptionTier != nil }
 
