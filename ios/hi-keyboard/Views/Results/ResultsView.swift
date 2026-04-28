@@ -12,9 +12,9 @@ struct ResultsView: View {
             } else {
                 ZStack{
                     ImageCarouselView(viewModel: viewModel)
-                    
+
                     VStack{
-                        StatusBarView()
+                        StatusBarView(transientMessage: viewModel.transientStatusMessage)
                         Spacer()
                     }
                 }

@@ -27,6 +27,12 @@ class HiKeyboardViewModel: ObservableObject {
     @Published var fullscreenImageIndex: Int?
     @Published var mode: KeyboardMode = .composing
 
+    // Transient one-line message shown by `StatusBarView` in place of the
+    // default copy hint. Used to surface generation failures without
+    // interrupting the carousel. Always reverts to the default after a few
+    // seconds.
+    @Published var transientStatusMessage: String?
+
     // Snapshot of credits / referral / subscription state pulled from the
     // App Group. Refreshed after /api/me on keyboard load and after every
     // /api/generate so the menu reflects fresh balance without the user
@@ -81,14 +87,20 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
 
-    // Images the carousel should actually render. A placeholder is only
-    // shown while the image still has a reasonable chance to load; once it
-    // has aged past `placeholderTimeout` without being loaded, we hide it
-    // so stale URLs don't leave lingering shimmer tiles.
+    // Images the carousel should actually render. Three reasons to render
+    // a placeholder/image:
+    //  - `isLoaded`: bytes are in memory.
+    //  - `loadedAt != nil`: image was successfully loaded in a previous
+    //     session and just needs the card to re-fetch from R2.
+    //  - age < `placeholderTimeout`: fresh, still has a reasonable chance
+    //     to arrive. Once it ages past the deadline without ever loading,
+    //     we hide it so stale URLs don't leave lingering shimmer tiles.
     var visibleImages: [GeneratedImage] {
         let now = Date()
         return sortedImages.filter { image in
-            image.isLoaded || now.timeIntervalSince(image.generatedAt) < Self.placeholderTimeout
+            image.isLoaded
+                || image.loadedAt != nil
+                || now.timeIntervalSince(image.generatedAt) < Self.placeholderTimeout
         }
     }
     
@@ -138,7 +150,13 @@ class HiKeyboardViewModel: ObservableObject {
         mode = .results
         isPromptFocused = false
 
-        HiLogger.info("Hydrated \(hydrated.count) restored images from \(generations.count) generations", category: .keyboard)
+        let now = Date()
+        let summary = hydrated.map { img -> String in
+            let age = Int(now.timeIntervalSince(img.generatedAt))
+            let loaded = img.loadedAt != nil ? "loadedBefore" : "neverLoaded"
+            return "\(img.id)(age=\(age)s,\(loaded))"
+        }
+        ensureStatusPollerRunning()
     }
     
     // MARK: - Prompt Editing (called by action handler)
@@ -277,7 +295,7 @@ class HiKeyboardViewModel: ObservableObject {
             for image in newImages {
                 startLoadTracking(for: image)
             }
-
+            
             let stored = StoredGeneration(
                 prompt: prompt,
                 generatedAt: batchGeneratedAt,
@@ -291,6 +309,7 @@ class HiKeyboardViewModel: ObservableObject {
             }
 
             isGenerating = false
+            ensureStatusPollerRunning()
 
         } catch {
             HiLogger.error("Generate failed!", error: error, category: .keyboard)
@@ -299,21 +318,30 @@ class HiKeyboardViewModel: ObservableObject {
         }
     }
 
-    static let placeholderTimeout: TimeInterval = 120
-    private static let staleFetchTimeout: TimeInterval = 30
+    // Hard upper bound on how long a placeholder may sit unresolved. The
+    // status poller is the primary signal for `error` removals; this is the
+    // safety net for the case where status polling itself fails repeatedly.
+    static let placeholderTimeout: TimeInterval = 90
 
-    /// Fresh images (age < placeholderTimeout) load through `ImageCardView`;
-    /// we just schedule a deadline-based removal if they never load. Stale
-    /// images (age >= placeholderTimeout) are hidden by `visibleImages`, so
-    /// the card never appears to kick off a fetch — we drive the fetch from
-    /// here, and remove the image if the fetch never succeeds.
+    // Stale (already-loaded-once-but-not-yet-rehydrated) images get a brief
+    // window to refetch via the card's normal load path before we give up.
+    private static let staleRefetchTimeout: TimeInterval = 30
+
+    /// Schedules a removal-by-deadline for any image that hasn't loaded yet.
+    /// Fresh images get the full `placeholderTimeout` from `generatedAt`.
+    /// Restored images that were previously loaded get a short refetch
+    /// window from now (their card will pick them up via `visibleImages`
+    /// because `loadedAt != nil`). Restored images that were never loaded
+    /// follow the same age-based deadline as fresh ones.
     private func startLoadTracking(for image: GeneratedImage) {
         let age = Date().timeIntervalSince(image.generatedAt)
-        if age >= Self.placeholderTimeout {
-            fetchStaleImage(imageID: image.id, urlString: image.url)
+        let delay: TimeInterval
+        if image.loadedAt != nil && age >= Self.placeholderTimeout {
+            delay = Self.staleRefetchTimeout
         } else {
-            scheduleRemovalAtDeadline(imageID: image.id, delay: Self.placeholderTimeout - age)
+            delay = max(0, Self.placeholderTimeout - age)
         }
+        scheduleRemovalAtDeadline(imageID: image.id, delay: delay)
     }
 
     private func scheduleRemovalAtDeadline(imageID: String, delay: TimeInterval) {
@@ -323,50 +351,107 @@ class HiKeyboardViewModel: ObservableObject {
                   let idx = self.allImages.firstIndex(where: { $0.id == imageID }),
                   !self.allImages[idx].isLoaded
             else { return }
-            self.allImages.remove(at: idx)
-            HiLogger.info("Removed fresh image placeholder at deadline", category: .keyboard)
+            self.removeImageEverywhere(id: imageID, reason: "deadline")
         }
     }
 
-    private func fetchStaleImage(imageID: String, urlString: String) {
-        Task { [weak self] in
-            guard let url = URL(string: urlString) else { return }
+    // MARK: - Status Polling
 
-            let deadline = Date().addingTimeInterval(Self.staleFetchTimeout)
-            while Date() < deadline {
-                guard !Task.isCancelled else { return }
+    // Poll cadence for `/api/generations`. Hits Vercel + Supabase, so we
+    // pace it deliberately; image bytes are fetched separately from R2 by
+    // the card, which is the cheap path and stays fast.
+    private static let statusPollInterval: TimeInterval = 5
+    private static let transientStatusDuration: TimeInterval = 3
 
-                do {
-                    let (data, response) = try await URLSession.shared.data(from: url)
-                    if let http = response as? HTTPURLResponse, http.statusCode == 200 {
-                        guard let self,
-                              let idx = self.allImages.firstIndex(where: { $0.id == imageID })
-                        else { return }
-                        self.allImages[idx].isLoaded = true
-                        if self.allImages[idx].loadedAt == nil {
-                            self.allImages[idx].loadedAt = Date()
-                        }
-                        self.allImages[idx].imageData = data
+    private var statusPollTask: Task<Void, Never>?
+    private var transientStatusTask: Task<Void, Never>?
 
-                        if let loadedAt = self.allImages[idx].loadedAt {
-                            RecentGenerationsStore.updateLoadedAt(imageID: imageID, loadedAt: loadedAt)
-                        }
-                        return
-                    }
-                } catch {
-                    // Retry silently
+    // Ids the backend has confirmed `ready`. Bytes are now available on
+    // R2 and the card will fetch them on its own; further status polls
+    // would just repeat the same answer. Excluded from `pendingImageIDs`.
+    private var statusKnownReadyIDs = Set<String>()
+
+    private var pendingImageIDs: [String] {
+        allImages
+            .filter { !$0.isLoaded && !statusKnownReadyIDs.contains($0.id) }
+            .map(\.id)
+    }
+
+    /// Removes an image from the carousel AND from the persistent store,
+    /// so it doesn't reappear on the next keyboard launch. Call this from
+    /// any path that decides an image is no longer useful (status `error`,
+    /// safety-net deadline).
+    private func removeImageEverywhere(id imageID: String, reason: String) {
+        if let idx = allImages.firstIndex(where: { $0.id == imageID }) {
+            allImages.remove(at: idx)
+        }
+        statusKnownReadyIDs.remove(imageID)
+        RecentGenerationsStore.removeImage(id: imageID)
+    }
+
+    /// Starts a single poller that batches every currently-pending id into
+    /// one `/api/generations` call every 5s, removes any that come back
+    /// with `error`, and stops once nothing remains pending. Idempotent —
+    /// if a poll is already running, new generations just join the next
+    /// tick.
+    private func ensureStatusPollerRunning() {
+        guard statusPollTask == nil else { return }
+        guard !pendingImageIDs.isEmpty else { return }
+        statusPollTask = Task { [weak self] in
+            await self?.runStatusPoller()
+            self?.statusPollTask = nil
+        }
+    }
+
+    private func runStatusPoller() async {
+        var anyErrored = false
+
+        while !Task.isCancelled {
+            let pending = pendingImageIDs
+            if pending.isEmpty { break }
+
+            HiLogger.info("Status poll for ids: \(pending)", category: .keyboard)
+            do {
+                let statuses = try await apiClient.generationStatuses(ids: pending)
+                HiLogger.info("Status poll response: \(statuses.map { "\($0.id):\($0.status.rawValue)" })", category: .keyboard)
+
+                // Stop polling ids the backend has confirmed ready — bytes
+                // are on R2 and the card will fetch them; further polls
+                // would just repeat the same answer.
+                for entry in statuses where entry.status == .ready {
+                    statusKnownReadyIDs.insert(entry.id)
                 }
 
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                let errored = statuses.filter { $0.status == .error }
+                if !errored.isEmpty {
+                    anyErrored = true
+                    for entry in errored {
+                        removeImageEverywhere(id: entry.id, reason: "status=error")
+                    }
+                    showTransientStatus("Some images failed. Credits refunded.")
+                }
+            } catch {
+                HiLogger.error("Status poll failed", error: error, category: .keyboard)
             }
 
-            // Fetch failed — drop the image so it doesn't linger invisibly.
-            guard let self,
-                  let idx = self.allImages.firstIndex(where: { $0.id == imageID }),
-                  !self.allImages[idx].isLoaded
-            else { return }
-            self.allImages.remove(at: idx)
-            HiLogger.info("Stale image fetch timed out; removed", category: .keyboard)
+            if pendingImageIDs.isEmpty { break }
+
+            try? await Task.sleep(nanoseconds: UInt64(Self.statusPollInterval * 1_000_000_000))
+        }
+
+        if anyErrored {
+            await refreshFromBackend()
+        }
+    }
+
+    private func showTransientStatus(_ message: String) {
+        transientStatusTask?.cancel()
+        transientStatusMessage = message
+        transientStatusTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(Self.transientStatusDuration * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            self?.transientStatusMessage = nil
+            self?.transientStatusTask = nil
         }
     }
     

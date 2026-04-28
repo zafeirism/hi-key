@@ -28,6 +28,33 @@ class APIClient {
         let balance: CreditsBalance?
     }
 
+    enum GenerationStatusValue: String, Codable {
+        case initializing
+        case generating
+        case ready
+        case error
+
+        // Treat unknown statuses as still-in-progress so a backend addition
+        // never causes us to drop a placeholder or claim a refund prematurely.
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            self = GenerationStatusValue(rawValue: raw) ?? .generating
+        }
+    }
+
+    struct GenerationStatusEntry: Codable {
+        let id: String
+        let status: GenerationStatusValue
+    }
+
+    struct GenerationStatusRequest: Codable {
+        let ids: [String]
+    }
+
+    struct GenerationStatusResponse: Codable {
+        let generations: [GenerationStatusEntry]
+    }
+
     struct ProfileDTO: Codable {
         let name: String?
         let referral_code: String?
@@ -167,6 +194,46 @@ class APIClient {
 
         let result = try JSONDecoder().decode(GenerateResponse.self, from: data)
         return result
+    }
+
+    // MARK: - Generation Status
+
+    func generationStatuses(ids: [String]) async throws -> [GenerationStatusEntry] {
+        let accessToken = try await getValidAccessToken()
+
+        do {
+            return try await performGenerationStatuses(ids: ids, accessToken: accessToken)
+        } catch APIError.httpError(statusCode: 401) {
+            let newToken = try await getValidAccessToken()
+            return try await performGenerationStatuses(ids: ids, accessToken: newToken)
+        }
+    }
+
+    private func performGenerationStatuses(ids: [String], accessToken: String) async throws -> [GenerationStatusEntry] {
+        guard let url = URL(string: "\(baseURL)/api/generations") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let body = GenerationStatusRequest(ids: ids)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
+
+        let result = try JSONDecoder().decode(GenerationStatusResponse.self, from: data)
+        return result.generations
     }
 
     // MARK: - Credits

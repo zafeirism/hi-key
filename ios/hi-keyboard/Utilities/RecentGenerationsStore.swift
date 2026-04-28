@@ -60,6 +60,27 @@ enum RecentGenerationsStore {
         }
     }
 
+    /// Removes a single image (by id) from whichever generation contains it.
+    /// If the generation becomes empty as a result, it is dropped too. Used
+    /// when an image is removed from the carousel (status error, or the
+    /// safety-net deadline) so the image doesn't get restored on the next
+    /// keyboard launch.
+    static func removeImage(id imageID: String, now: Date = Date()) {
+        var generations = loadValid(now: now)
+        var changed = false
+        for i in 0..<generations.count {
+            if let imgIdx = generations[i].images.firstIndex(where: { $0.id == imageID }) {
+                generations[i].images.remove(at: imgIdx)
+                changed = true
+                break
+            }
+        }
+        guard changed else { return }
+        generations.removeAll { $0.images.isEmpty }
+        guard let data = try? JSONEncoder().encode(generations) else { return }
+        defaults?.set(data, forKey: key)
+    }
+
     static func clear() {
         defaults?.removeObject(forKey: key)
     }

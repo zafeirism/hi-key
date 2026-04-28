@@ -95,21 +95,23 @@ struct ImageCardView: View {
     
     private func loadImage() async {
         guard let url = URL(string: image.url) else { return }
-        
-        // Polling: 4 times/sec for max 50 sec
-        for _ in 1...200 {
-            guard !Task.isCancelled else { return }
-            
+
+        // Poll until cancelled. The deadline is owned by the view model
+        // (it removes the placeholder after `placeholderTimeout`, which
+        // unmounts this card and cancels this task). 2x/sec is enough to
+        // feel instant once the bytes are available; the status poller
+        // tells the VM about errors out-of-band.
+        while !Task.isCancelled {
             do {
                 let (data, response) = try await URLSession.shared.data(from: url)
-                
+
                 if let httpResponse = response as? HTTPURLResponse,
                    httpResponse.statusCode == 200 {
                     // CRITICAL: Downsample immediately, never store full-size UIImage
                     guard let downsampled = ImageLoader.downsample(data: data, to: displaySize) else {
                         continue
                     }
-                    
+
                     await MainActor.run {
                         self.loadedImage = downsampled
                         onLoaded(data) // Store raw data for fullscreen/copy
@@ -119,8 +121,8 @@ struct ImageCardView: View {
             } catch {
                 // Retry silently
             }
-            
-            try? await Task.sleep(nanoseconds: 250_000_000)
+
+            try? await Task.sleep(nanoseconds: 500_000_000)
         }
     }
 }
