@@ -7,7 +7,7 @@ struct ResultsView: View {
         VStack(spacing: 0) {
             if let error = viewModel.errorMessage {
                 ErrorView(message: error) {
-                    Task { await viewModel.generate() }
+                    viewModel.dismissError()
                 }
             } else {
                 ZStack{

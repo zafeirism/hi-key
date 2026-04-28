@@ -191,6 +191,11 @@ class HiKeyboardViewModel: ObservableObject {
         setCursorPosition(0)
         // Keep focus so user can start typing again
     }
+
+    func dismissError() {
+        errorMessage = nil
+        focusPrompt()
+    }
     
     func unfocusPrompt() {
         isPromptFocused = false
