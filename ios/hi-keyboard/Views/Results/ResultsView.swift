@@ -20,7 +20,7 @@ struct ResultsView: View {
                 }
             }
         }
-        .frame(height: 264) // Same as keyboard height
+        .frame(height: 274) // Same as keyboard height (in iOS 26)
     }
 }
 

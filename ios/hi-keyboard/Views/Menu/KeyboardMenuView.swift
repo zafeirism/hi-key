@@ -24,7 +24,7 @@ struct KeyboardMenuView: View {
                 openAppRow
             }
         }
-        .frame(height: 264)
+        .frame(height: 274) // Same as keyboard height (in iOS 26)
     }
 
     // MARK: - Rows
