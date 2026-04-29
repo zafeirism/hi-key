@@ -17,6 +17,7 @@ final class PurchasesManager: NSObject, ObservableObject {
         didSet { mirrorToAppGroup() }
     }
     @Published private(set) var offerings: Offerings?
+    @Published private(set) var introEligibility: [String: IntroEligibility] = [:]
 
     var currentOffering: Offering? { offerings?.current }
 
@@ -85,9 +86,24 @@ final class PurchasesManager: NSObject, ObservableObject {
     private func loadOfferings() async {
         do {
             offerings = try await Purchases.shared.offerings()
+            await refreshIntroEligibility()
         } catch {
             HiLogger.error("Failed to load RC offerings", error: error)
         }
+    }
+
+    /// Asks RC whether the current Apple ID is eligible for the intro offer
+    /// on each subscription product. Returns `.eligible` only when the user
+    /// has not previously consumed the trial. Refresh after offerings load
+    /// and after `customerInfo` updates that may flip eligibility.
+    private func refreshIntroEligibility() async {
+        guard let offerings else { return }
+        let productIDs = offerings.all.values
+            .flatMap { $0.availablePackages }
+            .map { $0.storeProduct.productIdentifier }
+        let unique = Array(Set(productIDs))
+        guard !unique.isEmpty else { return }
+        introEligibility = await Purchases.shared.checkTrialOrIntroDiscountEligibility(productIdentifiers: unique)
     }
 
     private func loadCustomerInfo() async {
@@ -217,6 +233,10 @@ final class PurchasesManager: NSObject, ObservableObject {
         SubscriptionCatalog.weeklyCredits(for: productID)
     }
 
+    func trialCredits(for productID: String) -> Int? {
+        SubscriptionCatalog.trialCredits(for: productID)
+    }
+
     func packDisplayName(for productID: String) -> String? {
         packCatalog[productID]?.displayName
     }
@@ -228,6 +248,21 @@ final class PurchasesManager: NSObject, ObservableObject {
     func level(for productID: String) -> Int? {
         SubscriptionCatalog.level(for: productID)
     }
+
+    // MARK: - Trial Eligibility
+
+    /// True when RC says the user can still claim the free-trial intro offer
+    /// on this product, AND the StoreKit product actually has a free-trial
+    /// intro discount configured. Paid intro offers (e.g. discounted weeks)
+    /// would need different copy, so they're excluded here.
+    func isTrialEligible(for productID: String) -> Bool {
+        guard introEligibility[productID]?.status == .eligible else { return false }
+        guard let package = package(forProductID: productID),
+              let intro = package.storeProduct.introductoryDiscount else {
+            return false
+        }
+        return intro.paymentMode == .freeTrial
+    }
 }
 
 // MARK: - PurchasesDelegate
@@ -236,6 +271,7 @@ extension PurchasesManager: PurchasesDelegate {
     nonisolated func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
         Task { @MainActor in
             self.customerInfo = customerInfo
+            await self.refreshIntroEligibility()
         }
     }
 }

@@ -36,7 +36,7 @@ struct AllPlansSheet: View {
 
             Spacer()
 
-            PaywallHintView(type: selectedTab == .subscriptions ? .subscription : .onDemand)
+            PaywallHintView(type: selectedTab == .subscriptions ? subscriptionHintType : .onDemand)
                 .padding(.bottom, HiTheme.spacingMD)
 
             PaywallCTAButton(
@@ -104,10 +104,12 @@ struct AllPlansSheet: View {
         ForEach(purchasesManager.subscriptionPackages(), id: \.storeProduct.productIdentifier) { package in
             let id = package.storeProduct.productIdentifier
             let isCurrent = purchasesManager.activeSubscriptionProductID == id
-            let isBestValue = id == "super.weekly" && !isCurrent
+            let isTrialEligible = !isCurrent && purchasesManager.isTrialEligible(for: id)
+            let isBestValue = id == "super.weekly" && !isCurrent && !isTrialEligible
+            let label: String? = isTrialEligible ? "3 DAYS FREE" : (isBestValue ? "BEST VALUE" : nil)
             PaywallOptionCard(
                 title: purchasesManager.tierDisplayName(for: id) ?? package.storeProduct.localizedTitle,
-                subtitle: (purchasesManager.weeklyCredits(for: id).map { "\($0) credits / week" }) ?? "",
+                subtitle: subtitleForPackage(package, isTrialEligible: isTrialEligible),
                 price: "\(package.storeProduct.localizedPriceString)/week",
                 isSelected: selectedSubscriptionPackage?.storeProduct.productIdentifier == id,
                 onSelect: {
@@ -115,10 +117,19 @@ struct AllPlansSheet: View {
                         selectedSubscriptionPackage = package
                     }
                 },
-                label: isBestValue ? "BEST VALUE" : nil,
+                label: label,
                 isCurrentPlan: isCurrent
             )
         }
+    }
+
+    private func subtitleForPackage(_ package: Package, isTrialEligible: Bool) -> String {
+        let id = package.storeProduct.productIdentifier
+        guard let weekly = purchasesManager.weeklyCredits(for: id) else { return "" }
+        if isTrialEligible, let trialCredits = purchasesManager.trialCredits(for: id) {
+            return "\(trialCredits) free, then \(weekly) / week"
+        }
+        return "\(weekly) credits / week"
     }
 
     // MARK: - Pack Options
@@ -163,6 +174,11 @@ struct AllPlansSheet: View {
               let price = selectedSubscriptionPackage?.storeProduct.localizedPriceString else {
             return "Choose a plan"
         }
+
+        if purchasesManager.isTrialEligible(for: selectedID) {
+            return "Start free trial"
+        }
+
         let formattedPrice = "\(price)/week"
 
         guard let currentID = purchasesManager.activeSubscriptionProductID,
@@ -178,6 +194,14 @@ struct AllPlansSheet: View {
             return "Upgrade for \(formattedPrice)"
         }
         return "Downgrade for \(formattedPrice)"
+    }
+
+    private var subscriptionHintType: PaywallHintView.HintType {
+        if let id = selectedSubscriptionPackage?.storeProduct.productIdentifier,
+           purchasesManager.isTrialEligible(for: id) {
+            return .trial
+        }
+        return .subscription
     }
 
     // MARK: - Configuration

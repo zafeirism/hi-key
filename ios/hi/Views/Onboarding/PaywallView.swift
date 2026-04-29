@@ -99,7 +99,7 @@ struct PaywallView: View {
                 .buttonStyle(HiTertiaryButtonStyle())
             }
 
-            PaywallHintView(type: .subscription)
+            PaywallHintView(type: subscriptionHintType)
                 .padding(.top, HiTheme.spacingXXL)
                 .padding(.bottom, HiTheme.spacingMD)
 
@@ -150,10 +150,18 @@ struct PaywallView: View {
                             selectedPackage = package
                         }
                     },
-                    label: productID == "super.weekly" ? "BEST VALUE" : nil
+                    label: labelForPackage(package)
                 )
             }
         }
+    }
+
+    private func labelForPackage(_ package: Package) -> String? {
+        let id = package.storeProduct.productIdentifier
+        if purchasesManager.isTrialEligible(for: id) {
+            return "3 DAYS FREE"
+        }
+        return id == "super.weekly" ? "BEST VALUE" : nil
     }
 
     // Starter is only surfaced through "View all plans" so the primary paywall stays focused.
@@ -166,6 +174,10 @@ struct PaywallView: View {
     private func subtitleForPackage(_ package: Package) -> String {
         let id = package.storeProduct.productIdentifier
         if let credits = purchasesManager.weeklyCredits(for: id) {
+            if purchasesManager.isTrialEligible(for: id),
+               let trialCredits = purchasesManager.trialCredits(for: id) {
+                return "\(trialCredits) free, then \(credits) / week"
+            }
             return "\(credits) credits / week"
         }
         if let credits = purchasesManager.packCredits(for: id) {
@@ -187,10 +199,21 @@ struct PaywallView: View {
             return "Choose a plan"
         }
         let id = package.storeProduct.productIdentifier
+        if purchasesManager.isTrialEligible(for: id) {
+            return "Start free trial"
+        }
         if purchasesManager.weeklyCredits(for: id) != nil {
             return "Subscribe for \(package.storeProduct.localizedPriceString)/week"
         }
         return "Buy for \(package.storeProduct.localizedPriceString)"
+    }
+
+    private var subscriptionHintType: PaywallHintView.HintType {
+        if let id = selectedPackage?.storeProduct.productIdentifier,
+           purchasesManager.isTrialEligible(for: id) {
+            return .trial
+        }
+        return .subscription
     }
 
     // MARK: - Actions

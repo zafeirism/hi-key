@@ -7,6 +7,7 @@ struct PaywallHintView: View {
         case subscription
         case onDemand
         case offer
+        case trial
     }
 
     let type: HintType
@@ -27,6 +28,7 @@ struct PaywallHintView: View {
         case .subscription: return "checkmark.shield.fill"
         case .onDemand: return "creditcard"
         case .offer: return "star.hexagon"
+        case .trial: return "gift.fill"
         }
     }
 
@@ -35,6 +37,7 @@ struct PaywallHintView: View {
         case .subscription: return "No commitment, cancel anytime."
         case .onDemand: return "One-time purchase. Valid for 12 months."
         case .offer: return "Offer is valid for today, cancel anytime."
+        case .trial: return "No charge for 3 days. Cancel anytime."
         }
     }
 }
