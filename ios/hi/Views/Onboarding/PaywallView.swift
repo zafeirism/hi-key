@@ -29,16 +29,6 @@ struct PaywallView: View {
 
             // Main content
             VStack(spacing: 0) {
-                HStack {
-                    Spacer()
-
-                    HiIconButton("xmark", size: .topBarTranslucent) {
-                        handleDismiss()
-                    }
-                }
-                .padding(.top, HiTheme.spacingMD)
-                .padding(.horizontal, HiTheme.spacingMD)
-
                 Spacer()
 
                 mainContent
@@ -122,12 +112,12 @@ struct PaywallView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
-            Text("Keep your creativity\nflowing.")
+            Text("Your keyboard is about to get a lot more fun.")
                 .font(.system(.title, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Never run out of credits. One credit generates 4 images from your prompt.")
+            Text("Every 100 credits with default AI models is ~15 generations × 4 images each.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -222,10 +212,6 @@ struct PaywallView: View {
         guard selectedPackage == nil else { return }
         selectedPackage = purchasesManager.package(forProductID: "super.weekly")
             ?? visibleSubscriptionPackages.first
-    }
-
-    private func handleDismiss() {
-        showOnlyPacks = true
     }
 
     private func processPurchase() {
