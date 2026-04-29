@@ -108,86 +108,137 @@ struct PaywallOptionCard: View {
     var originalPrice: String? = nil
     var label: String? = nil
     var isCurrentPlan: Bool = false
+    var accessory: AnyView? = nil
 
     var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
-                    HStack(spacing: HiTheme.spacingSM) {
-                        Text(title)
-                            .font(.headline.weight(.bold))
-                            .foregroundStyle(HiTheme.textPrimary)
+        VStack(spacing: 0) {
+            Button(action: onSelect) {
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+                        HStack(spacing: HiTheme.spacingSM) {
+                            Text(title)
+                                .font(.headline.weight(.bold))
+                                .foregroundStyle(HiTheme.textPrimary)
 
-                        if isCurrentPlan {
-                            Text("CURRENT")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(HiTheme.textSecondary)
-                                .padding(.horizontal, HiTheme.spacingSM)
-                                .padding(.vertical, HiTheme.spacingXS)
-                                .background(HiTheme.surfaceSecondary)
-                                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
-                        } else if let discountBadge {
-                            Text(discountBadge)
-                                .font(.subheadline.weight(.heavy))
-                                .foregroundStyle(HiTheme.accentSecondary)
-                                .padding(.horizontal, HiTheme.spacingSM)
-                                .padding(.vertical, HiTheme.spacingXS)
-                                .background(HiTheme.surfaceSecondary)
-                                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: HiTheme.radiusSM)
-                                        .stroke(HiTheme.accentSecondary, lineWidth: 1)
-                                )
-                        } else if let label {
-                            Text(label)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(HiTheme.statusGreen)
-                                .padding(.horizontal, HiTheme.spacingSM)
-                                .padding(.vertical, HiTheme.spacingXS)
-                                .background(HiTheme.surfaceSecondary)
-                                .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: HiTheme.radiusSM)
-                                        .stroke(HiTheme.statusGreen, lineWidth: 1)
-                                )
+                            if isCurrentPlan {
+                                Text("CURRENT")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(HiTheme.textSecondary)
+                                    .padding(.horizontal, HiTheme.spacingSM)
+                                    .padding(.vertical, HiTheme.spacingXS)
+                                    .background(HiTheme.surfaceSecondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                            } else if let discountBadge {
+                                Text(discountBadge)
+                                    .font(.subheadline.weight(.heavy))
+                                    .foregroundStyle(HiTheme.accentSecondary)
+                                    .padding(.horizontal, HiTheme.spacingSM)
+                                    .padding(.vertical, HiTheme.spacingXS)
+                                    .background(HiTheme.surfaceSecondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                                            .stroke(HiTheme.accentSecondary, lineWidth: 1)
+                                    )
+                            } else if let label {
+                                Text(label)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(HiTheme.statusGreen)
+                                    .padding(.horizontal, HiTheme.spacingSM)
+                                    .padding(.vertical, HiTheme.spacingXS)
+                                    .background(HiTheme.surfaceSecondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusSM))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: HiTheme.radiusSM)
+                                            .stroke(HiTheme.statusGreen, lineWidth: 1)
+                                    )
+                            }
                         }
+                        Text(subtitle)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(HiTheme.textSecondary)
                     }
-                    Text(subtitle)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(HiTheme.textSecondary)
+
+                    Spacer()
+
+                    if let originalPrice {
+                        Text(originalPrice)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(HiTheme.textTertiary)
+                            .strikethrough()
+                            .padding(.trailing, HiTheme.spacingXS)
+                    }
+
+                    Text(price)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(HiTheme.textPrimary)
+                        .padding(.trailing, HiTheme.spacingSM)
+
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
+                        .font(.title2)
                 }
-
-                Spacer()
-
-                if let originalPrice {
-                    Text(originalPrice)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(HiTheme.textTertiary)
-                        .strikethrough()
-                        .padding(.trailing, HiTheme.spacingXS)
-                }
-
-                Text(price)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(HiTheme.textPrimary)
-                    .padding(.trailing, HiTheme.spacingSM)
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? HiTheme.accentPrimary : HiTheme.textSecondary)
-                    .font(.title2)
+                .padding(.horizontal, HiTheme.spacingMD)
+                .padding(.vertical, HiTheme.spacingMD + 2)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, HiTheme.spacingMD)
-            .padding(.vertical, HiTheme.spacingMD + 2)
-            .background(HiTheme.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusXL))
-            .overlay(
-                RoundedRectangle(cornerRadius: HiTheme.radiusXL)
-                    .stroke(isSelected ? HiTheme.accentPrimary : HiTheme.divider, lineWidth: isSelected ? 2 : 1)
-            )
+            .buttonStyle(.plain)
+            .disabled(isCurrentPlan)
+
+            if let accessory {
+                Rectangle()
+                    .fill(HiTheme.divider)
+                    .frame(height: 1)
+                    .padding(.horizontal, HiTheme.spacingMD)
+                accessory
+                    .padding(.horizontal, HiTheme.spacingMD)
+                    .padding(.vertical, HiTheme.spacingSM + 2)
+            }
         }
-        .buttonStyle(.plain)
-        .disabled(isCurrentPlan)
-        //.opacity(isCurrentPlan ? 0.5 : 1)
+        .background(HiTheme.surfacePrimary)
+        .clipShape(RoundedRectangle(cornerRadius: HiTheme.radiusXL))
+        .overlay(
+            RoundedRectangle(cornerRadius: HiTheme.radiusXL)
+                .stroke(isSelected ? HiTheme.accentPrimary : HiTheme.divider, lineWidth: isSelected ? 2 : 1)
+        )
+    }
+}
+
+// MARK: - Trial Reminder Row
+
+struct TrialReminderRow: View {
+    @ObservedObject private var manager = TrialReminderManager.shared
+
+    var body: some View {
+        HStack(spacing: HiTheme.spacingSM) {
+            Image(systemName: "bell.fill")
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(HiTheme.textSecondary)
+
+            Text("Remind me")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(HiTheme.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+
+            Menu {
+                Picker("Reminder", selection: $manager.preference) {
+                    ForEach(TrialReminderManager.Lead.allCases) { lead in
+                        Text(lead.displayName).tag(lead)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(manager.preference.displayName)
+                        .font(.subheadline.weight(.semibold))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2.weight(.semibold))
+                }
+                .foregroundStyle(HiTheme.textPrimary)
+            }
+        }
+        .padding(.vertical, HiTheme.spacingXS)
     }
 }
 

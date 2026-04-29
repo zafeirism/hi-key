@@ -118,7 +118,8 @@ struct AllPlansSheet: View {
                     }
                 },
                 label: label,
-                isCurrentPlan: isCurrent
+                isCurrentPlan: isCurrent,
+                accessory: isTrialEligible ? AnyView(TrialReminderRow()) : nil
             )
         }
     }

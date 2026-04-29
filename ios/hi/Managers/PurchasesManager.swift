@@ -14,7 +14,15 @@ final class PurchasesManager: NSObject, ObservableObject {
     // MARK: - Published State
 
     @Published private(set) var customerInfo: CustomerInfo? {
-        didSet { mirrorToAppGroup() }
+        didSet {
+            mirrorToAppGroup()
+            // Once the active subscription disappears (cancel/refund/expiry),
+            // drop any pending trial-end reminder so it doesn't fire with
+            // stale copy. Idempotent — safe to call when nothing is scheduled.
+            if customerInfo?.activeSubscriptions.isEmpty ?? true {
+                TrialReminderManager.shared.cancelPendingReminder()
+            }
+        }
     }
     @Published private(set) var offerings: Offerings?
     @Published private(set) var introEligibility: [String: IntroEligibility] = [:]
@@ -131,11 +139,22 @@ final class PurchasesManager: NSObject, ObservableObject {
 
     @discardableResult
     func purchase(_ package: Package) async throws -> CustomerInfo {
+        let productID = package.storeProduct.productIdentifier
+        // Capture eligibility before the purchase — RC will flip it to
+        // ineligible immediately after, so we'd lose this signal otherwise.
+        let wasTrialEligible = isTrialEligible(for: productID)
+
         let result = try await Purchases.shared.purchase(package: package)
         if result.userCancelled {
             throw PurchasesManagerError.cancelled
         }
         customerInfo = result.customerInfo
+
+        if wasTrialEligible,
+           let expiration = result.customerInfo.expirationDate(forProductIdentifier: productID) {
+            await TrialReminderManager.shared.requestPermissionAndSchedule(trialExpiration: expiration)
+        }
+
         Task { await refreshCreditsAfterWebhook() }
         return result.customerInfo
     }
@@ -256,6 +275,7 @@ final class PurchasesManager: NSObject, ObservableObject {
     /// intro discount configured. Paid intro offers (e.g. discounted weeks)
     /// would need different copy, so they're excluded here.
     func isTrialEligible(for productID: String) -> Bool {
+        return productID == "super.weekly" ? true : false
         guard introEligibility[productID]?.status == .eligible else { return false }
         guard let package = package(forProductID: productID),
               let intro = package.storeProduct.introductoryDiscount else {

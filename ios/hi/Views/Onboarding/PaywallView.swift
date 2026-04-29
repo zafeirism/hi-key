@@ -20,7 +20,7 @@ struct PaywallView: View {
         ZStack {
             // Lottie animation in background (upper half area)
             VStack {
-                LottieView(name: "paywall", loop: false, scaleAspectFill: true)
+                LottieView(name: "paywall-no-mountains", loop: false, scaleAspectFill: true)
                     .frame(maxWidth: .infinity)
                     .frame(height: UIScreen.main.bounds.height * 0.5)
                 Spacer()
@@ -37,7 +37,7 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showAllPlans) {
             AllPlansSheet(onComplete: { onboardingManager.completeOnboarding() })
-                .presentationDetents([.fraction(0.85)])
+                //.presentationDetents([.fraction(0.85)])
                 .background(HiTheme.backgroundRoot)
         }
         .sheet(isPresented: $showOnlyPacks, onDismiss: {
@@ -140,10 +140,16 @@ struct PaywallView: View {
                             selectedPackage = package
                         }
                     },
-                    label: labelForPackage(package)
+                    label: labelForPackage(package),
+                    accessory: accessoryForPackage(package)
                 )
             }
         }
+    }
+
+    private func accessoryForPackage(_ package: Package) -> AnyView? {
+        guard purchasesManager.isTrialEligible(for: package.storeProduct.productIdentifier) else { return nil }
+        return AnyView(TrialReminderRow())
     }
 
     private func labelForPackage(_ package: Package) -> String? {
