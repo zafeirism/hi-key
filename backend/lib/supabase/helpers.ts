@@ -17,6 +17,7 @@ export type CreditTransactionInsert = TablesInsert<'credit_transactions'>;
 
 export type CreditReason =
   | 'initial_purchase'
+  | 'trial_start'
   | 'renewal'
   | 'pack'
   | 'generation_debit'

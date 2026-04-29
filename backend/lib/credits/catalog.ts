@@ -3,14 +3,14 @@
  * 1 credit = 10 mills = 1 cent of underlying AI cost.
  */
 
-export type SubProduct = { kind: 'sub'; tierMaxMills: number };
+export type SubProduct = { kind: 'sub'; tierMaxMills: number; trialMills?: number };
 export type PackProduct = { kind: 'pack'; amountMills: number };
 export type ProductEntry = SubProduct | PackProduct;
 
 export const CREDIT_CATALOG: Record<string, ProductEntry> = {
   'starter.weekly': { kind: 'sub', tierMaxMills: 1000 },
   'plus.weekly': { kind: 'sub', tierMaxMills: 2000 },
-  'super.weekly': { kind: 'sub', tierMaxMills: 3000 },
+  'super.weekly': { kind: 'sub', tierMaxMills: 3000, trialMills: 2000 },
   'pack.mini': { kind: 'pack', amountMills: 500 },
   'pack.mega': { kind: 'pack', amountMills: 3000 },
 };

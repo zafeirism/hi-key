@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { getProfile } from '@/lib/profile/profile';
-import { lookupProduct } from './catalog';
+import { lookupProduct, type SubProduct } from './catalog';
 import { grant, resetSub, type Balance } from './balance';
 
 /**
@@ -14,6 +14,7 @@ export type RevenueCatEvent = {
   product_id?: string;
   id: string;
   original_transaction_id?: string;
+  period_type?: 'TRIAL' | 'NORMAL' | 'INTRO' | 'PROMOTIONAL';
 };
 
 export type EventOutcome =
@@ -31,6 +32,16 @@ async function readBalance(userId: string): Promise<Balance> {
     sub_credits_mills: profile.sub_credits_mills,
     extra_credits_mills: profile.extra_credits_mills,
   };
+}
+
+function resolveSubGrant(
+  product: SubProduct,
+  event: RevenueCatEvent,
+  multiplier: number
+): { mills: number; isTrial: boolean } {
+  const isTrial = event.period_type === 'TRIAL' && product.trialMills !== undefined;
+  const baseMills = isTrial ? product.trialMills! : product.tierMaxMills;
+  return { mills: baseMills * multiplier, isTrial };
 }
 
 async function setActiveSubProduct(userId: string, productId: string | null): Promise<void> {
@@ -63,18 +74,19 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         return { handled: false, summary: `unknown product_id=${event.product_id}` };
       }
       if (product.kind === 'sub') {
-        const subMills = product.tierMaxMills * multiplier;
+        const { mills: subMills, isTrial } = resolveSubGrant(product, event, multiplier);
+        const reason = isTrial ? 'trial_start' : 'initial_purchase';
         const balance = await grant(userId, {
           deltaSubMills: subMills,
           deltaExtraMills: 0,
-          reason: 'initial_purchase',
+          reason,
           sourceId: event.id,
         });
         await setActiveSubProduct(userId, event.product_id ?? null);
         return {
           handled: true,
           balance,
-          summary: `initial_purchase sub +${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+          summary: `${reason} sub +${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
         };
       }
       const packMills = product.amountMills * multiplier;
@@ -95,16 +107,17 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
       if (!product || product.kind !== 'sub') {
         return { handled: false, summary: `renewal for non-sub product=${event.product_id}` };
       }
-      const subMills = product.tierMaxMills * multiplier;
+      const { mills: subMills, isTrial } = resolveSubGrant(product, event, multiplier);
+      const reason = isTrial ? 'trial_start' : 'renewal';
       const balance = await resetSub(userId, subMills, {
-        reason: 'renewal',
+        reason,
         sourceId: event.id,
       });
       await setActiveSubProduct(userId, event.product_id ?? null);
       return {
         handled: true,
         balance,
-        summary: `renewal sub=${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+        summary: `${reason} sub=${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
       };
     }
 

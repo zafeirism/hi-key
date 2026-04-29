@@ -184,6 +184,92 @@ describe('handleRevenueCatEvent', () => {
       expect(out.handled).toBe(false);
       expect(grantMock).not.toHaveBeenCalled();
     });
+
+    it('grants trialMills with reason=trial_start when period_type=TRIAL on super', async () => {
+      grantMock.mockResolvedValue({ sub_credits_mills: 2000, extra_credits_mills: 0 });
+      const out = await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'TRIAL',
+      });
+      expect(out.handled).toBe(true);
+      expect(grantMock).toHaveBeenCalledWith(USER_ID, {
+        deltaSubMills: 2000,
+        deltaExtraMills: 0,
+        reason: 'trial_start',
+        sourceId: EVENT_ID,
+      });
+    });
+
+    it('doubles trialMills for doubled users', async () => {
+      setDoubleCredits(true);
+      grantMock.mockResolvedValue({ sub_credits_mills: 4000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'TRIAL',
+      });
+      expect(grantMock).toHaveBeenCalledWith(
+        USER_ID,
+        expect.objectContaining({ deltaSubMills: 4000, reason: 'trial_start' })
+      );
+    });
+
+    it('still records active_sub_product_id on a trial purchase', async () => {
+      grantMock.mockResolvedValue({ sub_credits_mills: 2000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'TRIAL',
+      });
+      expect(upsertMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: USER_ID,
+          active_sub_product_id: 'super.weekly',
+        }),
+        expect.anything()
+      );
+    });
+
+    it('uses tier max with reason=initial_purchase when period_type=NORMAL on super', async () => {
+      grantMock.mockResolvedValue({ sub_credits_mills: 3000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'NORMAL',
+      });
+      expect(grantMock).toHaveBeenCalledWith(USER_ID, {
+        deltaSubMills: 3000,
+        deltaExtraMills: 0,
+        reason: 'initial_purchase',
+        sourceId: EVENT_ID,
+      });
+    });
+
+    it('falls back to tier max when period_type=TRIAL but trialMills is unset', async () => {
+      grantMock.mockResolvedValue({ sub_credits_mills: 1000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'starter.weekly',
+        period_type: 'TRIAL',
+      });
+      expect(grantMock).toHaveBeenCalledWith(USER_ID, {
+        deltaSubMills: 1000,
+        deltaExtraMills: 0,
+        reason: 'initial_purchase',
+        sourceId: EVENT_ID,
+      });
+    });
   });
 
   describe('NON_RENEWING_PURCHASE', () => {
@@ -275,6 +361,36 @@ describe('handleRevenueCatEvent', () => {
       });
       expect(out.handled).toBe(false);
       expect(resetSubMock).not.toHaveBeenCalled();
+    });
+
+    it('uses trialMills with reason=trial_start when a defensive RENEWAL/TRIAL arrives', async () => {
+      resetSubMock.mockResolvedValue({ sub_credits_mills: 2000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'RENEWAL',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'TRIAL',
+      });
+      expect(resetSubMock).toHaveBeenCalledWith(USER_ID, 2000, {
+        reason: 'trial_start',
+        sourceId: EVENT_ID,
+      });
+    });
+
+    it('uses tier max with reason=renewal when period_type=NORMAL (trial conversion)', async () => {
+      resetSubMock.mockResolvedValue({ sub_credits_mills: 3000, extra_credits_mills: 0 });
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'RENEWAL',
+        app_user_id: USER_ID,
+        product_id: 'super.weekly',
+        period_type: 'NORMAL',
+      });
+      expect(resetSubMock).toHaveBeenCalledWith(USER_ID, 3000, {
+        reason: 'renewal',
+        sourceId: EVENT_ID,
+      });
     });
   });
 
