@@ -193,6 +193,17 @@ final class PurchasesManager: NSObject, ObservableObject {
         !(customerInfo?.activeSubscriptions.isEmpty ?? true)
     }
 
+    /// True when restoring this `CustomerInfo` should let the user past a
+    /// paywall: any active entitlement, any active subscription, or any past
+    /// consumable (`pack.mini` / `pack.mega`). The consumable case unblocks
+    /// reinstalling users whose backend `extra_credits` survived — they may
+    /// still have credits to spend, so they shouldn't be stuck on the paywall.
+    func hasRestorablePurchases(_ info: CustomerInfo) -> Bool {
+        !info.entitlements.active.isEmpty
+            || !info.activeSubscriptions.isEmpty
+            || !info.nonSubscriptionTransactions.isEmpty
+    }
+
     var activeSubscriptionProductID: String? {
         customerInfo?.activeSubscriptions.first
     }

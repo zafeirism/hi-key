@@ -13,6 +13,8 @@ struct PaywallView: View {
     @State private var showOnlyPacks: Bool = false
     @State private var isProcessing: Bool = false
     @State private var showTerms: Bool = false
+    @State private var showNothingToRestore: Bool = false
+    @State private var showRestoreFailed: Bool = false
 
     // MARK: - Body
 
@@ -60,6 +62,16 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showTerms) {
             TermsSheet()
+        }
+        .alert("Nothing to restore", isPresented: $showNothingToRestore) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("We couldn't find any previous purchases on this Apple ID. If you subscribed before, make sure you're signed in with the same Apple ID.")
+        }
+        .alert("Couldn't restore", isPresented: $showRestoreFailed) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Something went wrong while restoring. Please try again.")
         }
         .onAppear { selectDefaultPackageIfNeeded() }
         .onReceive(purchasesManager.$offerings) { _ in selectDefaultPackageIfNeeded() }
@@ -261,12 +273,15 @@ struct PaywallView: View {
             do {
                 let info = try await PurchasesManager.shared.restore()
                 isProcessing = false
-                if !info.entitlements.active.isEmpty || !info.activeSubscriptions.isEmpty {
+                if PurchasesManager.shared.hasRestorablePurchases(info) {
                     onboardingManager.completeOnboarding()
+                } else {
+                    showNothingToRestore = true
                 }
             } catch {
                 isProcessing = false
                 HiLogger.error("Paywall restore failed", error: error)
+                showRestoreFailed = true
             }
         }
     }
