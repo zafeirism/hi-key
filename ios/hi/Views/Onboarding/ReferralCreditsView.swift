@@ -59,10 +59,9 @@ struct ReferralCreditsView: View {
     private var referralInputSection: some View {
         VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
             HStack(spacing: 0) {
-                TextField("", text: $referralCode, prompt: Text("FRIEND-CODE")
-                    .foregroundStyle(HiTheme.textTertiary))
+                TextField("FRIEND-CODE", text: $referralCode)
                     .textFieldStyle(.plain)
-                    .font(.title2.monospaced().bold())
+                    .font(.title3.monospaced())
                     .foregroundStyle(HiTheme.textPrimary)
                     .keyboardType(.asciiCapable)
                     .textInputAutocapitalization(.characters)

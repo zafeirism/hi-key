@@ -31,7 +31,7 @@ struct OnboardingFlowView: View {
 
     private var canGoBack: Bool {
         switch onboardingManager.currentStep {
-        case .enableSettings, .tryNow, .referralCredits, .review:
+        case .enableSettings, .openKeyboard, .tryNow, .referralCredits, .review:
             return true
         default:
             return false
@@ -54,6 +54,10 @@ struct OnboardingFlowView: View {
 
             case .enableSettings:
                 EnableSettingsView()
+                    .transition(slideTransition)
+
+            case .openKeyboard:
+                OpenKeyboardView()
                     .transition(slideTransition)
 
             case .tryNow:

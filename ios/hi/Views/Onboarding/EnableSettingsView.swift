@@ -145,7 +145,7 @@ private struct PrivacyInfoModal: View {
                     .font(.system(.title2, design: .rounded, weight: .semibold))
                     .foregroundStyle(HiTheme.textPrimary)
 
-                Text("hi-key requires Full Access to connect to our servers and generate images from your prompts. We only send the text you type in the prompt bar — never passwords, messages, or other content. Your prompts are processed securely and are not stored after image generation. We do not collect, share, or sell any personal data. hi-key does not access your contacts, location, or browsing history. Your privacy is our top priority.")
+                Text("hi-key requires Full Access to connect to our servers and generate images from your prompts. We only send the text you type in the prompt bar, never passwords, messages, or other content. Your prompts are processed securely and are not stored after image generation. We do not collect, share, or sell any personal data. hi-key does not access your contacts, location, or browsing history. Your privacy is our top priority.")
                     .font(.body)
                     .foregroundStyle(HiTheme.textSecondary)
                     .multilineTextAlignment(.leading)

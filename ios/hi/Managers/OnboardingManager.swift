@@ -7,11 +7,16 @@ enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
     case hiKeyPresenter = 1
     case enableSettings = 2
-    case tryNow = 3
+    case openKeyboard = 3
     case referralCredits = 4
     case review = 5
     case paywall = 6
     case complete = 7
+
+    // Retired step. Kept compilable (and renderable from ContentView) but
+    // unreachable via goToNextStep/goToPreviousStep so it stays out of the
+    // active flow without deleting the view code.
+    case tryNow = 99
 }
 
 // MARK: - Navigation Direction

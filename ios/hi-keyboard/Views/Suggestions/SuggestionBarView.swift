@@ -13,11 +13,19 @@ struct SuggestionBarView: View {
     private let apiClient = APIClient.shared
     private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
 
-    // Full access takes precedence over connectivity — the keyboard cannot
-    // reach the network at all without the permission, so naming the
-    // proximate cause is more useful to the user than reporting "offline".
-    // Network in turn takes precedence over low credits, since "Buy credits"
-    // can't complete a purchase while offline.
+    // Onboarding takes precedence over every other status. The "open hi-key"
+    // step in the main app is only about confirming the user can switch to
+    // this keyboard — surfacing Full Access, network, or credit prompts here
+    // would distract from that and is also premature (they haven't reached
+    // the paywall step yet). Once onboarding completes, normal precedence
+    // resumes: Full Access > Network > Low credits, since the keyboard cannot
+    // reach the network at all without the permission, and "Buy credits"
+    // cannot complete a purchase while offline.
+    private var isOnboarding: Bool {
+        let defaults = UserDefaults(suiteName: "group.ai.hi-key")
+        return !(defaults?.bool(forKey: "hasCompletedOnboarding") ?? false)
+    }
+
     private var showsFullAccessStatus: Bool {
         !fullAccess.hasFullAccess || fullAccess.showJustEnabled
     }
@@ -36,7 +44,10 @@ struct SuggestionBarView: View {
 
     var body: some View {
         ZStack {
-            if showsFullAccessStatus {
+            if isOnboarding {
+                OnboardingWelcomeStatusView()
+                    .transition(.opacity)
+            } else if showsFullAccessStatus {
                 FullAccessStatusView(isJustEnabled: fullAccess.hasFullAccess)
                     .transition(.opacity)
             } else if showsNetworkStatus {
@@ -159,6 +170,21 @@ struct SuggestionBarView: View {
         
         // Clear suggestions with animation
         suggestions = []
+    }
+}
+
+// MARK: - Onboarding Welcome Status View
+
+private struct OnboardingWelcomeStatusView: View {
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+            Text("Your new keyboard is ready")
+        }
+        .font(.callout)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 8)
     }
 }
 
