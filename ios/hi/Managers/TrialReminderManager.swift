@@ -119,7 +119,7 @@ final class TrialReminderManager: ObservableObject {
     private func scheduleNotification(at fireDate: Date) async {
         let content = UNMutableNotificationContent()
         content.title = "Your hi-key trial is ending soon"
-        content.body = "Your free trial wraps up soon — keep your subscription or cancel anytime in Settings."
+        content.body = "Your free trial wraps up soon. Keep your subscription or cancel anytime in Settings."
         content.sound = .default
 
         let triggerComponents = Calendar.current.dateComponents(

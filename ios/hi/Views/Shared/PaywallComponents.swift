@@ -35,7 +35,7 @@ struct PaywallHintView: View {
     private var text: String {
         switch type {
         case .subscription: return "No commitment, cancel anytime."
-        case .onDemand: return "One-time purchase. Valid for 12 months."
+        case .onDemand: return "One-time purchase."
         case .offer: return "Offer is valid for today, cancel anytime."
         case .trial: return "No charge for 3 days. Cancel anytime."
         }

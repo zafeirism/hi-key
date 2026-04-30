@@ -30,6 +30,10 @@ struct SuggestionBarView: View {
         !viewModel.accountSummary.hasEnoughCredits
     }
 
+    private var showsCreditsRunningLowStatus: Bool {
+        viewModel.showCreditsRunningLow
+    }
+
     var body: some View {
         ZStack {
             if showsFullAccessStatus {
@@ -41,6 +45,9 @@ struct SuggestionBarView: View {
             } else if showsLowCreditsStatus {
                 LowCreditsStatusView(onBuyCredits: openBuyCredits)
                     .transition(.opacity)
+            } else if showsCreditsRunningLowStatus {
+                CreditsRunningLowStatusView(onBuyCredits: openBuyCredits)
+                    .transition(.opacity)
             } else {
                 suggestionsScroll
                     .transition(.opacity)
@@ -49,9 +56,11 @@ struct SuggestionBarView: View {
         .animation(.easeInOut(duration: 0.25), value: showsFullAccessStatus)
         .animation(.easeInOut(duration: 0.25), value: showsNetworkStatus)
         .animation(.easeInOut(duration: 0.25), value: showsLowCreditsStatus)
+        .animation(.easeInOut(duration: 0.25), value: showsCreditsRunningLowStatus)
         .background(Color.clear)
         .onAppear {
             handlePromptChange(viewModel.promptUpToCursor())
+            viewModel.triggerCreditsRunningLowIfNeeded()
         }
         .onChange(of: viewModel.prompt) { _, _ in
             handlePromptChange(viewModel.promptUpToCursor())
@@ -167,6 +176,36 @@ private struct LowCreditsStatusView: View {
             Button(action: onBuyCredits) {
                 HStack(spacing: 2) {
                     Text("Buy now")
+                    Image(systemName: "chevron.right")
+                        .font(.callout.weight(.semibold))
+                }
+                .font(.callout.weight(.medium))
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+        }
+        .font(.callout)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Credits Running Low Status View
+
+private struct CreditsRunningLowStatusView: View {
+    let onBuyCredits: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "creditcard")
+                .foregroundColor(.secondary)
+            Text("Credits running low.")
+
+            Button(action: onBuyCredits) {
+                HStack(spacing: 2) {
+                    Text("Buy more")
                     Image(systemName: "chevron.right")
                         .font(.callout.weight(.semibold))
                 }

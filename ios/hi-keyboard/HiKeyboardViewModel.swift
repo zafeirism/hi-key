@@ -39,6 +39,11 @@ class HiKeyboardViewModel: ObservableObject {
     // having to reopen the main app.
     @Published var accountSummary: KeyboardAccountSummary = .load()
 
+    // Drives the transient "Credits running low" status shown in the
+    // suggestion bar. Triggered on SuggestionBarView appearance when the
+    // user can still generate but the balance is approaching empty.
+    @Published var showCreditsRunningLow: Bool = false
+
     // Tracks the mode the user was in before opening the menu, so closing
     // the menu returns them to results vs composing as appropriate.
     private var modeBeforeMenu: KeyboardMode = .composing
@@ -365,6 +370,13 @@ class HiKeyboardViewModel: ObservableObject {
 
     private var statusPollTask: Task<Void, Never>?
     private var transientStatusTask: Task<Void, Never>?
+    private var creditsRunningLowTask: Task<Void, Never>?
+
+    // Threshold at which we surface the soft "running low" warning. Above
+    // `minCreditsForGeneration` (the hard "can't generate" cutoff) but low
+    // enough that the next handful of generations will exhaust the balance.
+    private static let creditsRunningLowThreshold: Int = 30
+    private static let creditsRunningLowDuration: TimeInterval = 5
 
     // Ids the backend has confirmed `ready`. Bytes are now available on
     // R2 and the card will fetch them on its own; further status polls
@@ -441,6 +453,26 @@ class HiKeyboardViewModel: ObservableObject {
 
         if anyErrored {
             await refreshFromBackend()
+        }
+    }
+
+    /// Flashes the "Credits running low" status in the suggestion bar for
+    /// `creditsRunningLowDuration` seconds. Skipped when the user can no
+    /// longer generate at all — the hard "not enough credits" status owns
+    /// that case and stays visible until they buy.
+    func triggerCreditsRunningLowIfNeeded() {
+        let summary = accountSummary
+        guard summary.hasEnoughCredits,
+              summary.totalCredits < Self.creditsRunningLowThreshold
+        else { return }
+
+        creditsRunningLowTask?.cancel()
+        showCreditsRunningLow = true
+        creditsRunningLowTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(Self.creditsRunningLowDuration * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            self?.showCreditsRunningLow = false
+            self?.creditsRunningLowTask = nil
         }
     }
 

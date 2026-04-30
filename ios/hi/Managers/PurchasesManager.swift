@@ -275,7 +275,7 @@ final class PurchasesManager: NSObject, ObservableObject {
     /// intro discount configured. Paid intro offers (e.g. discounted weeks)
     /// would need different copy, so they're excluded here.
     func isTrialEligible(for productID: String) -> Bool {
-        return productID == "super.weekly" ? true : false
+        //return productID == "super.weekly" ? true : false
         guard introEligibility[productID]?.status == .eligible else { return false }
         guard let package = package(forProductID: productID),
               let intro = package.storeProduct.introductoryDiscount else {
