@@ -9,7 +9,6 @@ import { randomUUID } from 'crypto';
 import { getKey, getSignedImageUrl } from '@/lib/storage/r2';
 import { hasStyle } from '@/lib/ai/detectPromptStyle';
 import { proofread } from '@/lib/ai/proofread';
-import { pickStylesRandomly } from '@/lib/ai/imageStyles';
 import {
   debit,
   grant,
@@ -26,7 +25,7 @@ const WORKER_IMAGE_RESERVED_MILLS = IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_DE
 export const POST = withAuth(async (request, user) => {
   const requestStartedAt = new Date();
   const body = await request.json();
-  const { prompt, session_id, request_id, warmup } = body;
+  const { prompt, session_id, request_id, warmup, random_styles } = body;
 
   if (warmup) {
     return NextResponse.json({ success: true });
@@ -35,6 +34,16 @@ export const POST = withAuth(async (request, user) => {
   if (!prompt || !session_id || !request_id) {
     return NextResponse.json(
       { error: 'prompt, session_id, and request_id are required' },
+      { status: 400 }
+    );
+  }
+
+  if (
+    random_styles !== undefined &&
+    (!Array.isArray(random_styles) || random_styles.some((s) => typeof s !== 'string'))
+  ) {
+    return NextResponse.json(
+      { error: 'random_styles must be an array of strings' },
       { status: 400 }
     );
   }
@@ -145,15 +154,16 @@ export const POST = withAuth(async (request, user) => {
   const promptAnalysisDurationMs = Date.now() - promptAnalysisStartedAt;
 
   const prompts: string[] = [];
-  const styles = pickStylesRandomly(3);
-  if (hasStyleResult.has_style) {
+  const styles: string[] = (random_styles ?? []).slice(0, 3);
+  if (hasStyleResult.has_style || styles.length === 0) {
     prompts.push(
       proofreadResult.improved_prompt,
       proofreadResult.improved_prompt,
       proofreadResult.improved_prompt
     );
   } else {
-    for (const style of styles) {
+    for (let i = 0; i < 3; i++) {
+      const style = styles[i % styles.length]!;
       prompts.push(`${style} style: ${proofreadResult.improved_prompt}`);
     }
   }
