@@ -12,7 +12,7 @@ enum ImageStyles {
         "Anime", "Impressionist", "Surrealist", "Expressionist", "Pop art",
         "Cyberpunk", "Steampunk", "Photorealistic", "Cinematic", "Documentary",
         "Analog film", "Retro poster", "Minimalism", "Low poly", "Pixel art",
-        "Sketch", "Baroque", "Cubism", "Noir style", "Fantasy illustration",
+        "Sketch style", "Baroque", "Cubism", "Noir style", "Fantasy illustration",
         "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Stencil"
     ]
 }

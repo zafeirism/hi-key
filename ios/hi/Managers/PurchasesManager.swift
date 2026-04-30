@@ -43,6 +43,7 @@ final class PurchasesManager: NSObject, ObservableObject {
     enum AppGroupKeys {
         static let subscriptionTier = "subscriptionTier"
         static let subscriptionWeeklyBaseCredits = "subscriptionWeeklyBaseCredits"
+        static let removeWatermarkEntitlementActive = "removeWatermarkEntitlementActive"
     }
 
     private func mirrorToAppGroup() {
@@ -53,6 +54,7 @@ final class PurchasesManager: NSObject, ObservableObject {
         } else {
             defaults.removeObject(forKey: AppGroupKeys.subscriptionWeeklyBaseCredits)
         }
+        defaults.set(canRemoveWatermark, forKey: AppGroupKeys.removeWatermarkEntitlementActive)
     }
 
     // MARK: - Pack Catalog
