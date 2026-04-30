@@ -12,7 +12,7 @@ struct StylePickerView: View {
             List {
                 // Built-in styles section
                 Section {
-                    ForEach(SettingsManager.defaultStyles, id: \.self) { style in
+                    ForEach(ImageStyles.defaults, id: \.self) { style in
                         StyleRow(
                             style: style,
                             isEnabled: settingsManager.isStyleEnabled(style),

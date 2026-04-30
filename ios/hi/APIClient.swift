@@ -11,6 +11,7 @@ class APIClient {
         let prompt: String
         let session_id: String  // UUID for this keyboard session
         let request_id: String  // UUID for this specific request
+        let random_styles: [String]  // Random styles from user preferences; empty when disabled
     }
     
     struct GenerateImageEntry: Codable {
@@ -124,14 +125,15 @@ class APIClient {
         _ = try await URLSession.shared.data(for: request)
     }
 
-    func generate(prompt: String, sessionID: String, requestID: String) async throws -> GenerateResponse {
+    func generate(prompt: String, sessionID: String, requestID: String, randomStyles: [String]) async throws -> GenerateResponse {
         let accessToken = try await getValidAccessToken()
-        
+
         do {
             return try await performGenerate(
                 prompt: prompt,
                 sessionID: sessionID,
                 requestID: requestID,
+                randomStyles: randomStyles,
                 accessToken: accessToken
             )
         } catch APIError.httpError(statusCode: 401) {
@@ -141,13 +143,14 @@ class APIClient {
                 prompt: prompt,
                 sessionID: sessionID,
                 requestID: requestID,
+                randomStyles: randomStyles,
                 accessToken: newToken
             )
         }
     }
-    
+
     // Call /api/generate endpoint
-    private func performGenerate(prompt: String, sessionID: String, requestID: String, accessToken: String) async throws -> GenerateResponse {
+    private func performGenerate(prompt: String, sessionID: String, requestID: String, randomStyles: [String], accessToken: String) async throws -> GenerateResponse {
         guard let url = URL(string: "\(baseURL)/api/generate") else {
             throw APIError.invalidURL
         }
@@ -173,7 +176,8 @@ class APIClient {
         let body = GenerateRequest(
             prompt: prompt,
             session_id: sessionID,
-            request_id: requestID
+            request_id: requestID,
+            random_styles: randomStyles
         )
         request.httpBody = try JSONEncoder().encode(body)
         

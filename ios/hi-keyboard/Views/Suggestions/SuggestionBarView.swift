@@ -90,7 +90,7 @@ struct SuggestionBarView: View {
     // MARK: - Initial Suggestions
     
     private func loadInitialSuggestions() {
-        suggestions = PromptCategories.randomStyles()
+        suggestions = ImageStylePreferences.enabledForDisplay.shuffled()
     }
     
     // MARK: - Handle Prompt Changes

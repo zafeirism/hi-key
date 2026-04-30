@@ -5,7 +5,6 @@ import Combine
 
 enum KeyboardMode: Equatable {
     case composing              // Typing prompt, showing suggestions + keyboard
-    case browsingSuggestions    // Showing category picker instead of keyboard
     case results                // Showing image carousel
     case menu                   // Showing settings / credits / referral menu
 }
@@ -271,10 +270,15 @@ class HiKeyboardViewModel: ObservableObject {
         do {
             let requestID = apiClient.newRequestID()
 
+            let randomStyles = ImageStylePreferences.randomStylesEnabled
+                ? ImageStylePreferences.randomEnabledStyles(count: 4)
+                : []
+
             let response = try await apiClient.generate(
                 prompt: prompt,
                 sessionID: sessionID,
-                requestID: requestID
+                requestID: requestID,
+                randomStyles: randomStyles
             )
 
             HiLogger.info("✅ Got \(response.images.count) urls back for requestID \(requestID)", category: .keyboard)
@@ -549,14 +553,6 @@ class HiKeyboardViewModel: ObservableObject {
     }
 
     // MARK: - Mode Switching
-
-    func toggleCategoryPicker() {
-        if mode == .browsingSuggestions {
-            mode = .composing
-        } else {
-            mode = .browsingSuggestions
-        }
-    }
 
     var isShowingMenu: Bool { mode == .menu }
 

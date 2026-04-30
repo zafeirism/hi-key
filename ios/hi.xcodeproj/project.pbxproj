@@ -86,7 +86,7 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				Models/GeneratedImage.swift,
-				Models/PromptCategories.swift,
+				Models/ImageStyles.swift,
 				Utilities/ImageLoader.swift,
 				Utilities/Logger.swift,
 				Utilities/Watermark.swift,
