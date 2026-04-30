@@ -40,21 +40,19 @@ function resolveSubGrant(
   multiplier: number
 ): { mills: number; isTrial: boolean } {
   const isTrial = event.period_type === 'TRIAL' && product.trialMills !== undefined;
-  const baseMills = isTrial ? product.trialMills! : product.tierMaxMills;
-  return { mills: baseMills * multiplier, isTrial };
+  const mills = isTrial ? product.trialMills! : product.tierMaxMills * multiplier;
+  return { mills, isTrial };
 }
 
 async function setActiveSubProduct(userId: string, productId: string | null): Promise<void> {
-  const { error } = await supabaseAdmin
-    .from('user_profiles')
-    .upsert(
-      {
-        user_id: userId,
-        active_sub_product_id: productId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    );
+  const { error } = await supabaseAdmin.from('user_profiles').upsert(
+    {
+      user_id: userId,
+      active_sub_product_id: productId,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
   if (error) throw error;
 }
 
