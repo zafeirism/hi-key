@@ -16,7 +16,7 @@ struct PromptCategories {
         PromptCategory(
             name: "Styles",
             icon: "paintbrush",
-            suggestions: ["Watercolor", "Oil painting", "Pastel", "Charcoal", "Comic book", "Manga", "Graphic novel", "Pixar-like", "Ghibli-like", "Disney Renaissance", "90s anime", "Impressionist", "Surrealist", "Expressionist", "Pop art", "Vaporwave", "Synthwave", "Cyberpunk", "Steampunk", "Photorealistic", "Cinematic", "Documentary", "Analog film", "Retro poster", "Minimalism", "Low poly", "Pixel art", "Sketch", "Realism", "Hyperrealism", "Baroque", "Rococo", "Art Nouveau", "Art Deco", "Cubism", "Fauvism", "Ukiyo-e", "Noir", "Film noir", "Neon noir", "Fantasy illustration", "Matte painting", "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Street art"]
+            suggestions: ["Watercolor", "Oil painting", "Pastel", "Charcoal", "Comic book", "Manga", "Graphic novel", "Pixar style", "Ghibli style", "Disney style", "Anime", "Impressionist", "Surrealist", "Expressionist", "Pop art", "Cyberpunk", "Steampunk", "Photorealistic", "Cinematic", "Documentary", "Analog film", "Retro poster", "Minimalism", "Low poly", "Pixel art", "Sketch", "Baroque", "Cubism", "Noir style", "Fantasy illustration", "Isometric", "Line art", "Chiaroscuro", "Graffiti", "Stencil"]
         ),
         PromptCategory(
             name: "Angles",
@@ -61,8 +61,9 @@ struct PromptCategories {
     }
     
     /// Returns n random suggestions from the Styles category
-    static func randomStyles(_ count: Int) -> [String] {
+    static func randomStyles(_ count: Int? = nil) -> [String] {
         guard let styles = styles else { return [] }
-        return Array(styles.suggestions.shuffled().prefix(count))
+        let total = count ?? styles.suggestions.count
+        return Array(styles.suggestions.shuffled().prefix(total))
     }
 }
