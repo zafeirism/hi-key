@@ -2,21 +2,26 @@ import SwiftUI
 
 /// Onboarding step that asks the user to switch to the hi-key keyboard from
 /// inside the app. We focus a hidden text field to raise the system keyboard,
-/// then poll the App Group UserDefaults for a timestamp that the keyboard
-/// extension stamps each time it becomes visible. As soon as we see a newer
-/// timestamp than the one we captured on appear, we know the user successfully
-/// switched to hi-key — we dismiss the keyboard and reveal Continue.
+/// then observe `UITextInputMode.currentInputModeDidChangeNotification` and
+/// match the active input mode's bundle identifier against hi-key's. As soon
+/// as we detect the switch, we dismiss the keyboard and reveal Continue.
+/// Works regardless of whether the user has granted Full Access.
 struct OpenKeyboardView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
 
     @State private var detected = false
-    @State private var baselineTimestamp: TimeInterval = 0
-    @State private var pollingTask: Task<Void, Never>?
+    @State private var inputModeObserver: NSObjectProtocol?
     @FocusState private var fieldFocused: Bool
 
-    private let appGroupID = "group.ai.hi-key"
-    private let lastSeenKey = "hiKeyboardLastSeenAt"
-    private let pollInterval: TimeInterval = 0.3
+    /// Bundle ID of the keyboard extension, matched against `UITextInputMode`'s
+    /// undocumented `identifier` property (read via KVC) to detect when hi-key
+    /// becomes the active keyboard. Works without Full Access since detection
+    /// happens entirely host-side off the input-mode notification.
+    private let hiKeyBundleID = "ai.hi-key.keyboard"
+    /// KVC key on `UITextInputMode` exposing the keyboard extension's bundle
+    /// ID. Not part of the public API but stable across iOS versions and used
+    /// by many shipped apps that need to identify a specific custom keyboard.
+    private let inputModeIdentifierKey = "identifier"
     /// Hold the keyboard up briefly after detection so the success text can
     /// settle before the keyboard slides away — feels less frantic than
     /// animating text, button, and dismissal all at once.
@@ -73,22 +78,26 @@ struct OpenKeyboardView: View {
         }
         .ignoresSafeArea(.keyboard)
         .onAppear {
-            captureBaselineAndStartPolling()
+            detected = false
+            startObservingInputMode()
             // Small delay so the view is fully presented before focus is set;
             // focusing too early during the transition can drop the request.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 fieldFocused = true
+                // Initial check in case hi-key is already the user's last-used
+                // keyboard — the change notification won't fire in that case.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    checkActiveInputMode()
+                }
             }
         }
         .onDisappear {
-            pollingTask?.cancel()
-            pollingTask = nil
+            stopObservingInputMode()
             fieldFocused = false
         }
         .onChange(of: detected) { _, newValue in
             if newValue {
-                pollingTask?.cancel()
-                pollingTask = nil
+                stopObservingInputMode()
                 DispatchQueue.main.asyncAfter(deadline: .now() + dismissDelay) {
                     fieldFocused = false
                 }
@@ -120,24 +129,50 @@ struct OpenKeyboardView: View {
 
     // MARK: - Detection
 
-    private func captureBaselineAndStartPolling() {
-        let defaults = UserDefaults(suiteName: appGroupID)
-        baselineTimestamp = defaults?.double(forKey: lastSeenKey) ?? 0
-        detected = false
-
-        pollingTask?.cancel()
-        pollingTask = Task { @MainActor in
-            let nanos = UInt64(pollInterval * 1_000_000_000)
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: nanos)
-                if Task.isCancelled { return }
-                let current = defaults?.double(forKey: lastSeenKey) ?? 0
-                if current > baselineTimestamp {
-                    detected = true
-                    return
-                }
-            }
+    private func startObservingInputMode() {
+        stopObservingInputMode()
+        inputModeObserver = NotificationCenter.default.addObserver(
+            forName: UITextInputMode.currentInputModeDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            checkActiveInputMode()
         }
+    }
+
+    private func stopObservingInputMode() {
+        if let observer = inputModeObserver {
+            NotificationCenter.default.removeObserver(observer)
+            inputModeObserver = nil
+        }
+    }
+
+    private func checkActiveInputMode() {
+        print("ZAF: 1")
+        guard let mode = UIResponder.hi_currentFirstResponder?.textInputMode else { return }
+        print("ZAF: 2")
+        if mode.value(forKey: inputModeIdentifierKey) as? String == hiKeyBundleID {
+            detected = true
+        }
+    }
+}
+
+// MARK: - First responder lookup
+
+private extension UIResponder {
+    private static weak var _hiFirstResponder: UIResponder?
+
+    /// Walks the responder chain to find the current first responder. Used to
+    /// read the active `textInputMode` from the host app — there's no public
+    /// API to query it directly without a responder reference.
+    static var hi_currentFirstResponder: UIResponder? {
+        _hiFirstResponder = nil
+        UIApplication.shared.sendAction(#selector(UIResponder._hi_captureFirstResponder), to: nil, from: nil, for: nil)
+        return _hiFirstResponder
+    }
+
+    @objc private func _hi_captureFirstResponder() {
+        UIResponder._hiFirstResponder = self
     }
 }
 

@@ -61,16 +61,6 @@ class KeyboardViewController: KeyboardInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         FullAccessMonitor.shared.update(hasFullAccess)
-        recordKeyboardActivation()
-    }
-
-    /// Stamp a timestamp into the shared App Group every time the keyboard
-    /// becomes visible. The onboarding's "open the keyboard" step polls this
-    /// value to confirm the user successfully switched to hi-key without
-    /// having to leave the app.
-    private func recordKeyboardActivation() {
-        let defaults = UserDefaults(suiteName: "group.ai.hi-key")
-        defaults?.set(Date().timeIntervalSince1970, forKey: "hiKeyboardLastSeenAt")
     }
 
     override func viewWillSetupKeyboardView() {
