@@ -148,9 +148,7 @@ struct OpenKeyboardView: View {
     }
 
     private func checkActiveInputMode() {
-        print("ZAF: 1")
         guard let mode = UIResponder.hi_currentFirstResponder?.textInputMode else { return }
-        print("ZAF: 2")
         if mode.value(forKey: inputModeIdentifierKey) as? String == hiKeyBundleID {
             detected = true
         }

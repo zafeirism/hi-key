@@ -152,7 +152,7 @@ struct AllPlansSheet: View {
             let id = package.storeProduct.productIdentifier
             PaywallOptionCard(
                 title: purchasesManager.packDisplayName(for: id) ?? package.storeProduct.localizedTitle,
-                subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits, one-time" } ?? "",
+                subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits" } ?? "",
                 price: package.storeProduct.localizedPriceString,
                 isSelected: selectedPackPackage?.storeProduct.productIdentifier == id,
                 onSelect: {

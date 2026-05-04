@@ -129,7 +129,7 @@ struct PaywallView: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Every 100 credits with default AI models is ~15 generations × 4 images each.")
+            Text("100 credits ≈ 13 generations of 4 images each.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -189,7 +189,7 @@ struct PaywallView: View {
             return "\(credits) credits / week"
         }
         if let credits = purchasesManager.packCredits(for: id) {
-            return "\(credits) credits, one-time"
+            return "\(credits) credits"
         }
         return ""
     }
@@ -315,7 +315,7 @@ private struct OnlyPacksSheet: View {
                     let id = package.storeProduct.productIdentifier
                     PaywallOptionCard(
                         title: purchasesManager.packDisplayName(for: id) ?? package.storeProduct.localizedTitle,
-                        subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits, one-time" } ?? "",
+                        subtitle: purchasesManager.packCredits(for: id).map { "\($0) credits" } ?? "",
                         price: package.storeProduct.localizedPriceString,
                         isSelected: selectedPackage?.storeProduct.productIdentifier == id,
                         onSelect: {
