@@ -2,7 +2,9 @@ import SwiftUI
 
 struct EnableSettingsView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showPrivacyModal = false
+    @State private var keyboardEnabled: Bool = false
 
     var body: some View {
         ZStack {
@@ -56,7 +58,7 @@ struct EnableSettingsView: View {
                     }
                     .padding(.bottom, HiTheme.spacingLG)
                     
-                    if onboardingManager.hasOpenedSettings {
+                    if keyboardEnabled {
                         Button {
                             onboardingManager.goToNextStep()
                         } label: {
@@ -64,7 +66,7 @@ struct EnableSettingsView: View {
                         }
                         .buttonStyle(HiPrimaryButtonStyle())
                         .padding(.bottom, HiTheme.spacingSM)
-                        
+
                         Button {
                             openKeyboardSettings()
                         } label: {
@@ -75,9 +77,6 @@ struct EnableSettingsView: View {
                     } else {
                         Button {
                             openKeyboardSettings()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                onboardingManager.hasOpenedSettings = true
-                            }
                         } label: {
                             Text("Open Settings")
                         }
@@ -91,6 +90,14 @@ struct EnableSettingsView: View {
         .sheet(isPresented: $showPrivacyModal) {
             PrivacyInfoModal()
                 .presentationDetents([.fraction(0.7)])
+        }
+        .onAppear {
+            checkKeyboardStatus()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                checkKeyboardStatus()
+            }
         }
     }
 
@@ -110,6 +117,12 @@ struct EnableSettingsView: View {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
+    }
+
+    private func checkKeyboardStatus() {
+        let keyboardBundleID = "ai.hi-key.keyboard"
+        let appleKeyboards = UserDefaults.standard.object(forKey: "AppleKeyboards") as? [String] ?? []
+        keyboardEnabled = appleKeyboards.contains(keyboardBundleID)
     }
 }
 

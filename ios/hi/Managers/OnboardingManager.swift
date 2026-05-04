@@ -48,7 +48,6 @@ class OnboardingManager: ObservableObject {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let referrerCode = "referrerCode"
         static let referralApplied = "referralApplied"
-        static let hasOpenedSettings = "hasOpenedSettings"
     }
     
     // MARK: - Computed Properties
@@ -70,15 +69,6 @@ class OnboardingManager: ObservableObject {
         }
     }
     
-    /// Whether the user has opened Settings at least once during the enable-settings step
-    var hasOpenedSettings: Bool {
-        get { userDefaults?.bool(forKey: Keys.hasOpenedSettings) ?? false }
-        set {
-            userDefaults?.set(newValue, forKey: Keys.hasOpenedSettings)
-            objectWillChange.send()
-        }
-    }
-
     /// Whether the user successfully applied a friend's referral code
     var referralApplied: Bool {
         get { userDefaults?.bool(forKey: Keys.referralApplied) ?? false }
@@ -168,7 +158,6 @@ class OnboardingManager: ObservableObject {
         userDefaults?.removeObject(forKey: Keys.hasCompletedOnboarding)
         userDefaults?.removeObject(forKey: Keys.referrerCode)
         userDefaults?.removeObject(forKey: Keys.referralApplied)
-        userDefaults?.removeObject(forKey: Keys.hasOpenedSettings)
         currentStep = .welcome
     }
 }
