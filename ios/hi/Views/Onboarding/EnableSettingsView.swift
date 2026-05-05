@@ -130,7 +130,8 @@ struct EnableSettingsView: View {
 
 private struct PrivacyInfoModal: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var showTerms = false
+
+    private static let privacyURL = URL(string: "https://hi-key.ai/privacy")!
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -147,7 +148,7 @@ private struct PrivacyInfoModal: View {
             }
             .padding(.top, HiTheme.spacingMD)
             .padding(.trailing, HiTheme.spacingMD)
-            
+
             VStack(spacing: HiTheme.spacingLG) {
                 Image(systemName: "person.badge.shield.checkmark.fill")
                     .font(.system(size: 56))
@@ -158,28 +159,27 @@ private struct PrivacyInfoModal: View {
                     .font(.system(.title2, design: .rounded, weight: .semibold))
                     .foregroundStyle(HiTheme.textPrimary)
 
-                Text("hi-key requires Full Access to connect to our servers and generate images from your prompts. We only send the text you type in the prompt bar, never passwords, messages, or other content. Your prompts are processed securely and are not stored after image generation. We do not collect, share, or sell any personal data. hi-key does not access your contacts, location, or browsing history. Your privacy is our top priority.")
+                Text("hi-key requires Full Access to connect to our servers and generate images from your prompts. We only send the text you type in the hi-key prompt bar, never passwords, messages, or other content. Prompts and generated images are deleted from our servers within 10 minutes. We do not collect, share, or sell any personal data, and hi-key does not access your contacts, location, or browsing history.")
                     .font(.body)
                     .foregroundStyle(HiTheme.textSecondary)
                     .multilineTextAlignment(.leading)
 
                 Spacer()
 
-                Button {
-                    showTerms = true
-                } label: {
-                    Text("Read full Privacy Policy")
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(HiTheme.accentPrimary)
+                Link(destination: Self.privacyURL) {
+                    HStack(spacing: HiTheme.spacingXS) {
+                        Text("Read full Privacy Policy")
+                            .font(.footnote.weight(.medium))
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption2.weight(.medium))
+                    }
+                    .foregroundStyle(HiTheme.accentPrimary)
                 }
                 .padding(.bottom, HiTheme.spacingLG)
             }
             .padding(.horizontal, HiTheme.spacingMD)
         }
         .background(HiTheme.surfacePrimary)
-        .sheet(isPresented: $showTerms) {
-            TermsSheet()
-        }
     }
 }
 

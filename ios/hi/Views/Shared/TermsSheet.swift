@@ -1,23 +1,26 @@
 import SwiftUI
 
+/// Shown from the paywall and other purchase surfaces. Surfaces both the Terms
+/// of Service and the Privacy Policy as required by Apple's auto-renewing
+/// subscription guidelines, plus a brief plain-language summary of how billing
+/// and credits work.
 struct TermsSheet: View {
     @Environment(\.dismiss) private var dismiss
+
+    private static let termsURL = URL(string: "https://hi-key.ai/terms")!
+    private static let privacyURL = URL(string: "https://hi-key.ai/privacy")!
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: HiTheme.spacingLG) {
-                    Text("Terms of Service")
-                        .font(.title2.bold())
-                        .foregroundStyle(HiTheme.textPrimary)
-
-                    Text(termsText)
-                        .font(.body)
-                        .foregroundStyle(HiTheme.textSecondary)
+                    summarySection
+                    linksSection
                 }
                 .padding(HiTheme.spacingLG)
             }
             .background(HiTheme.backgroundRoot)
+            .navigationTitle("Terms & Privacy")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -30,25 +33,77 @@ struct TermsSheet: View {
         }
     }
 
-    private var termsText: String {
-        """
-        By subscribing to hi-key, you agree to the following terms:
+    // MARK: - Subviews
 
-        • Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.
+    private var summarySection: some View {
+        VStack(alignment: .leading, spacing: HiTheme.spacingMD) {
+            Text("How billing works")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(HiTheme.textPrimary)
 
-        • Your account will be charged for renewal within 24 hours prior to the end of the current period.
+            Text("Subscriptions auto-renew at the price and period shown on the purchase screen, unless you cancel at least 24 hours before the cycle ends. Renewal is charged within 24 hours of the cycle ending. You can manage or cancel any time in your Apple ID Subscription settings.")
+                .font(.body)
+                .foregroundStyle(HiTheme.textSecondary)
 
-        • You can manage and cancel subscriptions by going to your Account Settings on the App Store after purchase.
-
-        • Any unused portion of a free trial period will be forfeited when you purchase a subscription.
-
-        Privacy Policy:
-
-        • We collect only the data necessary to provide our service.
-
-        • Your prompts are processed to generate images and are not stored.
-
-        • We do not sell your personal data to third parties.
-        """
+            Text("Credit packs are one-time purchases with no recurring charge. Any unused free trial is forfeited when a paid subscription begins. All purchases are handled by Apple; refunds go through Apple at reportaproblem.apple.com.")
+                .font(.body)
+                .foregroundStyle(HiTheme.textSecondary)
+        }
     }
+
+    private var linksSection: some View {
+        VStack(alignment: .leading, spacing: HiTheme.spacingSM) {
+            Text("Read the full documents")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(HiTheme.textPrimary)
+                .padding(.top, HiTheme.spacingSM)
+
+            HiCard {
+                VStack(spacing: 0) {
+                    legalLinkRow(
+                        title: "Terms of Service",
+                        systemImage: "doc.text",
+                        url: Self.termsURL
+                    )
+
+                    Rectangle()
+                        .fill(HiTheme.divider)
+                        .frame(height: 1)
+
+                    legalLinkRow(
+                        title: "Privacy Policy",
+                        systemImage: "lock.shield",
+                        url: Self.privacyURL
+                    )
+                }
+            }
+        }
+    }
+
+    private func legalLinkRow(title: String, systemImage: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack(spacing: HiTheme.spacingMD) {
+                Image(systemName: systemImage)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(HiTheme.accentPrimary)
+                    .frame(width: 22)
+
+                Text(title)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(HiTheme.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "arrow.up.right")
+                    .font(.caption)
+                    .foregroundStyle(HiTheme.textSecondary)
+            }
+            .padding(.vertical, HiTheme.spacingMD)
+            .contentShape(Rectangle())
+        }
+    }
+}
+
+#Preview {
+    TermsSheet()
 }
