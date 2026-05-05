@@ -49,9 +49,9 @@ enum Watermark {
             cgContext.setShadow(
                 offset: .zero,
                 blur: 3,
-                color: UIColor.black.withAlphaComponent(0.25).cgColor
+                color: UIColor.black.withAlphaComponent(0.35).cgColor
             )
-            badge.draw(in: badgeRect, blendMode: .normal, alpha: 0.4)
+            badge.draw(in: badgeRect, blendMode: .normal, alpha: 0.6)
             cgContext.restoreGState()
         }
         
