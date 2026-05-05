@@ -81,3 +81,5 @@ hi-key is a keyboard, not a separate app. It works inside the app you're already
 
 - [Home](https://hi-key.ai/): Landing page with app overview, features, and waitlist signup
 - [Waitlist](https://hi-key.ai/#waitlist): Join the waitlist to be notified when hi-key launches
+- [Privacy Policy](https://hi-key.ai/privacy): How hi-key handles your data. No accounts, no tracking, prompts and images deleted within 10 minutes
+- [Terms of Service](https://hi-key.ai/terms): The rules of using hi-key, in plain language

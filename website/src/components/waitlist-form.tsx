@@ -80,6 +80,23 @@ function WaitlistFormInner() {
       {state === "error" && (
         <p className="mt-2 text-sm text-status-error">{errorMessage}</p>
       )}
+      <p className="mt-3 text-xs text-text-tertiary">
+        By joining, you agree to hi-key&apos;s{" "}
+        <a
+          href="/terms"
+          className="text-text-secondary transition-colors hover:text-text-primary"
+        >
+          terms
+        </a>{" "}
+        and{" "}
+        <a
+          href="/privacy"
+          className="text-text-secondary transition-colors hover:text-text-primary"
+        >
+          privacy policy
+        </a>
+        .
+      </p>
     </div>
   );
 }
