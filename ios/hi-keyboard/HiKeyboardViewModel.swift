@@ -153,6 +153,7 @@ class HiKeyboardViewModel: ObservableObject {
         showingResults = true
         mode = .results
         isPromptFocused = false
+        actionHandler?.interceptInput(shouldIntercept: false)
 
         let now = Date()
         let summary = hydrated.map { img -> String in
@@ -203,6 +204,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     func focusPrompt() {
         isPromptFocused = true
+        actionHandler?.interceptInput(shouldIntercept: true)
         moveCursorToEnd()
         showingResults = false
         mode = .composing
@@ -221,6 +223,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     func unfocusPrompt() {
         isPromptFocused = false
+        actionHandler?.interceptInput(shouldIntercept: false)
     }
     
     // MARK: - Auto-Capitalization Logic
@@ -533,6 +536,7 @@ class HiKeyboardViewModel: ObservableObject {
     
     func showResults() {
         isPromptFocused = false
+        actionHandler?.interceptInput(shouldIntercept: false)
         showingResults = true
         mode = .results
     }
@@ -577,6 +581,7 @@ class HiKeyboardViewModel: ObservableObject {
         showingResults = (modeBeforeMenu == .results)
         if modeBeforeMenu == .composing {
             isPromptFocused = true
+            actionHandler?.interceptInput(shouldIntercept: true)
         }
     }
 

@@ -39,6 +39,21 @@ class KeyboardViewController: KeyboardInputViewController {
             await self?.hiViewModel.refreshFromBackend()
         }
     }
+    
+    // MARK: - Detect Host App Text Interaction
+        
+    override func textWillChange(_ textInput: UITextInput?) {
+        super.textWillChange(textInput)
+        
+        // If we're intercepting input but text is changing in host app,
+        // it means user tapped on host app's text field
+        // Unfocus our prompt
+        if hiViewModel.isPromptFocused {
+            DispatchQueue.main.async { [weak self] in
+                self?.hiViewModel.unfocusPrompt()
+            }
+        }
+    }
 
     /// Open a hi-key:// URL from the keyboard. `extensionContext.open(_:)`
     /// is not honored for keyboard extensions, and `UIApplication.open(_:)`
