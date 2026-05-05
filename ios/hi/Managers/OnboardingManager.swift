@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import PostHog
 
 // MARK: - Onboarding Step
 
@@ -122,6 +123,10 @@ class OnboardingManager: ObservableObject {
     }
     
     func completeOnboarding() {
+        // PostHog: Track onboarding completion
+        PostHogSDK.shared.capture("onboarding_completed", properties: [
+            "referral_applied": referralApplied,
+        ])
         withAnimation(HiTheme.animationSlow) {
             hasCompletedOnboarding = true
             currentStep = .complete
@@ -141,6 +146,10 @@ class OnboardingManager: ObservableObject {
         try await CreditsManager.shared.redeemReferralCode(normalized)
         referrerCode = normalized
         referralApplied = true
+        // PostHog: Track successful referral code redemption
+        PostHogSDK.shared.capture("referral_code_redeemed", properties: [
+            "referrer_code": normalized,
+        ])
     }
 
     /// Client-side shape check for the Apply button's enabled state. Actual

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import PostHog
 
 // MARK: - Keyboard Mode
 
@@ -278,6 +279,11 @@ class HiKeyboardViewModel: ObservableObject {
         mode = .results
         errorMessage = nil
 
+        // PostHog: Track generation start
+        PostHogSDK.shared.capture("image_generation_started", properties: [
+            "prompt_length": prompt.count,
+        ])
+
         do {
             let requestID = apiClient.newRequestID()
 
@@ -304,6 +310,12 @@ class HiKeyboardViewModel: ObservableObject {
                 )
             }
 
+            // PostHog: Track generation completion
+            PostHogSDK.shared.capture("image_generation_completed", properties: [
+                "image_count": response.images.count,
+                "prompt_length": prompt.count,
+            ])
+
             let totalAfterAdd = allImages.count + newImages.count
             if totalAfterAdd > maxStoredImages {
                 let removeCount = totalAfterAdd - maxStoredImages
@@ -315,7 +327,7 @@ class HiKeyboardViewModel: ObservableObject {
             for image in newImages {
                 startLoadTracking(for: image)
             }
-            
+
             let stored = StoredGeneration(
                 prompt: prompt,
                 generatedAt: batchGeneratedAt,
@@ -333,6 +345,10 @@ class HiKeyboardViewModel: ObservableObject {
 
         } catch {
             HiLogger.error("Generate failed!", error: error, category: .keyboard)
+            // PostHog: Track generation failure
+            PostHogSDK.shared.capture("image_generation_failed", properties: [
+                "error_message": error.localizedDescription,
+            ])
             errorMessage = error.localizedDescription
             isGenerating = false
         }
@@ -511,6 +527,11 @@ class HiKeyboardViewModel: ObservableObject {
         UIPasteboard.general.image = watermarkedImage
         HiLogger.info("Image copied to pasteboard: \(image.url)")
         markAsCopied(image.id)
+
+        // PostHog: Track image copy
+        PostHogSDK.shared.capture("image_copied", properties: [
+            "generation_id": image.id,
+        ])
 
         Task {
             try? await apiClient.reportCopy(generationId: image.id)

@@ -1,5 +1,6 @@
 import SwiftUI
 import RevenueCat
+import PostHog
 
 // MARK: - PaywallView
 
@@ -73,7 +74,11 @@ struct PaywallView: View {
         } message: {
             Text("Something went wrong while restoring. Please try again.")
         }
-        .onAppear { selectDefaultPackageIfNeeded() }
+        .onAppear {
+            selectDefaultPackageIfNeeded()
+            // PostHog: Track paywall view
+            PostHogSDK.shared.capture("paywall_viewed")
+        }
         .onReceive(purchasesManager.$offerings) { _ in selectDefaultPackageIfNeeded() }
     }
 

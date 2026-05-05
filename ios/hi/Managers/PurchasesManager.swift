@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import RevenueCat
+import PostHog
 
 enum PurchasesManagerError: Error {
     case cancelled
@@ -148,9 +149,28 @@ final class PurchasesManager: NSObject, ObservableObject {
 
         let result = try await Purchases.shared.purchase(package: package)
         if result.userCancelled {
+            // PostHog: Track purchase cancellation
+            PostHogSDK.shared.capture("purchase_cancelled", properties: [
+                "product_id": productID,
+            ])
             throw PurchasesManagerError.cancelled
         }
         customerInfo = result.customerInfo
+
+        // PostHog: Track successful purchase (subscription vs one-time pack)
+        let isPack = packCatalog[productID] != nil
+        if isPack {
+            PostHogSDK.shared.capture("pack_purchased", properties: [
+                "product_id": productID,
+                "credits": packCatalog[productID]?.credits as Any,
+            ])
+        } else {
+            PostHogSDK.shared.capture("subscription_purchased", properties: [
+                "product_id": productID,
+                "trial_used": wasTrialEligible,
+                "price": package.storeProduct.localizedPriceString,
+            ])
+        }
 
         if wasTrialEligible,
            let expiration = result.customerInfo.expirationDate(forProductIdentifier: productID) {
@@ -165,6 +185,11 @@ final class PurchasesManager: NSObject, ObservableObject {
     func restore() async throws -> CustomerInfo {
         let info = try await Purchases.shared.restorePurchases()
         customerInfo = info
+        // PostHog: Track purchase restore
+        PostHogSDK.shared.capture("purchase_restored", properties: [
+            "has_active_subscription": !info.activeSubscriptions.isEmpty,
+            "has_entitlements": !info.entitlements.active.isEmpty,
+        ])
         Task { await refreshCreditsAfterWebhook() }
         return info
     }

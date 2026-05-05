@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import PostHog
 
 // MARK: - Credits Manager
 // Thin read-only cache over the backend-authoritative ledger and profile
@@ -105,6 +106,10 @@ class CreditsManager: ObservableObject {
         let response = try await APIClient.shared.createReferralCode(name: name)
         referralCode = response.code
         userDefaults?.set(response.code, forKey: Keys.referralCode)
+        // PostHog: Track referral code creation
+        PostHogSDK.shared.capture("referral_code_created", properties: [
+            "code": response.code,
+        ])
         return response.code
     }
 

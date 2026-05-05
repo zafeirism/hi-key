@@ -50,6 +50,18 @@
             ReferencedContainer = "container:hi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "POSTHOG_PROJECT_TOKEN"
+            value = "phc_u2kkpGzhnNHDJcPf6Bnr9fChCVcwc2uT8vvoQBkdScoa"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "POSTHOG_HOST"
+            value = "https://eu.i.posthog.com"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

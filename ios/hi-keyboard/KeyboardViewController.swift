@@ -1,6 +1,7 @@
 import UIKit
 import SwiftUI
 import KeyboardKit
+import PostHog
 
 class KeyboardViewController: KeyboardInputViewController {
     
@@ -15,6 +16,22 @@ class KeyboardViewController: KeyboardInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         HiLogger.configure()
+
+        // PostHog: Initialize analytics for keyboard extension (falls back to bundled values in production)
+        let phToken = ProcessInfo.processInfo.environment["POSTHOG_PROJECT_TOKEN"]
+            ?? "phc_u2kkpGzhnNHDJcPf6Bnr9fChCVcwc2uT8vvoQBkdScoa"
+        let phHost = ProcessInfo.processInfo.environment["POSTHOG_HOST"]
+            ?? "https://eu.i.posthog.com"
+        let phConfig = PostHogConfig(apiKey: phToken, host: phHost)
+        phConfig.captureApplicationLifecycleEvents = false
+        PostHogSDK.shared.setup(phConfig)
+
+        // PostHog: Identify user using Supabase session
+        Task {
+            if let userID = await AuthManager.shared.getUserID() {
+                PostHogSDK.shared.identify(userID)
+            }
+        }
 
         FullAccessMonitor.shared.update(hasFullAccess)
 
