@@ -5,7 +5,13 @@ import KeyboardKit
 class KeyboardViewController: KeyboardInputViewController {
     
     private let hiViewModel = HiKeyboardViewModel()
-    
+
+    // iOS calls `textWillChange` once during keyboard bootstrap as it hands
+    // over the host's document proxy. That isn't a user tap, so we must not
+    // unfocus the prompt for it. Flipped to false on the runloop tick after
+    // `viewDidAppear`, by which point the bootstrap call has already landed.
+    private var isBootstrapping = true
+
     override func viewDidLoad() {
         super.viewDidLoad()
         HiLogger.configure()
@@ -44,7 +50,9 @@ class KeyboardViewController: KeyboardInputViewController {
         
     override func textWillChange(_ textInput: UITextInput?) {
         super.textWillChange(textInput)
-        
+
+        guard !isBootstrapping else { return }
+
         // If we're intercepting input but text is changing in host app,
         // it means user tapped on host app's text field
         // Unfocus our prompt
@@ -76,6 +84,13 @@ class KeyboardViewController: KeyboardInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         FullAccessMonitor.shared.update(hasFullAccess)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.async { [weak self] in
+            self?.isBootstrapping = false
+        }
     }
 
     override func viewWillSetupKeyboardView() {

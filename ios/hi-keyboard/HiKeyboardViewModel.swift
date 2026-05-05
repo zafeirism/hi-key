@@ -50,8 +50,16 @@ class HiKeyboardViewModel: ObservableObject {
     // All generated images (cumulative)
     @Published var allImages: [GeneratedImage] = []
 
-    // Reference to action handler for syncing focus state
-    weak var actionHandler: HiActionHandler?
+    // Reference to action handler for syncing focus state.
+    // The handler is created and assigned *after* this view model's `init`
+    // (which runs `hydrateFromStore` and may already have decided the prompt
+    // should be unfocused). The didSet pushes the current focus state into
+    // the freshly-assigned handler so the two never start out disagreeing.
+    weak var actionHandler: HiActionHandler? {
+        didSet {
+            actionHandler?.interceptInput(shouldIntercept: isPromptFocused)
+        }
+    }
 
     // Injected by KeyboardViewController so the menu can open hi-key:// URLs
     // through `extensionContext.open(_:completionHandler:)` — the only
@@ -579,10 +587,9 @@ class HiKeyboardViewModel: ObservableObject {
         guard mode == .menu else { return }
         mode = modeBeforeMenu
         showingResults = (modeBeforeMenu == .results)
-        if modeBeforeMenu == .composing {
-            isPromptFocused = true
-            actionHandler?.interceptInput(shouldIntercept: true)
-        }
+        let shouldFocus = (modeBeforeMenu == .composing)
+        isPromptFocused = shouldFocus
+        actionHandler?.interceptInput(shouldIntercept: shouldFocus)
     }
 
     /// Pull the latest credits / referral / double-credits state from the
