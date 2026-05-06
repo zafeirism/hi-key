@@ -141,7 +141,7 @@ export default function TermsPage() {
                 <li>
                   hi-key does not store generated images for you. If you want to keep an image,
                   copy and share it before closing the keyboard. The same image is removed from our
-                  servers within minutes of generation.
+                  servers in less than an hour after generation.
                 </li>
               </ul>
             </Section>

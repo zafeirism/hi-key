@@ -20,6 +20,13 @@ export function Footer() {
           >
             terms
           </Link>
+          <span aria-hidden="true">·</span>
+          <a
+            href="mailto:support@hi-key.ai"
+            className="text-text-secondary transition-colors hover:text-text-primary"
+          >
+            support
+          </a>
         </p>
         <p>
           made with fun by{" "}

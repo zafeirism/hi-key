@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 export const metadata: Metadata = {
   title: "Privacy Policy | hi-key",
   description:
-    "How hi-key handles your data. No accounts, no tracking, prompts and images deleted within 10 minutes.",
+    "How hi-key handles your data. No accounts, no tracking, prompts and images deleted in less than an hour.",
   alternates: { canonical: "https://hi-key.ai/privacy" },
   robots: { index: true, follow: true },
 };
@@ -32,8 +32,8 @@ export default function PrivacyPage() {
               <ul className="mt-3 space-y-2">
                 <li>No accounts. No email or password. No name or contact info required.</li>
                 <li>
-                  Your prompts and the images we generate are deleted from our servers within 10
-                  minutes.
+                  Your prompts and the images we generate are deleted from our servers in less than
+                  an hour.
                 </li>
                 <li>We don&apos;t track you across other apps or websites.</li>
                 <li>We don&apos;t sell or share your data for advertising. Ever.</li>
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
                 We follow accepted security practices: HTTPS for all traffic, and access to our
                 systems is restricted to what&apos;s needed to run them. The strongest protection,
                 though, is what we don&apos;t store. hi-key has no accounts, so there are no passwords.
-                Prompts and images are deleted from our servers within minutes of generation. And
+                Prompts and images are deleted from our servers in less than an hour after generation. And
                 nothing in our systems is tied to your real-world identity. By design, there isn&apos;t
                 much to expose.
               </p>
@@ -241,12 +241,12 @@ function DataTable() {
     {
       data: "The text prompts you type",
       why: "Sent to AI providers to generate images.",
-      notes: "Deleted from our servers within 10 minutes of generation.",
+      notes: "Deleted from our servers in less than an hour after generation.",
     },
     {
       data: "The images we generate for you",
       why: "Delivered to your keyboard so you can copy and share them.",
-      notes: "Deleted from our servers within 10 minutes of generation.",
+      notes: "Deleted from our servers in less than an hour after generation.",
     },
     {
       data: "Anonymous usage events (e.g. \"opened referral screen\")",
