@@ -63,6 +63,8 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 8. **`/api/me/claim-code`** — `POST` with `{ code }`. Applies a waitlist claim code: marks the waitlist row as claimed, sets `user_profiles.double_credits = true` (all future sub renewals and pack purchases grant 2x), and tops up the current sub balance by one full tier so the remainder of the active cycle is effectively doubled. One-shot per user (409 `already_doubled` on retry with a different code).
 
+9. **`/api/cron/cleanup`** — QStash-scheduled (every 15 min). Finds `generations` rows older than 30 minutes that still have a `user_prompt`, deletes the corresponding R2 image objects in a single batch, and NULLs `user_prompt` + `improved_prompt`. Bounded at 500 rows per run; the next run picks up any remainder. Privacy posture: prompts and images are retained for under one hour, then permanently removed. Cloudflare R2 also has a 1-day lifecycle rule on `users/*` as a belt-and-braces safety net.
+
 ### Key Modules
 
 - **`lib/auth/jwt.ts`** — `withAuth()` HOF for JWT-authenticated routes. Verifies Supabase JWTs via JWKS. Has demo/warmup token bypass.
@@ -70,7 +72,8 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 - **`lib/ai/image-models.ts`** — `ImageModelsEnum` and `IMAGE_MODEL_SETUPS` define all FLUX model configurations (dev, pro, pro-upsampled, klein).
 - **`lib/ai/prompt-upsampler.ts`** — OpenAI-powered creative prompt rewriting for the background generation.
 - **`lib/ai/proofread.ts`** / **`lib/ai/detectPromptStyle.ts`** — Prompt preprocessing (grammar fix, style detection).
-- **`lib/storage/r2.ts`** — Cloudflare R2 operations via AWS S3 SDK. Images stored at `users/{userId}/images/{generationId}.{ext}`.
+- **`lib/storage/r2.ts`** — Cloudflare R2 operations via AWS S3 SDK. Images stored at `users/{userId}/images/{generationId}.{ext}`. `deleteImages(keys)` batch-deletes up to 1000 keys per call.
+- **`lib/cleanup/cleanup.ts`** — `cleanupOldGenerations()` for the privacy retention cron. NULLs prompt fields and deletes R2 objects for rows past the retention cutoff.
 - **`lib/qstash/backgroundScheduler.ts`** — QStash client for dispatching background work.
 - **`lib/supabase/`** — Supabase admin client and generated types. Run `npm run types:generate` after schema changes.
 - **`lib/credits/`** — Credits system. `catalog.ts` maps RC product IDs to mill amounts; `balance.ts` wraps the `debit_credits`/`grant_credits`/`reset_sub_credits` RPCs and exposes `InsufficientCreditsError`; `webhook.ts` routes RC events to balance mutations. Mills are the internal unit (1 credit = 10 mills); `toDisplayCredits()` converts for client responses.
@@ -119,6 +122,12 @@ Two Supabase projects exist — **always verify which one is linked before runni
 5. Develop and test against dev
 6. When ready for prod: `npx supabase link --project-ref lsssxrudfajjfidqbngl` then `npx supabase db push`
 7. Switch back to dev: `npx supabase link --project-ref rtmrehcevyoqafyscpaj`
+
+## Privacy / Retention
+
+Prompts and images are retained for under one hour. The `/api/cron/cleanup` endpoint, scheduled in QStash to run every 15 minutes, NULLs `user_prompt` and `improved_prompt` and deletes the R2 image for any `generations` row older than 30 minutes. Rows are kept (not hard-deleted) so non-PII columns (model, cost, status, durations) remain available for ops/analytics. The keyboard's 20-minute "open keyboard, restore last batch" feature is the binding constraint on the lower end — anything tighter than ~25 min would risk pulling images while a user might still expect them.
+
+**TODO (post-launch, when traction warrants it):** before NULLing `user_prompt` and deleting the R2 object, write a SHA-256 hash of the prompt + a SHA-256 hash of the image bytes (and `user_id`, `created_at`) into a small `abuse_audit` table. Hashes are not PII and let us trace a leaked image back to a user without retaining content. Premature today — revisit when hi-key starts seeing real volume.
 
 ## Credits & Purchases
 

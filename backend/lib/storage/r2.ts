@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -85,6 +86,18 @@ export async function deleteImage(key: string): Promise<void> {
     Key: key,
   });
 
+  await r2Client.send(command);
+}
+
+/**
+ * Deletes up to 1000 objects in a single round-trip. Idempotent on missing keys.
+ */
+export async function deleteImages(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  const command = new DeleteObjectsCommand({
+    Bucket: BUCKET_NAME,
+    Delete: { Objects: keys.map((Key) => ({ Key })), Quiet: true },
+  });
   await r2Client.send(command);
 }
 
