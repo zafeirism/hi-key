@@ -53,6 +53,10 @@ xcodebuild -scheme hi -configuration Release build
 
 > For anything involving in-app purchases, RevenueCat, subscriptions, the paywall, credits, or entitlements, consult `hi/purchases.md` first — it covers the product catalog, entitlements strategy, RC identity/restore behavior, credits ledger decision, keyboard-extension IAP constraints, and the active TODO list.
 
+### App Store Submission
+
+> For anything related to the first App Store submission — assets, App Store Connect config, country availability, age rating, content moderation, App Preview videos, reviewer notes — consult `hi/submission.md`. It's the working checklist and source of truth for "what's left before we can ship".
+
 ### Design System
 
 > For any aesthetic or visual design decisions, consult `hi/mood-board.md` first — it covers color philosophy, typography rules, motion guidelines, and brand personality.
