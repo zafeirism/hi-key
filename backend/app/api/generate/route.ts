@@ -9,6 +9,8 @@ import { randomUUID } from 'crypto';
 import { getKey, getSignedImageUrl } from '@/lib/storage/r2';
 import { hasStyle } from '@/lib/ai/detectPromptStyle';
 import { proofread } from '@/lib/ai/proofread';
+import { checkBlocklist } from '@/lib/moderation/blocklist';
+import { moderateWithOpenAI } from '@/lib/moderation/moderate';
 import {
   debit,
   grant,
@@ -48,9 +50,16 @@ export const POST = withAuth(async (request, user) => {
     );
   }
 
+  // First-line moderation: synchronous blocklist. Hits return 403 before any DB write
+  // or debit. No logging, no audit row — keep this path as cheap as possible.
+  if (checkBlocklist(prompt)) {
+    return NextResponse.json({ error: 'blocked' }, { status: 403 });
+  }
+
   const promptAnalysisStartedAt = Date.now();
   const hasStyleTask = hasStyle(prompt);
   const proofreadTask = proofread(prompt);
+  const moderationTask = moderateWithOpenAI(prompt);
 
   // 1. Create 4 generation records in Supabase - 2 that run now and 2 on the background
   const generationIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
@@ -150,8 +159,62 @@ export const POST = withAuth(async (request, user) => {
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
 
-  const [hasStyleResult, proofreadResult] = await Promise.all([hasStyleTask, proofreadTask]);
+  const [hasStyleResult, proofreadResult, moderationResult] = await Promise.all([
+    hasStyleTask,
+    proofreadTask,
+    moderationTask,
+  ]);
   const promptAnalysisDurationMs = Date.now() - promptAnalysisStartedAt;
+
+  // Second-line moderation: OpenAI flagged the prompt. Mark the records we just inserted
+  // as blocked, refund the debit (if any), and 403. We accept the wasted DB writes +
+  // refund round-trip on this rare path to keep the 99% common case off the critical path.
+  if (moderationResult.flagged) {
+    console.warn(
+      `${new Date().toISOString()} Prompt blocked by OpenAI moderation: ${JSON.stringify({
+        userId: user.id,
+        requestId: request_id,
+        categories: moderationResult.categories,
+      })}`
+    );
+
+    const blockUpdateTask = supabaseAdmin
+      .from('generations')
+      .update({
+        status: 'blocked' as GenerationStatus,
+        comments: { moderation: { source: 'openai', categories: moderationResult.categories } },
+      })
+      .in('id', generationIds);
+
+    const refundTask: Promise<Balance | null> = bypass
+      ? Promise.resolve(null)
+      : (async () => {
+          const { data: debitRow } = await supabaseAdmin
+            .from('credit_transactions')
+            .select('delta_sub_mills, delta_extra_mills')
+            .eq('user_id', user.id)
+            .eq('reason', 'generation_debit')
+            .eq('source_id', request_id)
+            .maybeSingle();
+          if (!debitRow) return null;
+          return grant(user.id, {
+            deltaSubMills: -debitRow.delta_sub_mills,
+            deltaExtraMills: -debitRow.delta_extra_mills,
+            reason: 'generation_refund',
+            sourceId: request_id,
+          });
+        })();
+
+    const [blockUpdate, refundedBalance] = await Promise.all([blockUpdateTask, refundTask]);
+
+    if (blockUpdate.error) {
+      console.error(
+        `${new Date().toISOString()} Failed to mark generations as blocked: ${JSON.stringify(blockUpdate.error)}`
+      );
+    }
+
+    return NextResponse.json({ error: 'blocked' }, { status: 403 });
+  }
 
   const prompts: string[] = [];
   const styles: string[] = (random_styles ?? []).slice(0, 3);

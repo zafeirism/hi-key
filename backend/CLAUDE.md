@@ -8,6 +8,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Weekly subs (Starter/Plus/Super) + consumable packs (`pack.mini`/`pack.mega`). 1 credit = 1¢ of underlying AI cost. Full catalog, pricing, and credit mechanics in [PURCHASES.md](./PURCHASES.md).
 
+## Core Principle: Speed Is the Product
+
+Delivering images as fast as possible is hi-key's key value proposition. Every step on the `/api/generate` critical path must be justified against this:
+
+- Is the added overhead worth it?
+- Does the **majority** of requests benefit, or only a minority?
+- Can the work run in parallel with existing tasks instead of serially?
+- For the rare/edge case, is it acceptable to pay extra cost (extra DB writes, refunds, undo work) **after** the fact rather than gating the happy path?
+
+Default to optimizing for the 99% common case. Edge cases (errors, blocked prompts, refunds) can be slower and more complex if it keeps the hot path fast. Always start from this principle, then build from there.
+
 ## Project Overview
 
 hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serves as a headless API — no meaningful frontend UI. Deployed at `https://app.hi-key.ai`. The iOS app (`APIClient.swift`) communicates with this backend using Bearer token auth (Supabase JWT) with auto-retry on 401.
