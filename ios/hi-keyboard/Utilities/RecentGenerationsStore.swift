@@ -16,7 +16,9 @@ enum RecentGenerationsStore {
     private static let appGroupID = "group.ai.hi-key"
     private static let key = "keyboard.recentGenerations.v1"
     private static let maxGenerations = 2
-    private static let ttl: TimeInterval = 60 * 60  // 1 hour
+    // Backend deletes generated images 30 min after creation, so URLs go 404
+    // past that. 25 min keeps a 5-min safety buffer for clock skew.
+    private static let ttl: TimeInterval = 60 * 25
 
     private static var defaults: UserDefaults? {
         UserDefaults(suiteName: appGroupID)
