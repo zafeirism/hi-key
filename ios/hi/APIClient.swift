@@ -155,19 +155,6 @@ class APIClient {
             throw APIError.invalidURL
         }
         
-//        if !baseURL.hasPrefix("https://") {
-//            try? await Task.sleep(nanoseconds: 1_250_000_000)
-//            return GenerateResponse(
-//                images: [
-//                    GenerateImageEntry(id: "ac2bf379-2906-47d9-b03f-f5c7eac01be5", signedUrl: "***REMOVED***"),
-//                    GenerateImageEntry(id: "1a07605d-fadc-4d64-9515-af433e3efedd", signedUrl: "***REMOVED***"),
-//                    GenerateImageEntry(id: "b73e268e-f247-4162-b686-aa676d4c8b54", signedUrl: "***REMOVED***"),
-//                    GenerateImageEntry(id: "5dc3b27c-15db-4b0e-83ea-bb214cdbb8c4", signedUrl: "***REMOVED***"),
-//                ],
-//                balance: nil
-//            )
-//        }
-        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -190,6 +177,10 @@ class APIClient {
         if httpResponse.statusCode == 402 {
             let payload = try? JSONDecoder().decode(InsufficientCreditsPayload.self, from: data)
             throw APIError.insufficientCredits(balance: payload?.balance)
+        }
+
+        if httpResponse.statusCode == 403 {
+            throw APIError.promptFlagged
         }
 
         guard httpResponse.statusCode == 200 else {
@@ -511,6 +502,7 @@ class APIClient {
         case httpError(statusCode: Int)
         case notAuthenticated
         case insufficientCredits(balance: CreditsBalance?)
+        case promptFlagged
         case invalidReferralName
         case invalidReferralCode
         case selfReferral
@@ -531,6 +523,8 @@ class APIClient {
                 return "Please re-install the hi-key app."
             case .insufficientCredits:
                 return "You're out of credits"
+            case .promptFlagged:
+                return "Content moderated. Please try a different idea."
             case .invalidReferralName:
                 return "That name isn't valid. Use at least one letter."
             case .invalidReferralCode:
