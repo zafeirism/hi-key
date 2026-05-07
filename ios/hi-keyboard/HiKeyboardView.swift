@@ -49,7 +49,19 @@ struct HiKeyboardView: View {
         ZStack {
             KeyboardView(
                 layout: nil,
-                services: services
+                services: services,
+                buttonContent: { params in
+                    if case .primary(.go) = params.item.action {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 20, weight: .semibold))
+                    } else {
+                        params.view
+                    }
+                },
+                buttonView: { $0.view },
+                collapsedView: { $0.view },
+                emojiKeyboard: { $0.view },
+                toolbar: { $0.view }
             )
             .keyboardButtonStyle{params in
                 var style = params.standardStyle()
