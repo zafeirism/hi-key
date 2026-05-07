@@ -10,6 +10,7 @@ struct EnableSettingsView: View {
         ZStack {
             LottieView(name: "enable-settings", loop: true)
                 .ignoresSafeArea()
+                .offset(y: -80)
             
             VStack(spacing: 0) {
                 HiTopBar(onBack: {
