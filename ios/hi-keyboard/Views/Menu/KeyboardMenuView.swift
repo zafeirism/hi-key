@@ -160,7 +160,8 @@ private struct MenuRow<Trailing: View>: View {
                         .foregroundColor(.secondary.opacity(0.6))
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(.leading, 14)
+            .padding(.trailing, 20)
             .padding(.vertical, 12)
             .contentShape(Rectangle())
         }
