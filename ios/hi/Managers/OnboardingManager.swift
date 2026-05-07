@@ -49,6 +49,8 @@ class OnboardingManager: ObservableObject {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let referrerCode = "referrerCode"
         static let referralApplied = "referralApplied"
+        static let lastStepRawValue = "onboardingLastStepRawValue"
+        static let keyboardDetectedOnce = "onboardingKeyboardDetectedOnce"
     }
     
     // MARK: - Computed Properties
@@ -78,7 +80,18 @@ class OnboardingManager: ObservableObject {
             objectWillChange.send()
         }
     }
-    
+
+    /// Sticky once true: even if the user later removes hi-key, we don't
+    /// re-prompt during onboarding. Set when OpenKeyboardView first detects
+    /// hi-key as the active input mode.
+    var keyboardDetectedOnce: Bool {
+        get { userDefaults?.bool(forKey: Keys.keyboardDetectedOnce) ?? false }
+        set {
+            userDefaults?.set(newValue, forKey: Keys.keyboardDetectedOnce)
+            objectWillChange.send()
+        }
+    }
+
     // MARK: - Init
     
     private init() {
@@ -90,7 +103,16 @@ class OnboardingManager: ObservableObject {
     private func loadState() {
         if hasCompletedOnboarding {
             currentStep = .complete
+            return
         }
+        if let raw = userDefaults?.object(forKey: Keys.lastStepRawValue) as? Int,
+           let step = OnboardingStep(rawValue: raw) {
+            currentStep = step
+        }
+    }
+
+    private func persistCurrentStep() {
+        userDefaults?.set(currentStep.rawValue, forKey: Keys.lastStepRawValue)
     }
     
     // MARK: - Actions
@@ -103,6 +125,7 @@ class OnboardingManager: ObservableObject {
         withAnimation(HiTheme.animationNormal) {
             currentStep = nextStep
         }
+        persistCurrentStep()
     }
 
     func goToPreviousStep() {
@@ -114,12 +137,14 @@ class OnboardingManager: ObservableObject {
         withAnimation(HiTheme.animationNormal) {
             currentStep = previousStep
         }
+        persistCurrentStep()
     }
-    
+
     func goToStep(_ step: OnboardingStep) {
         withAnimation(HiTheme.animationNormal) {
             currentStep = step
         }
+        persistCurrentStep()
     }
     
     func completeOnboarding() {
@@ -131,6 +156,7 @@ class OnboardingManager: ObservableObject {
             hasCompletedOnboarding = true
             currentStep = .complete
         }
+        userDefaults?.removeObject(forKey: Keys.lastStepRawValue)
     }
     
     /// Redeem a friend's referral code against the backend. Persists the code
@@ -167,6 +193,8 @@ class OnboardingManager: ObservableObject {
         userDefaults?.removeObject(forKey: Keys.hasCompletedOnboarding)
         userDefaults?.removeObject(forKey: Keys.referrerCode)
         userDefaults?.removeObject(forKey: Keys.referralApplied)
+        userDefaults?.removeObject(forKey: Keys.lastStepRawValue)
+        userDefaults?.removeObject(forKey: Keys.keyboardDetectedOnce)
         currentStep = .welcome
     }
 }

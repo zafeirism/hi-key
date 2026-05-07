@@ -9,7 +9,7 @@ import SwiftUI
 struct OpenKeyboardView: View {
     @ObservedObject var onboardingManager = OnboardingManager.shared
 
-    @State private var detected = false
+    @State private var detected: Bool = OnboardingManager.shared.keyboardDetectedOnce
     @State private var inputModeObserver: NSObjectProtocol?
     @FocusState private var fieldFocused: Bool
 
@@ -78,6 +78,12 @@ struct OpenKeyboardView: View {
         }
         .ignoresSafeArea(.keyboard)
         .onAppear {
+            // If we've ever detected hi-key as the active mode in a prior
+            // session, skip raising the keyboard and stay in the success state.
+            if onboardingManager.keyboardDetectedOnce {
+                detected = true
+                return
+            }
             detected = false
             startObservingInputMode()
             // Small delay so the view is fully presented before focus is set;
@@ -150,6 +156,7 @@ struct OpenKeyboardView: View {
     private func checkActiveInputMode() {
         guard let mode = UIResponder.hi_currentFirstResponder?.textInputMode else { return }
         if mode.value(forKey: inputModeIdentifierKey) as? String == hiKeyBundleID {
+            onboardingManager.keyboardDetectedOnce = true
             detected = true
         }
     }
