@@ -19,6 +19,7 @@ class HiActionHandler: KeyboardAction.StandardActionHandler {
             emojiContext: controller.state.emojiContext,
             feedbackContext: controller.state.feedbackContext,
             feedbackService: controller.services.feedbackService,
+            keyboardAppContext: controller.state.keyboardAppContext,
             spacebarDragGestureHandler: controller.services.spacebarDragGestureHandler
         )
         keyboardContext.returnKeyTypeOverride = .go
