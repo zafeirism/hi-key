@@ -9,6 +9,8 @@ struct ReferralCodeSheet: View {
     @State private var errorMessage: String? = nil
     @FocusState private var isNameFocused: Bool
 
+    private let hapticGenerator = UINotificationFeedbackGenerator()
+
     var body: some View {
         VStack(spacing: 0) {
             HiSheetHeader(title: "Invite friends", onClose: { dismiss() })
@@ -34,6 +36,8 @@ struct ReferralCodeSheet: View {
             if creditsManager.referralCode == nil && name.isEmpty {
                 isNameFocused = true
             }
+            // Sheet shown → user will either generate a code or copy one. Warm engine.
+            hapticGenerator.prepare()
         }
     }
 
@@ -148,17 +152,19 @@ struct ReferralCodeSheet: View {
         isGenerating = true
         errorMessage = nil
 
+        // Prepare while the network round-trip is in flight — by the time
+        // it completes, the Taptic Engine is fully warm.
+        hapticGenerator.prepare()
+
         Task {
             do {
                 _ = try await creditsManager.createReferralCode(name: cleaned)
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
+                hapticGenerator.notificationOccurred(.success)
                 withAnimation(HiTheme.animationNormal) {
                     isGenerating = false
                 }
             } catch {
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.error)
+                hapticGenerator.notificationOccurred(.error)
                 isGenerating = false
                 errorMessage = error.localizedDescription
                 HiLogger.error("Failed to create referral code", error: error)
@@ -168,8 +174,7 @@ struct ReferralCodeSheet: View {
 
     private func copyCode(_ code: String) {
         UIPasteboard.general.string = code
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        hapticGenerator.notificationOccurred(.success)
     }
 
     private func shareText(code: String) -> String {

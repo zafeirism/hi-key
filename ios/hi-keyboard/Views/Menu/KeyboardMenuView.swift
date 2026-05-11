@@ -12,6 +12,8 @@ struct KeyboardMenuView: View {
 
     @State private var showCopiedFeedback = false
 
+    private let successHapticGenerator = UINotificationFeedbackGenerator()
+
     private var summary: KeyboardAccountSummary { viewModel.accountSummary }
 
     var body: some View {
@@ -27,6 +29,10 @@ struct KeyboardMenuView: View {
             }
         }
         .frame(height: 274) // Same as keyboard height (in iOS 26)
+        .onAppear {
+            // Warm engine — copying the referral code is the most likely action.
+            successHapticGenerator.prepare()
+        }
     }
 
     // MARK: - Rows
@@ -102,7 +108,7 @@ struct KeyboardMenuView: View {
 
     private func copyReferral(_ code: String) {
         UIPasteboard.general.string = code
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        successHapticGenerator.notificationOccurred(.success)
         withAnimation(.easeInOut(duration: 0.2)) {
             showCopiedFeedback = true
         }

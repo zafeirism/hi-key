@@ -15,6 +15,8 @@ struct SettingsView: View {
     @State private var userID: String? = nil
     @State private var didCopyUserID: Bool = false
 
+    private let copyHapticGenerator = UINotificationFeedbackGenerator()
+
     var body: some View {
         NavigationStack {
             List {
@@ -79,6 +81,8 @@ struct SettingsView: View {
             }
             .task {
                 userID = await AuthManager.shared.getUserID()
+                // User ID row becomes tappable once we have an ID. Warm engine.
+                copyHapticGenerator.prepare()
             }
         }
     }
@@ -339,7 +343,7 @@ struct SettingsView: View {
     private func copyUserID() {
         guard let id = userID else { return }
         UIPasteboard.general.string = id
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        copyHapticGenerator.notificationOccurred(.success)
         withAnimation(HiTheme.animationFast) {
             didCopyUserID = true
         }

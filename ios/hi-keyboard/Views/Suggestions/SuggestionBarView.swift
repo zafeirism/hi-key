@@ -11,7 +11,10 @@ struct SuggestionBarView: View {
     @State private var debounceTimer: Timer?
 
     private let apiClient = APIClient.shared
-    private let lightHapticGenerator = UIImpactFeedbackGenerator(style:.light)
+    // Autocomplete tap = light impact (passive completion of a thought).
+    // Style chip tap = selection (canonical "picked one of N options").
+    private let autocompleteHapticGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let styleSelectionHapticGenerator = UISelectionFeedbackGenerator()
 
     // Onboarding takes precedence over every other status. The "open hi-key"
     // step in the main app is only about confirming the user can switch to
@@ -72,6 +75,9 @@ struct SuggestionBarView: View {
         .onAppear {
             handlePromptChange(viewModel.promptUpToCursor())
             viewModel.triggerCreditsRunningLowIfNeeded()
+            // Warm the Taptic Engine — a tap on a chip is imminent.
+            autocompleteHapticGenerator.prepare()
+            styleSelectionHapticGenerator.prepare()
         }
         .onChange(of: viewModel.prompt) { _, _ in
             handlePromptChange(viewModel.promptUpToCursor())
@@ -161,13 +167,20 @@ struct SuggestionBarView: View {
         if !viewModel.isPromptFocused {
             viewModel.focusPrompt()
         }
-        
-        lightHapticGenerator.impactOccurred()
-        
-        let withoutDots = suggestion.hasPrefix("...") ? String(suggestion.dropFirst(3)) : suggestion
-        
+
+        let isAutocomplete = suggestion.hasPrefix("...")
+        if isAutocomplete {
+            autocompleteHapticGenerator.impactOccurred()
+            autocompleteHapticGenerator.prepare()
+        } else {
+            styleSelectionHapticGenerator.selectionChanged()
+            styleSelectionHapticGenerator.prepare()
+        }
+
+        let withoutDots = isAutocomplete ? String(suggestion.dropFirst(3)) : suggestion
+
         viewModel.addToPrompt(withoutDots + " ")
-        
+
         // Clear suggestions with animation
         suggestions = []
     }

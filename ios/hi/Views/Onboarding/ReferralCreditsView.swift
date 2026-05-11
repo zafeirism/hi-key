@@ -152,6 +152,9 @@ struct ReferralCreditsView: View {
 
         Task {
             let generator = UINotificationFeedbackGenerator()
+            // Warm the engine while the request is in flight — fires with no
+            // perceptible latency when the response lands.
+            generator.prepare()
             do {
                 try await onboardingManager.applyReferralCode(referralCode)
                 generator.notificationOccurred(.success)

@@ -10,7 +10,8 @@ struct ImageCardView: View {
     @State private var loadedImage: UIImage?
     @State private var showCopiedFeedback = false
     @State private var loadTask: Task<Void, Never>?
-    
+
+    private let copyHapticGenerator = UINotificationFeedbackGenerator()
     private let displaySize = CGSize(width: 200, height: 200)
     
     var body: some View {
@@ -55,7 +56,7 @@ struct ImageCardView: View {
     private var copyButton: some View {
         Button {
             onCopy()
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            copyHapticGenerator.notificationOccurred(.success)
             withAnimation(.easeInOut(duration: 0.2)) {
                 showCopiedFeedback = true
             }
@@ -79,14 +80,16 @@ struct ImageCardView: View {
     private func loadImageIfNeeded() {
         // Already loaded with downsampled image
         if loadedImage != nil { return }
-        
+
         // Try to load from cached data first (downsampled)
         if let data = image.imageData,
            let downsampled = ImageLoader.downsample(data: data, to: displaySize) {
             loadedImage = downsampled
+            // Image visible → user may tap copy. Warm the Taptic Engine.
+            copyHapticGenerator.prepare()
             return
         }
-        
+
         // Need to fetch from network
         loadTask = Task {
             await loadImage()
@@ -115,6 +118,8 @@ struct ImageCardView: View {
                     await MainActor.run {
                         self.loadedImage = downsampled
                         onLoaded(data) // Store raw data for fullscreen/copy
+                        // Image visible → user may tap copy. Warm the Taptic Engine.
+                        copyHapticGenerator.prepare()
                     }
                     return
                 }

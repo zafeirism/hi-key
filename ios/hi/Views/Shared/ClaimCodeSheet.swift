@@ -10,6 +10,8 @@ struct ClaimCodeSheet: View {
     @State private var showSuccess: Bool = false
     @FocusState private var isCodeFocused: Bool
 
+    private let hapticGenerator = UINotificationFeedbackGenerator()
+
     var body: some View {
         VStack(spacing: 0) {
             HiSheetHeader(title: "Waitlist code", onClose: { dismiss() })
@@ -25,6 +27,8 @@ struct ClaimCodeSheet: View {
         .padding(.horizontal, HiTheme.spacingMD)
         .onAppear {
             isCodeFocused = true
+            // User is about to submit a code — prepare early.
+            hapticGenerator.prepare()
         }
     }
 
@@ -126,19 +130,21 @@ struct ClaimCodeSheet: View {
         errorMessage = nil
         isCodeFocused = false
 
+        // Prepare while the network round-trip is in flight — by the time
+        // it completes, the Taptic Engine is fully warm.
+        hapticGenerator.prepare()
+
         Task {
             do {
                 try await creditsManager.claimWaitlistCode(value)
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
+                hapticGenerator.notificationOccurred(.success)
                 withAnimation(HiTheme.animationNormal) {
                     showSuccess = true
                 }
                 try? await Task.sleep(nanoseconds: 1_800_000_000)
                 dismiss()
             } catch {
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.error)
+                hapticGenerator.notificationOccurred(.error)
                 isSubmitting = false
                 errorMessage = error.localizedDescription
                 HiLogger.error("Failed to claim waitlist code", error: error)

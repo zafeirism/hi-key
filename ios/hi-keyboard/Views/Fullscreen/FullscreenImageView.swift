@@ -9,7 +9,9 @@ struct FullscreenImageView: View {
     
     @State private var selectedIndex: Int = 0
     @State private var showCopiedFeedback = false
-    
+
+    private let copyHapticGenerator = UINotificationFeedbackGenerator()
+
     private var currentImage: GeneratedImage? {
         guard selectedIndex >= 0 && selectedIndex < images.count else { return nil }
         return images[selectedIndex]
@@ -32,7 +34,11 @@ struct FullscreenImageView: View {
             // Top bar overlay
             topBar
         }
-        .onAppear { selectedIndex = currentIndex }
+        .onAppear {
+            selectedIndex = currentIndex
+            // User opened fullscreen primarily to copy — warm the engine now.
+            copyHapticGenerator.prepare()
+        }
     }
     
     private var topBar: some View {
@@ -65,7 +71,7 @@ struct FullscreenImageView: View {
     private func copyButton(for image: GeneratedImage) -> some View {
         Button {
             onCopy(image)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            copyHapticGenerator.notificationOccurred(.success)
             withAnimation { showCopiedFeedback = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 withAnimation { showCopiedFeedback = false }

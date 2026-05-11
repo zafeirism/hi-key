@@ -18,6 +18,8 @@ struct HomeView: View {
     @State private var isFirstVisit: Bool = true
     @AppStorage("hasSeenHomeScreen") private var hasSeenHomeScreen: Bool = false
 
+    private let copyHapticGenerator = UINotificationFeedbackGenerator()
+
     var body: some View {
         ZStack {
             HiAppBackground()
@@ -74,6 +76,8 @@ struct HomeView: View {
                 Task { await creditsManager.refresh() }
             }
             handlePendingRoute()
+            // Warm engine — copying the referral code is one tap away.
+            copyHapticGenerator.prepare()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
@@ -379,7 +383,7 @@ struct HomeView: View {
         Button {
             if let code = creditsManager.referralCode {
                 UIPasteboard.general.string = code
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                copyHapticGenerator.notificationOccurred(.success)
                 withAnimation(.easeInOut(duration: 0.2)) {
                     showCopiedFeedback = true
                 }
