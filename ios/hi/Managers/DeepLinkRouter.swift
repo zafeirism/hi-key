@@ -16,6 +16,7 @@ final class DeepLinkRouter: ObservableObject {
         case openApp
         case buyCredits
         case referral
+        case manageStyles
     }
 
     @Published var pendingRoute: Route?
@@ -33,6 +34,8 @@ final class DeepLinkRouter: ObservableObject {
             route = .buyCredits
         case "referral":
             route = .referral
+        case "manage-styles":
+            route = .manageStyles
         default:
             HiLogger.warning("Unknown deep-link host: \(url.host ?? "nil")")
             route = .openApp

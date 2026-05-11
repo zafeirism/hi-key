@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var showReferralCode: Bool = false
     @State private var showAllOptions: Bool = false
     @State private var showSettings: Bool = false
+    @State private var showStylePicker: Bool = false
     @State private var showDoubleCreditsInfo: Bool = false
     @State private var keyboardEnabled: Bool = false
     @State private var fullAccessEnabled: Bool = false
@@ -56,6 +57,10 @@ struct HomeView: View {
             SettingsView()
                 .background(HiTheme.backgroundRoot)
         }
+        .sheet(isPresented: $showStylePicker) {
+            StylePickerView()
+                .background(HiTheme.backgroundRoot)
+        }
         .alert("2× credits", isPresented: $showDoubleCreditsInfo) {
             Button("Got it", role: .cancel) { }
         } message: {
@@ -92,6 +97,8 @@ struct HomeView: View {
             showAllOptions = true
         case .referral:
             showReferralCode = true
+        case .manageStyles:
+            showStylePicker = true
         }
         deepLinkRouter.consume()
     }

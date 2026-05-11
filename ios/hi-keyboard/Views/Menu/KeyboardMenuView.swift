@@ -21,6 +21,8 @@ struct KeyboardMenuView: View {
                 Divider()
                 referralRow
                 Divider()
+                manageStylesRow
+                Divider()
                 openAppRow
             }
         }
@@ -69,6 +71,16 @@ struct KeyboardMenuView: View {
                 action: { openURL("hi-key://referral") }
             )
         }
+    }
+
+    private var manageStylesRow: some View {
+        MenuRow(
+            icon: "paintpalette",
+            title: "Manage styles",
+            description: nil,
+            trailingLabel: "\(ImageStylePreferences.enabledForDisplay.count) enabled",
+            action: { openURL("hi-key://manage-styles") }
+        )
     }
 
     private var openAppRow: some View {
