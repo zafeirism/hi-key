@@ -28,7 +28,7 @@ struct KeyboardMenuView: View {
                 openAppRow
             }
         }
-        .frame(height: 274) // Same as keyboard height (in iOS 26)
+        .frame(height: 266) // Same as keyboard height (in iOS 26)
         .onAppear {
             // Warm engine — copying the referral code is the most likely action.
             successHapticGenerator.prepare()
@@ -83,8 +83,8 @@ struct KeyboardMenuView: View {
         MenuRow(
             icon: "paintpalette",
             title: "Manage styles",
-            description: nil,
-            trailingLabel: "\(ImageStylePreferences.enabledForDisplay.count) enabled",
+            description: "\(ImageStylePreferences.enabledForDisplay.count) enabled",
+            trailingLabel: nil,
             action: { openURL("hi-key://manage-styles") }
         )
     }
