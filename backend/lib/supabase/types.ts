@@ -125,6 +125,7 @@ export type Database = {
       user_profiles: {
         Row: {
           active_sub_product_id: string | null
+          created_at: string
           double_credits: boolean
           extra_credits_mills: number
           name: string | null
@@ -136,6 +137,7 @@ export type Database = {
         }
         Insert: {
           active_sub_product_id?: string | null
+          created_at?: string
           double_credits?: boolean
           extra_credits_mills?: number
           name?: string | null
@@ -147,6 +149,7 @@ export type Database = {
         }
         Update: {
           active_sub_product_id?: string | null
+          created_at?: string
           double_credits?: boolean
           extra_credits_mills?: number
           name?: string | null
