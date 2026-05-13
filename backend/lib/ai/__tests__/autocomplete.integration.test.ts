@@ -5,7 +5,7 @@ const shouldRunTests = !!process.env.OPENAI_API_KEY;
 
 describe.skipIf(!shouldRunTests)('Autocomplete tests', () => {
   it('should autocomplete a simple prompt', async () => {
-    const result = await autoComplete('Pixar', false);
+    const result = await autoComplete('Pixar');
 
     console.log(result.completion);
     expect(result.completion).toBeTruthy();
@@ -50,7 +50,7 @@ describe.skipIf(!shouldRunTests)('Autocomplete tests', () => {
 
     for (const prompt of prompts) {
       const startTime = Date.now();
-      const r = await autoComplete(prompt, true);
+      const r = await autoComplete(prompt);
       const duration = Date.now() - startTime;
       console.log(`${prompt} - ${r.completion} - Duration: ${duration}ms`);
       measurements.push(duration);
