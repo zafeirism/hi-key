@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { APP_STORE_URL } from "./app-store-badge";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -48,19 +49,23 @@ export function Navbar() {
             FAQ
           </a>
           <a
-            href="/#waitlist"
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-full bg-accent-lime px-5 py-2 text-sm font-semibold text-background-root transition-opacity hover:opacity-90"
           >
-            Join Waitlist
+            Download
           </a>
         </div>
 
-        {/* Mobile: just the waitlist button */}
+        {/* Mobile: just the download button */}
         <a
-          href="/#waitlist"
+          href={APP_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-full bg-accent-lime px-4 py-1.5 text-sm font-semibold text-background-root transition-opacity hover:opacity-90 sm:hidden"
         >
-          Join Waitlist
+          Download
         </a>
       </div>
     </nav>

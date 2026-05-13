@@ -1,9 +1,9 @@
-import { WaitlistForm } from "./waitlist-form";
+import { AppStoreBadge } from "./app-store-badge";
 import { LazyVideo } from "./lazy-video";
 
 export function Hero() {
   return (
-    <section id="waitlist" className="flex min-h-[90vh] items-center px-6 pt-24 pb-20">
+    <section className="flex min-h-[90vh] items-center px-6 pt-24 pb-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-12">
         {/* Text */}
         <div className="text-center lg:text-left">
@@ -15,12 +15,8 @@ export function Hero() {
             Create images in seconds, right inside iMessage, WhatsApp or
             any app you use on iPhone.
           </p>
-          <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
-            <WaitlistForm />
-            <span className="text-sm text-text-tertiary">
-              Early members get 2× credits.{" "}
-              <span className="text-text-primary">Forever.</span>
-            </span>
+          <div className="mt-10 flex items-center justify-center lg:justify-start">
+            <AppStoreBadge priority />
           </div>
         </div>
 

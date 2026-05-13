@@ -59,7 +59,7 @@ export default function PrivacyPage() {
 
             <Section title="2. What we don't collect">
               <ul>
-                <li>Your name, address, phone number, or any contact info (apart from the optional waitlist email).</li>
+                <li>Your name, address, phone number, or any contact info.</li>
                 <li>The content of your messages, conversations, browsing history, or contacts.</li>
                 <li>Anything you type outside the hi-key prompt bar.</li>
                 <li>Your location.</li>
@@ -99,7 +99,8 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <strong className="text-text-primary">Your consent</strong> (Article 6(1)(a) GDPR)
-                  for the optional waitlist signup. You can ask us to delete your email at any time.
+                  for any pre-launch waitlist email you gave us. You can ask us to delete your email
+                  at any time.
                 </li>
               </ul>
             </Section>
@@ -264,9 +265,9 @@ function DataTable() {
       notes: "Linked to the anonymous user identifier.",
     },
     {
-      data: "Your email address (waitlist only)",
-      why: "If you signed up on the website before launch, we email you when hi-key is ready.",
-      notes: "Deleted after the launch email is sent.",
+      data: "Your email address (pre-launch waitlist members only)",
+      why: "If you signed up on the website before launch, we emailed you when hi-key was ready.",
+      notes: "Deleted after the launch email is sent. We no longer collect new waitlist emails.",
     },
     {
       data: "Crash and error reports",
@@ -314,7 +315,7 @@ function SubprocessorsTable() {
     { service: "Replicate", purpose: "Runs the AI models that produce the images", region: "United States" },
     { service: "RevenueCat", purpose: "Subscription and credit status", region: "United States" },
     { service: "PostHog", purpose: "Anonymous product analytics", region: "EU" },
-    { service: "Resend", purpose: "Sends the waitlist confirmation email (waitlist users only)", region: "United States" },
+    { service: "Resend", purpose: "Sent the pre-launch waitlist confirmation email (pre-launch waitlist members only)", region: "United States" },
     { service: "Sentry", purpose: "Crash and error reports", region: "EU" },
     { service: "Vercel", purpose: "Hosts hi-key.ai and the backend API used by the iOS app", region: "Central EU (Frankfurt)" },
   ];

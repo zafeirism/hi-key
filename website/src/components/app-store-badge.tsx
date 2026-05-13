@@ -1,9 +1,18 @@
 import Image from "next/image";
 
-const APP_STORE_URL =
-  "https://apps.apple.com/app/hi-key/idYOUR_APP_ID";
+export const APP_STORE_URL = "https://apps.apple.com/app/id6762464437";
 
-export function AppStoreBadge({ className = "" }: { className?: string }) {
+export function AppStoreBadge({
+  className = "",
+  width = 180,
+  height = 60,
+  priority = false,
+}: {
+  className?: string;
+  width?: number;
+  height?: number;
+  priority?: boolean;
+}) {
   return (
     <a
       href={APP_STORE_URL}
@@ -13,11 +22,11 @@ export function AppStoreBadge({ className = "" }: { className?: string }) {
       aria-label="Download hi-key on the App Store"
     >
       <Image
-        src="/app-store-badge.svg"
+        src="/app-store-badge-white.svg"
         alt="Download on the App Store"
-        width={150}
-        height={50}
-        priority
+        width={width}
+        height={height}
+        priority={priority}
       />
     </a>
   );

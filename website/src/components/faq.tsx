@@ -33,15 +33,10 @@ const faqs = [
       "hi-key only processes the prompts you type in the hi-key prompt bar. It never reads, stores, or sends your messages, passwords, or any other content. Prompts are processed securely and used solely to generate your images.",
   },
   {
-    question: 'What does "double credits forever" mean for early members?',
-    answer:
-      "Everyone who joins the waitlist gets 2× credits on every purchase, forever. Buy 50 credits, get 100. Buy 100, get 200. It applies to subscriptions and one-time packs, and it never expires. Our way of saying thanks for believing in hi-key early.",
-  },
-  {
     question:
       "I don't like spam, accounts, or subscriptions. Is hi-key for me?",
     answer:
-      "hi-key is exactly for you. There are no accounts. Just download and go. Joining the waitlist means one email when the app is ready, nothing more. When you want more credits, there are one-time packs with no recurring costs. And if you do subscribe, you can cancel anytime. hi-key is fun to have, not a commitment.",
+      "hi-key is exactly for you. There are no accounts. Just download and go. When you want more credits, there are one-time packs with no recurring costs. And if you do subscribe, you can cancel anytime. hi-key is fun to have, not a commitment.",
   },
 ];
 

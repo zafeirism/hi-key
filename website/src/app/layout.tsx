@@ -71,6 +71,9 @@ export const metadata: Metadata = {
     canonical: "https://hi-key.ai",
   },
   manifest: "/site.webmanifest",
+  itunes: {
+    appId: "6762464437",
+  },
 };
 
 const jsonLdApp = {
@@ -163,18 +166,10 @@ const jsonLdFaq = {
     },
     {
       "@type": "Question",
-      name: "What does \"double credits forever\" mean for early members?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Everyone who joins the waitlist gets 2× credits on every purchase, forever. Buy 50 credits, get 100. Buy 100, get 200. It applies to subscriptions and one-time packs, and it never expires. Our way of saying thanks for believing in hi-key early.",
-      },
-    },
-    {
-      "@type": "Question",
       name: "I don't like spam, accounts, or subscriptions. Is hi-key for me?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "hi-key is exactly for you. There are no accounts. Just download and go. Joining the waitlist means one email when the app is ready, nothing more. When you want more credits, there are one-time packs with no recurring costs. And if you do subscribe, you can cancel anytime. hi-key is fun to have, not a commitment.",
+        text: "hi-key is exactly for you. There are no accounts. Just download and go. When you want more credits, there are one-time packs with no recurring costs. And if you do subscribe, you can cancel anytime. hi-key is fun to have, not a commitment.",
       },
     },
   ],

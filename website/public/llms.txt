@@ -37,10 +37,6 @@ hi-key uses a credit system. 1 credit = 1 prompt = 4 images.
 - Mini: $2.99 for 10 credits
 - Big: $5.99 for 25 credits
 
-### Early member offer
-
-Everyone who joins the waitlist gets 2x credits on every purchase, forever. Buy 25 credits, get 50. Applies to both subscriptions and one-time packs. The bonus never expires.
-
 ### Referral program
 
 Refer a friend and you both get 5 extra credits.
@@ -79,7 +75,7 @@ hi-key is a keyboard, not a separate app. It works inside the app you're already
 
 ## Pages
 
-- [Home](https://hi-key.ai/): Landing page with app overview, features, and waitlist signup
-- [Waitlist](https://hi-key.ai/#waitlist): Join the waitlist to be notified when hi-key launches
+- [Home](https://hi-key.ai/): Landing page with app overview, features, and a link to the App Store
+- [App Store](https://apps.apple.com/app/id6762464437): Download hi-key for iPhone
 - [Privacy Policy](https://hi-key.ai/privacy): How hi-key handles your data. No accounts, no tracking, prompts and images deleted in less than an hour
 - [Terms of Service](https://hi-key.ai/terms): The rules of using hi-key, in plain language

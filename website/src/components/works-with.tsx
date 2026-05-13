@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import type { AnimationItem } from "lottie-web";
-import { WaitlistForm } from "./waitlist-form";
+import { AppStoreBadge } from "./app-store-badge";
 
 export function WorksWith() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -67,12 +67,8 @@ export function WorksWith() {
           <p className="mt-4 max-w-lg text-lg text-text-secondary">
             hi-key works with all your favorite apps. If you can type in it, you can use hi-key.
           </p>
-          <div className="mt-10 flex w-full max-w-sm flex-col items-center gap-3 lg:items-start">
-            <WaitlistForm />
-            <span className="text-sm text-text-tertiary">
-              Early members get 2× credits.{" "}
-              <span className="text-text-primary">Forever.</span>
-            </span>
+          <div className="mt-10 flex items-center justify-center lg:justify-start">
+            <AppStoreBadge />
           </div>
         </div>
 
