@@ -66,8 +66,8 @@ export const POST = withAuth(async (request, user) => {
 
   const imageModels = [
     IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_DEV],
-    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_PRO],
-    IMAGE_MODEL_SETUPS[ImageModelsEnum.FLUX_2_PRO_UPSAMPLED],
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.NANO_BANANA_2_LITE],
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.NANO_BANANA_2_LITE],
     null, // We're creating an extra that will run on the background
   ];
 

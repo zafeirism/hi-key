@@ -6,6 +6,7 @@ export enum ImageModelsEnum {
   FLUX_2_PRO = 'flux-2-pro',
   FLUX_2_PRO_UPSAMPLED = 'flux-2-pro-upsampled',
   FLUX_2_KLEIN = 'flux-2-klein',
+  NANO_BANANA_2_LITE = 'nano-banana-2-lite',
 }
 
 export function pickModelRandomly(models: ImageModelsEnum[]): ImageModelsEnum {
@@ -76,6 +77,18 @@ export const IMAGE_MODEL_SETUPS: Record<ImageModelsEnum, ImageModelSetup> = {
     getInputParams: (prompt: string) => ({
       prompt: prompt,
       output_format: 'webp',
+    }),
+  },
+  [ImageModelsEnum.NANO_BANANA_2_LITE]: {
+    id: ImageModelsEnum.NANO_BANANA_2_LITE,
+    model: 'google/nano-banana-2-lite',
+    avgDuration: 5000,
+    costPerImage: 34,
+    supportsText: true,
+    outputFormat: 'jpg',
+    getInputParams: (prompt: string) => ({
+      prompt: prompt,
+      output_format: 'jpg',
     }),
   },
 };
