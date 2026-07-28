@@ -36,15 +36,16 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const upsampledPrompt = await upsamplePrompt(generation.user_prompt!);
   const upsamplingDurationMs = Date.now() - upsamplingStartedAt;
 
-  const model =
-    upsampledPrompt.user_phrases.length > 0
-      ? ImageModelsEnum.FLUX_2_DEV
-      : ImageModelsEnum.FLUX_2_KLEIN;
-  if (model === ImageModelsEnum.FLUX_2_KLEIN) {
-    upsampledPrompt.improved_prompt = upsampledPrompt.improved_prompt.concat(
-      '. Do not include any text in the image.'
-    );
-  }
+  const model = ImageModelsEnum.GPT_IMAGE_2_LOW;
+  // const model =
+  //   upsampledPrompt.user_phrases.length > 0
+  //     ? ImageModelsEnum.FLUX_2_DEV
+  //     : ImageModelsEnum.FLUX_2_KLEIN;
+  // if (model === ImageModelsEnum.FLUX_2_KLEIN) {
+  //   upsampledPrompt.improved_prompt = upsampledPrompt.improved_prompt.concat(
+  //     '. Do not include any text in the image.'
+  //   );
+  // }
 
   const generationStartedAt = new Date();
   await generateImage(model, {
