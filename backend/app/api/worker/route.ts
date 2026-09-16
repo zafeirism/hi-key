@@ -36,7 +36,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const upsampledPrompt = await upsamplePrompt(generation.user_prompt!);
   const upsamplingDurationMs = Date.now() - upsamplingStartedAt;
 
-  const model = ImageModelsEnum.GPT_IMAGE_2_LOW;
+  const model = ImageModelsEnum.GPT_IMAGE_25_FLARE;
   // const model =
   //   upsampledPrompt.user_phrases.length > 0
   //     ? ImageModelsEnum.FLUX_2_DEV

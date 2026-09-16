@@ -19,12 +19,12 @@ import {
   type Balance,
 } from '@/lib/credits/balance';
 
-// UPDATE: Changed to GPT_IMAGE_2_LOW because FLUX are now queued on Replicate
+// UPDATE: Changed to GPT_IMAGE_25_FLARE because FLUX are now queued on Replicate
 // The 4th image runs in /api/worker, which picks FLUX_2_DEV (12 mills) or FLUX_2_KLEIN (1 mill)
 // at runtime based on whether the prompt has text phrases. We reserve the ceiling at /generate
 // time and let the Replicate webhook refund the delta once the actual cost_usd_mills is known.
 const WORKER_IMAGE_RESERVED_MILLS =
-  IMAGE_MODEL_SETUPS[ImageModelsEnum.GPT_IMAGE_2_LOW].costPerImage;
+  IMAGE_MODEL_SETUPS[ImageModelsEnum.GPT_IMAGE_25_FLARE].costPerImage;
 
 export const POST = withAuth(async (request, user) => {
   const requestStartedAt = new Date();
@@ -67,7 +67,7 @@ export const POST = withAuth(async (request, user) => {
   const generationIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
 
   const imageModels = [
-    IMAGE_MODEL_SETUPS[ImageModelsEnum.GPT_IMAGE_2_LOW],
+    IMAGE_MODEL_SETUPS[ImageModelsEnum.GPT_IMAGE_25_FLARE],
     IMAGE_MODEL_SETUPS[ImageModelsEnum.NANO_BANANA_2_LITE],
     IMAGE_MODEL_SETUPS[ImageModelsEnum.NANO_BANANA_2_LITE],
     null, // We're creating an extra that will run on the background

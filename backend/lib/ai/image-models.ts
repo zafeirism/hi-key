@@ -8,6 +8,7 @@ export enum ImageModelsEnum {
   FLUX_2_KLEIN = 'flux-2-klein',
   NANO_BANANA_2_LITE = 'nano-banana-2-lite',
   GPT_IMAGE_2_LOW = 'gpt-image-2-low',
+  GPT_IMAGE_25_FLARE = 'gpt-image-25-flare',
 }
 
 export function pickModelRandomly(models: ImageModelsEnum[]): ImageModelsEnum {
@@ -96,6 +97,20 @@ export const IMAGE_MODEL_SETUPS: Record<ImageModelsEnum, ImageModelSetup> = {
     id: ImageModelsEnum.GPT_IMAGE_2_LOW,
     model: 'openai/gpt-image-2',
     avgDuration: 20000,
+    costPerImage: 12,
+    supportsText: true,
+    outputFormat: 'webp',
+    getInputParams: (prompt: string) => ({
+      prompt: prompt,
+      output_format: 'webp',
+      quality: 'low',
+      background: 'opaque',
+    }),
+  },
+  [ImageModelsEnum.GPT_IMAGE_25_FLARE]: {
+    id: ImageModelsEnum.GPT_IMAGE_25_FLARE,
+    model: 'openai/gpt-image-2.5-flare',
+    avgDuration: 15000,
     costPerImage: 12,
     supportsText: true,
     outputFormat: 'webp',
