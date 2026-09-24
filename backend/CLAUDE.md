@@ -2,31 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Product Context
-
-**hi-key** is an iOS app with a custom keyboard extension that generates AI images from text prompts. Users open the keyboard in any app (iMessage, WhatsApp, etc.), describe a scene, and receive 4 AI-generated images within seconds.
-
-Weekly subs (Starter/Plus/Super) + consumable packs (`pack.mini`/`pack.mega`). 1 credit = 1¢ of underlying AI cost. Full catalog, pricing, and credit mechanics in [PURCHASES.md](./PURCHASES.md).
-
-## Core Principle: Speed Is the Product
-
-Delivering images as fast as possible is hi-key's key value proposition. Every step on the `/api/generate` critical path must be justified against this:
-
-- Is the added overhead worth it?
-- Does the **majority** of requests benefit, or only a minority?
-- Can the work run in parallel with existing tasks instead of serially?
-- For the rare/edge case, is it acceptable to pay extra cost (extra DB writes, refunds, undo work) **after** the fact rather than gating the happy path?
-
-Default to optimizing for the 99% common case. Edge cases (errors, blocked prompts, refunds) can be slower and more complex if it keeps the hot path fast. Always start from this principle, then build from there.
+Product context and the **Speed Is the Product** principle live in the root `CLAUDE.md` — read it first. It applies most strongly here: every step on the `/api/generate` critical path must justify itself against time-to-image.
 
 ## Project Overview
 
-hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serves as a headless API — no meaningful frontend UI. Deployed at `https://app.hi-key.ai`. The iOS app (`APIClient.swift`) communicates with this backend using Bearer token auth (Supabase JWT) with auto-retry on 401.
-
-### Sibling Projects
-
-- **`../hi-key-app/`** — iOS app (main client). Two targets: `hi` (main app) and `hi-keyboard` (keyboard extension). See its `CLAUDE.md` for architecture, design system, and onboarding flow.
-- **`../hi-key-website/`** — Marketing landing page (Next.js 15, static). See its `CLAUDE.md` for brand/design context.
+`backend/` is the hi-key API: a Next.js 16 (App Router) project with route handlers only — no pages or UI. Deployed on Vercel at `https://app.hi-key.ai`. The iOS app (`ios/hi/APIClient.swift`) calls it with Bearer token auth (Supabase JWT) and auto-retries on 401. The other projects in the monorepo are `../ios/` (the only API client) and `../website/`.
 
 ## Commands
 
@@ -44,22 +24,23 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 1. **`/api/generate`** — Main endpoint. Authenticated mobile client sends a prompt. The route:
    - Creates 4 generation records in Supabase (3 immediate + 1 background)
-   - Runs prompt analysis in parallel: `hasStyle()` + `proofread()`
+   - Rejects blocklisted prompts synchronously (`lib/moderation/blocklist.ts`), then debits the reserved credits
+   - Runs prompt analysis in parallel: `hasStyle()` + `proofread()` + OpenAI moderation (a flagged prompt marks the rows `blocked`, refunds, and returns 403)
    - Dispatches 3 image generations to Replicate immediately
    - Sends the 4th to **`/api/worker`** via QStash for background processing
    - Returns pre-signed R2 URLs to the client
 
-2. **`/api/worker`** — QStash-triggered background worker. Receives a generation ID, upsamples the prompt (more creative rewrite via OpenAI), picks a model based on complexity, and dispatches to Replicate.
+2. **`/api/worker`** — QStash-triggered background worker. Receives a generation ID, upsamples the prompt (more creative rewrite via OpenAI) and dispatches to Replicate.
 
 3. **`/api/webhooks/replicate`** — Replicate calls this when image generation completes. Downloads the image, uploads to R2, updates generation status to `ready` in Supabase.
 
 4. **`/api/autocomplete`** — Returns prompt autocomplete suggestions via OpenAI.
 
-5. **`/api/warmup`** — Warms up all endpoints and external connections (Supabase, QStash, Replicate webhook).
+5. **`/api/warmup`** — Unauthenticated; the keyboard calls it on open, before it has refreshed its token. Warms up all endpoints and external connections (Supabase, QStash, Replicate webhook). Internal calls use `WARMUP_TOKEN`, which `withAuth` answers with a no-op 200 without running the handler. The fan-out is throttled per instance (once per 60s).
 
 6. **`/api/referral`** — `POST` creates the user's immutable referral code from a name (`NAME-XXXXXX`, Crockford Base32 suffix). Idempotent: returns the existing code on subsequent calls.
 
-7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code, atomically marks the redeemer's `referred_by`, and grants 500 mills (50 credits) to both sides. One-shot per redeemer (409 on retry with a different code). See `PURCHASES.md` for the redeem flow.
+7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code, atomically marks the redeemer's `referred_by`, and grants 500 mills (50 credits) to both sides. One-shot per redeemer (409 on retry with a different code). See `../private/backend-purchases.md` for the redeem flow.
 
 8. **`/api/me/claim-code`** — `POST` with `{ code }`. Applies a waitlist claim code: marks the waitlist row as claimed, sets `user_profiles.double_credits = true` (all future sub renewals and pack purchases grant 2x), and tops up the current sub balance by one full tier so the remainder of the active cycle is effectively doubled. One-shot per user (409 `already_doubled` on retry with a different code).
 
@@ -67,9 +48,10 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 ### Key Modules
 
-- **`lib/auth/jwt.ts`** — `withAuth()` HOF for JWT-authenticated routes. Verifies Supabase JWTs via JWKS. Has demo/warmup token bypass.
+- **`lib/auth/jwt.ts`** — `withAuth()` HOF for JWT-authenticated routes. Verifies Supabase JWTs via JWKS. `WARMUP_TOKEN` short-circuits to a no-op 200 — never add tokens that reach a handler without a verified user.
 - **`lib/ai/image-generator.ts`** — Dispatches predictions to Replicate with retry logic.
-- **`lib/ai/image-models.ts`** — `ImageModelsEnum` and `IMAGE_MODEL_SETUPS` define all FLUX model configurations (dev, pro, pro-upsampled, klein).
+- **`lib/ai/image-models.ts`** — `ImageModelsEnum` and `IMAGE_MODEL_SETUPS` define every Replicate model configuration (GPT Image, Nano Banana, FLUX variants) with its per-image cost in mills. Which models `/api/generate` and `/api/worker` use is chosen in those routes.
+- **`lib/moderation/`** — `checkBlocklist()` (synchronous, first line) and `moderateWithOpenAI()` (fail-open, runs in parallel with the rest of prompt analysis).
 - **`lib/ai/prompt-upsampler.ts`** — OpenAI-powered creative prompt rewriting for the background generation.
 - **`lib/ai/proofread.ts`** / **`lib/ai/detectPromptStyle.ts`** — Prompt preprocessing (grammar fix, style detection).
 - **`lib/storage/r2.ts`** — Cloudflare R2 operations via AWS S3 SDK. Images stored at `users/{userId}/images/{generationId}.{ext}`. `deleteImages(keys)` batch-deletes up to 1000 keys per call.
@@ -82,7 +64,7 @@ hi-key-web is the backend API. It's a Next.js 16 (App Router) project that serve
 
 ### External Services
 
-- **Replicate** — Image generation (FLUX models)
+- **Replicate** — Image generation (GPT Image, Nano Banana, FLUX — see `lib/ai/image-models.ts`)
 - **Supabase** — Database (generations, waitlist tables) + auth (JWT verification via JWKS)
 - **Cloudflare R2** — Image storage (S3-compatible), signed URLs valid 7 days
 - **Upstash QStash** — Background job queue (worker endpoint verification via signature)
@@ -115,6 +97,8 @@ Two Supabase projects exist — **always verify which one is linked before runni
 
 ### Migration Workflow
 
+Run all Supabase CLI commands from `backend/` (the `supabase/` folder lives here).
+
 1. Create migration SQL in `supabase/migrations/<timestamp>_<name>.sql`
 2. Link to dev: `npx supabase link --project-ref rtmrehcevyoqafyscpaj`
 3. Push to dev: `npx supabase db push`
@@ -131,31 +115,18 @@ Prompts and images are retained for under one hour. The `/api/cron/cleanup` endp
 
 ## Credits & Purchases
 
-See **[PURCHASES.md](./PURCHASES.md)** for everything about credits, RevenueCat events, the debit/refund flow, upgrade/downgrade handling, referrals, and known future work (e.g. `TRANSFER` events). Read this before touching `lib/credits/*`, `lib/referrals/*`, the RC webhook, or `/api/generate` debit logic.
+The full spec — credits, RevenueCat events, the debit/refund flow, upgrade/downgrade handling, trials, referrals, and known future work (e.g. `TRANSFER` events) — is in **`../private/backend-purchases.md`** (git-ignored; see root `CLAUDE.md`). Read it before touching `lib/credits/*`, `lib/referrals/*`, the RC webhook, or `/api/generate` debit logic. If it's absent, the source of truth is `lib/credits/catalog.ts`, `lib/credits/webhook.ts` and the RPCs in `supabase/migrations/`.
 
 ## Referrals
 
-Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford Base32 suffix) via `POST /api/referral`. A new user redeems via `POST /api/referral/redeem` during onboarding; both sides get 50 non-expiring credits (500 mills on `extra_credits_mills`). The atomic work happens inside the `redeem_referral` Supabase RPC — see `PURCHASES.md#referrals` and `supabase/migrations/20260423120000_add_referrals.sql` for the ledger + locking details. `user_profiles.referral_code` is covered by a partial unique index (`WHERE referral_code IS NOT NULL`) which is both the uniqueness gate and the code → user lookup path.
+Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford Base32 suffix) via `POST /api/referral`. A new user redeems via `POST /api/referral/redeem` during onboarding; both sides get 50 non-expiring credits (500 mills on `extra_credits_mills`). The atomic work happens inside the `redeem_referral` Supabase RPC — see `../private/backend-purchases.md` (Referrals) and `supabase/migrations/20260423120000_add_referrals.sql` for the ledger + locking details. `user_profiles.referral_code` is covered by a partial unique index (`WHERE referral_code IS NOT NULL`) which is both the uniqueness gate and the code → user lookup path.
 
 ## Waitlist
 
-The website (`../hi-key-website/`) is launching before the app goes live. A waitlist lets visitors sign up with their email. Waitlist visitors get a unique claim code in the launch email that, when applied in-app, grants double credits forever on every subscription renewal and pack purchase. See `PURCHASES.md#waitlist-claim-codes`.
-
-### Schema (owned by this project)
+Before launch, the website collected waitlist emails; each waitlist member got a unique claim code in the launch email that, applied in-app, grants double credits forever on every subscription renewal and pack purchase. Signups are closed (the website's signup route was removed after launch), but claim codes are still redeemable via `/api/me/claim-code`.
 
 Table `waitlist` — migrations: `20260306000000_add_waitlist_table.sql` (base) + `20260424000000_add_waitlist_claim.sql` (claim columns)
 - `id` UUID PK, `email` TEXT NOT NULL (unique index), `referral_source` TEXT nullable, `created_at` TIMESTAMPTZ
-- `claim_code` TEXT (partial unique index, NULL until generated manually), `claimed_at` TIMESTAMPTZ nullable, `claimed_by_user_id` TEXT nullable
+- `claim_code` TEXT (partial unique index), `claimed_at` TIMESTAMPTZ nullable, `claimed_by_user_id` TEXT nullable
 - RLS enabled, no policies — only accessible via service role key (same pattern as `generations`)
 - Helper types in `lib/supabase/helpers.ts`: `WaitlistEntry`, `WaitlistInsert`
-
-### Ownership Split
-
-| Concern | Owner |
-|---------|-------|
-| Database schema & migration | **hi-key-web** (this project) |
-| Supabase types (`WaitlistEntry`, `WaitlistInsert`) | **hi-key-web** (this project) |
-| `POST /api/waitlist` route | **hi-key-website** |
-| Resend confirmation email | **hi-key-website** |
-| Upstash rate limiting | **hi-key-website** |
-| Duplicate email handling (unique constraint catch) | **hi-key-website** |

@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
+Part of the hi-key monorepo — see the root `CLAUDE.md` for product context and the **Speed Is the Product** principle (it applies to the keyboard's generate flow too). The backend this app talks to is in `../backend/` (see `../backend/CLAUDE.md` for the API).
+
 hi-key is an iOS app with a custom keyboard extension that generates AI images from text prompts. Users open the keyboard in any app (iMessage, WhatsApp, etc.), describe a scene, and receive AI-generated images within seconds that can be copied anywhere.
 
 **Two targets:**
@@ -14,7 +16,7 @@ hi-key is an iOS app with a custom keyboard extension that generates AI images f
 ## Build Commands
 
 ```bash
-# Open project in Xcode (no workspace - uses Swift Package Manager)
+# From ios/. Open project in Xcode (no workspace - uses Swift Package Manager)
 open hi.xcodeproj
 
 # Build from command line
@@ -38,7 +40,7 @@ xcodebuild -scheme hi -configuration Release build
 ### Networking
 
 - `APIClient.swift` - Backend communication with async/await
-- Base URL: `https://app.hi-key.ai`
+- Base URL: `https://app.hi-key.ai` (the `../backend/` project). Keep request/response models in sync with `../backend/app/api/**/route.ts`; old app versions stay in the wild, so prefer additive API changes.
 - Bearer token auth via Supabase session
 - Auto-retry with token refresh on 401
 
@@ -51,11 +53,11 @@ xcodebuild -scheme hi -configuration Release build
 
 ### Monetization
 
-> For anything involving in-app purchases, RevenueCat, subscriptions, the paywall, credits, or entitlements, consult `hi/purchases.md` first — it covers the product catalog, entitlements strategy, RC identity/restore behavior, credits ledger decision, keyboard-extension IAP constraints, and the active TODO list.
+> For anything involving in-app purchases, RevenueCat, subscriptions, the paywall, credits, or entitlements, consult `../private/ios-purchases.md` first (git-ignored, may be absent — see root `CLAUDE.md`) — it covers the product catalog, entitlements strategy, RC identity/restore behavior, credits ledger decision, keyboard-extension IAP constraints, and the active TODO list.
 
 ### App Store Submission
 
-> For anything related to the first App Store submission — assets, App Store Connect config, country availability, age rating, content moderation, App Preview videos, reviewer notes — consult `hi/submission.md`. It's the working checklist and source of truth for "what's left before we can ship".
+> For anything related to App Store submissions — App Store Connect config, country availability, age rating, content moderation, App Privacy declarations, reviewer notes — consult `../private/app-store-submission.md` (git-ignored, may be absent).
 
 ### Design System
 
@@ -132,6 +134,12 @@ UserDefaults(suiteName: "group.ai.hi-key")
 - **KeyboardKit** - Custom keyboard framework
 - **Lottie** - Animations (onboarding)
 - **Sentry** - Error tracking
+- **RevenueCat** - Subscriptions and credit packs
+- **PostHog** - Product analytics
+
+## CI (Xcode Cloud)
+
+Xcode Cloud builds `ios/hi.xcodeproj` from the monorepo. `ci_scripts/ci_post_clone.sh` must stay next to the `.xcodeproj` (Xcode Cloud only looks there); it `cd`s into `$CI_PRIMARY_REPOSITORY_PATH/ios` and stamps `CURRENT_PROJECT_VERSION` with `CI_BUILD_NUMBER`.
 
 ## File Organization
 

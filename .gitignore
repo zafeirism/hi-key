@@ -1,0 +1,12 @@
+# Private business docs — never published (see CLAUDE.md)
+/private/
+
+# Secrets (each project also ignores these; this is the monorepo-wide safety net)
+.env
+.env.*
+!.env.example
+.sentryclirc
+
+# OS / editor
+.DS_Store
+.claude/settings.local.json
