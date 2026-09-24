@@ -1,0 +1,81 @@
+# hi-key
+
+> hi-key is an iOS keyboard that generates AI images from text prompts. Install it once, and it works inside any app on your iPhone: iMessage, WhatsApp, Instagram, Telegram, Slack, Notes, email, and more. Type a description, get 4 images in seconds, copy and paste anywhere.
+
+## How it works
+
+1. Enable hi-key as a keyboard on your iPhone (one-time setup in Settings).
+2. In any app, switch to hi-key using the globe icon, just like switching to the emoji keyboard.
+3. Type a description of what you want to see.
+4. hi-key generates 4 AI images in seconds.
+5. Tap any image to copy it, then paste it into your conversation or post.
+
+No app switching required. The entire flow happens inside the app you're already using.
+
+## Key features
+
+- Works in any app with a text input: iMessage, WhatsApp, Instagram DMs, Telegram, Slack, Notes, email, and more
+- Generates 4 images per prompt, so you can pick the one you like best
+- Fast enough to use mid-conversation: images arrive in seconds, not minutes
+- Privacy-first: only your prompts are processed, never stored after generation. hi-key never reads your messages, passwords, or other content
+- No account required: download and start generating immediately
+- Custom iOS keyboard extension: available everywhere you type, no app switching
+
+## Pricing
+
+hi-key uses a credit system. 1 credit = 1 prompt = 4 images.
+
+### Subscriptions (monthly)
+
+- Free: 5 credits (one-time, included with download)
+- Starter: $4.99/month for 25 credits
+- Plus: $6.99/month for 50 credits
+- Super: $12.99/month for 110 credits (no watermark, early access to new features)
+
+### One-time credit packs
+
+- Mini: $2.99 for 10 credits
+- Big: $5.99 for 25 credits
+
+### Referral program
+
+Refer a friend and you both get 5 extra credits.
+
+## How hi-key is different
+
+Most AI image generators (ChatGPT, Midjourney, DALL-E) require you to leave your conversation, open a separate app, wait for results, save the image, and come back to paste it. This takes time and breaks your flow.
+
+hi-key is a keyboard. It lives inside the app you're already using. You don't switch apps, you don't wait. It's like sending a GIF, but personal and unique.
+
+Compared to Nano Banana and similar keyboard-based tools, hi-key generates 4 images per prompt (not 1) and uses ultra-fast models to deliver results in seconds.
+
+## Privacy
+
+- hi-key only processes the text you type in the hi-key prompt bar
+- Prompts are processed securely and not stored after image generation
+- hi-key never reads, stores, or sends your messages, passwords, or any other content
+- No account or login required to use the app
+
+## FAQ
+
+**What is hi-key?**
+hi-key is an iOS keyboard that generates AI images from text prompts. Switch to it like you switch to the emoji keyboard, type a description, and get 4 images in seconds.
+
+**Which apps does hi-key work in?**
+Any app with a text input: iMessage, WhatsApp, Instagram DMs, Telegram, Slack, Notes, email, and more. It's a system keyboard, so it's available everywhere you type.
+
+**Is hi-key free?**
+You get 5 free credits to start. Each credit generates 4 images. For more credits, one-time packs start at $2.99 and subscriptions at $4.99/month.
+
+**Is hi-key safe?**
+Yes. hi-key only processes your prompts and never reads your messages or other content. No account required.
+
+**How is hi-key different from ChatGPT or Midjourney?**
+hi-key is a keyboard, not a separate app. It works inside the app you're already using, generates 4 images in seconds, and requires no app switching.
+
+## Pages
+
+- [Home](https://hi-key.ai/): Landing page with app overview, features, and a link to the App Store
+- [App Store](https://apps.apple.com/app/id6762464437): Download hi-key for iPhone
+- [Privacy Policy](https://hi-key.ai/privacy): How hi-key handles your data. No accounts, no tracking, prompts and images deleted in less than an hour
+- [Terms of Service](https://hi-key.ai/terms): The rules of using hi-key, in plain language

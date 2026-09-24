@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* hi-key brand tokens */
+  --background-root: #0f1115;
+  --surface-primary: #171a20;
+  --surface-secondary: #1e222b;
+  --divider: #2a2f3a;
+  --text-primary: #e6e8ec;
+  --text-secondary: #9aa1ad;
+  --text-tertiary: #6e7482;
+  --icon-default: #c7cbd4;
+  --accent-lime: #e4ff97;
+  --accent-purple: #b48cff;
+  --status-error: #ff6b6b;
+  --status-warning: #ffb86b;
+  --status-info: #6ea8ff;
+
+  /* shadcn variables — mapped to hi-key dark theme */
+  --radius: 0.75rem;
+  --background: #0f1115;
+  --foreground: #e6e8ec;
+  --card: #171a20;
+  --card-foreground: #e6e8ec;
+  --popover: #171a20;
+  --popover-foreground: #e6e8ec;
+  --primary: #e4ff97;
+  --primary-foreground: #0f1115;
+  --secondary: #1e222b;
+  --secondary-foreground: #e6e8ec;
+  --muted: #1e222b;
+  --muted-foreground: #9aa1ad;
+  --accent: #1e222b;
+  --accent-foreground: #e6e8ec;
+  --destructive: #ff6b6b;
+  --border: #2a2f3a;
+  --input: #2a2f3a;
+  --ring: #e4ff97;
+}
+
+@theme inline {
+  /* hi-key custom colors */
+  --color-background-root: var(--background-root);
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-divider: var(--divider);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-icon-default: var(--icon-default);
+  --color-accent-lime: var(--accent-lime);
+  --color-accent-purple: var(--accent-purple);
+  --color-status-error: var(--status-error);
+  --color-status-warning: var(--status-warning);
+  --color-status-info: var(--status-info);
+
+  /* shadcn theme colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Radii */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Fonts */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-nunito);
+}
+
+body {
+  background: var(--background-root);
+  color: var(--text-primary);
+  /* Respect safe-area insets on notched / punch-hole Android & iOS devices */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Hide scrollbar but keep scrolling functional */
+html {
+  scrollbar-width: none; /* Firefox */
+}
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* Dot grid background */
+.dot-grid {
+  background-image: radial-gradient(circle, #2a2f3a 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Fade-up animation for scroll reveals */
+.fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
