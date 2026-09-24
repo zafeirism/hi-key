@@ -6,7 +6,8 @@ set -e
 # (Xcode Cloud's monotonically increasing per-workflow counter) so every
 # upload to App Store Connect has a unique build number.
 
-cd "$CI_PRIMARY_REPOSITORY_PATH"
+# The Xcode project lives in ios/ within the hi-key monorepo.
+cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
 
 echo "Setting CURRENT_PROJECT_VERSION to $CI_BUILD_NUMBER across all targets"
 
