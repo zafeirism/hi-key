@@ -1,0 +1,15 @@
+import KeyboardKit
+
+extension KeyboardApp {
+    
+    /// The hi-key keyboard app configuration
+    static var hi: KeyboardApp {
+        KeyboardApp(
+            name: "hi",
+            // licenseKey: "...",  // Only needed for KeyboardKit Pro
+            appGroupId: "group.ai.hi-key",  // Your App Group
+            locales: [.english],  // Start with English only
+            deepLinks: KeyboardApp.DeepLinks(app: "hi-key://")  // Optional: for opening main app
+        )
+    }
+}

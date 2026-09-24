@@ -1,0 +1,116 @@
+import Foundation
+
+// MARK: - Keyboard Account Summary
+// Read-only view over the App Group defaults populated by CreditsManager and
+// PurchasesManager in the main app. The keyboard extension uses this to
+// render credits, referral code, and subscription info in the menu without
+// running its own /api/me or RevenueCat fetch.
+
+struct KeyboardAccountSummary {
+    static let appGroupID = "group.ai.hi-key"
+
+    // Keep keys in sync with CreditsManager.Keys and PurchasesManager.AppGroupKeys.
+    private enum Keys {
+        // From CreditsManager
+        static let credits = "credits"
+        static let extraCredits = "extraCredits"
+        static let referralCode = "referralCode"
+        static let doubleCredits = "doubleCredits"
+        // From PurchasesManager
+        static let subscriptionTier = "subscriptionTier"
+        static let subscriptionWeeklyBaseCredits = "subscriptionWeeklyBaseCredits"
+    }
+
+    private static var defaults: UserDefaults? {
+        UserDefaults(suiteName: appGroupID)
+    }
+
+    let credits: Int
+    let extraCredits: Int
+    let referralCode: String?
+    let doubleCredits: Bool
+    let subscriptionTier: String?
+    let subscriptionWeeklyBaseCredits: Int
+
+    static func load() -> KeyboardAccountSummary {
+        let d = defaults
+        return KeyboardAccountSummary(
+            credits: d?.integer(forKey: Keys.credits) ?? 0,
+            extraCredits: d?.integer(forKey: Keys.extraCredits) ?? 0,
+            referralCode: d?.string(forKey: Keys.referralCode),
+            doubleCredits: d?.bool(forKey: Keys.doubleCredits) ?? false,
+            subscriptionTier: d?.string(forKey: Keys.subscriptionTier),
+            subscriptionWeeklyBaseCredits: d?.integer(forKey: Keys.subscriptionWeeklyBaseCredits) ?? 0
+        )
+    }
+
+    // MARK: - Writers
+    // Called from the keyboard when generate or /api/me returns fresh data,
+    // so the menu reflects the latest server-authoritative balance without
+    // needing the main app to be opened. Subscription tier/renewal stay
+    // owned by the main app's PurchasesManager (RevenueCat-derived).
+
+    static func applyMe(_ response: APIClient.MeResponse) {
+        let d = defaults
+        d?.set(response.credits.sub_credits, forKey: Keys.credits)
+        d?.set(response.credits.extra_credits, forKey: Keys.extraCredits)
+        d?.set(response.profile?.referral_code, forKey: Keys.referralCode)
+        d?.set(response.double_credits ?? false, forKey: Keys.doubleCredits)
+
+        // Subscription tier + weekly base credits — derived from the
+        // server-authoritative product ID via SubscriptionCatalog. Same
+        // App Group keys that PurchasesManager (RC source) writes from
+        // the main app, so both writers converge on the same values.
+        if let productID = response.active_sub_product_id {
+            d?.set(SubscriptionCatalog.displayName(for: productID), forKey: Keys.subscriptionTier)
+            d?.set(SubscriptionCatalog.weeklyCredits(for: productID) ?? 0,
+                   forKey: Keys.subscriptionWeeklyBaseCredits)
+        } else {
+            d?.removeObject(forKey: Keys.subscriptionTier)
+            d?.removeObject(forKey: Keys.subscriptionWeeklyBaseCredits)
+        }
+    }
+
+    static func applyBalance(_ balance: APIClient.CreditsBalance) {
+        let d = defaults
+        d?.set(balance.sub_credits, forKey: Keys.credits)
+        d?.set(balance.extra_credits, forKey: Keys.extraCredits)
+    }
+
+    // MARK: - Derived
+
+    // Minimum credits needed to attempt a generation. A generate currently
+    // costs ~8.4 credits, so 9 is the smallest integer balance that
+    // guarantees the request will be accepted server-side. If model
+    // selection ships and per-generate cost diverges, update this here.
+    static let minCreditsForGeneration: Int = 9
+
+    var totalCredits: Int { credits + extraCredits }
+
+    var hasEnoughCredits: Bool { totalCredits >= Self.minCreditsForGeneration }
+
+    var hasActiveSubscription: Bool { subscriptionTier != nil }
+
+    var weeklyCreditAllowance: Int {
+        guard subscriptionWeeklyBaseCredits > 0 else { return 0 }
+        return doubleCredits ? subscriptionWeeklyBaseCredits * 2 : subscriptionWeeklyBaseCredits
+    }
+
+    /// Single-line description for the keyboard menu row. Compresses plan,
+    /// weekly progress, and extras into one caption.
+    var creditsRowDescription: String {
+        if hasActiveSubscription {
+            var parts: [String] = []
+            if let tier = subscriptionTier { parts.append(tier) }
+            if subscriptionWeeklyBaseCredits > 0 {
+                parts.append("\(credits) of \(weeklyCreditAllowance)")
+            }
+            if extraCredits > 0 {
+                parts.append("+\(extraCredits) extra")
+            }
+            return parts.joined(separator: " · ")
+        } else {
+            return "Free plan"
+        }
+    }
+}

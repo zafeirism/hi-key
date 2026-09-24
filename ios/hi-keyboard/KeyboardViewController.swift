@@ -1,0 +1,121 @@
+import UIKit
+import SwiftUI
+import KeyboardKit
+import PostHog
+
+class KeyboardViewController: KeyboardInputViewController {
+    
+    private let hiViewModel = HiKeyboardViewModel()
+
+    // iOS calls `textWillChange` once during keyboard bootstrap as it hands
+    // over the host's document proxy. That isn't a user tap, so we must not
+    // unfocus the prompt for it. Flipped to false on the runloop tick after
+    // `viewDidAppear`, by which point the bootstrap call has already landed.
+    private var isBootstrapping = true
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        HiLogger.configure()
+
+        // PostHog: Initialize analytics for keyboard extension (falls back to bundled values in production)
+        let phToken = ProcessInfo.processInfo.environment["POSTHOG_PROJECT_TOKEN"]
+            ?? "phc_u2kkpGzhnNHDJcPf6Bnr9fChCVcwc2uT8vvoQBkdScoa"
+        let phHost = ProcessInfo.processInfo.environment["POSTHOG_HOST"]
+            ?? "https://eu.i.posthog.com"
+        let phConfig = PostHogConfig(apiKey: phToken, host: phHost)
+        phConfig.captureApplicationLifecycleEvents = false
+        PostHogSDK.shared.setup(phConfig)
+
+        // PostHog: Identify user using Supabase session
+        Task {
+            if let userID = await AuthManager.shared.getUserID() {
+                PostHogSDK.shared.identify(userID)
+            }
+        }
+
+        FullAccessMonitor.shared.update(hasFullAccess)
+
+        setup(for: .hi) { [weak self] result in
+            guard let self else { return }
+
+            switch result {
+            case .success:
+                print("KeyboardKit setup succeeded")
+                let handler = HiActionHandler(controller: self, viewModel: self.hiViewModel)
+                self.services.actionHandler = handler
+                self.hiViewModel.actionHandler = handler
+
+            case .failure(let error):
+                HiLogger.error("KeyboardKit setup failed", error: error, category: .keyboard)
+            }
+        }
+
+        hiViewModel.openURLHandler = { [weak self] url in
+            self?.openHostApp(url: url)
+        }
+
+        Task {
+            try await APIClient.shared.warmup()
+        }
+
+        Task { [weak self] in
+            await self?.hiViewModel.refreshFromBackend()
+        }
+    }
+    
+    // MARK: - Detect Host App Text Interaction
+        
+    override func textWillChange(_ textInput: UITextInput?) {
+        super.textWillChange(textInput)
+
+        guard !isBootstrapping else { return }
+
+        // If we're intercepting input but text is changing in host app,
+        // it means user tapped on host app's text field
+        // Unfocus our prompt
+        if hiViewModel.isPromptFocused {
+            DispatchQueue.main.async { [weak self] in
+                self?.hiViewModel.unfocusPrompt()
+            }
+        }
+    }
+
+    /// Open a hi-key:// URL from the keyboard. `extensionContext.open(_:)`
+    /// is not honored for keyboard extensions, and `UIApplication.open(_:)`
+    /// is marked unavailable in extension targets. The working path is to
+    /// walk the responder chain to the connected `UIScene` and call its
+    /// typed `open(_:options:completionHandler:)` API — that one IS
+    /// available in extensions. Full Access is required.
+    private func openHostApp(url: URL) {
+        var responder: UIResponder? = self
+        while let r = responder {
+            if let scene = r as? UIScene {
+                scene.open(url, options: nil, completionHandler: nil)
+                return
+            }
+            responder = r.next
+        }
+        HiLogger.error("No UIScene found up the responder chain", category: .keyboard)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        FullAccessMonitor.shared.update(hasFullAccess)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.async { [weak self] in
+            self?.isBootstrapping = false
+        }
+    }
+
+    override func viewWillSetupKeyboardView() {
+        setupKeyboardView { [unowned self] controller in
+            HiKeyboardView(
+                services: controller.services,
+                viewModel: self.hiViewModel
+            )
+        }
+    }
+}
