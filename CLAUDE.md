@@ -53,7 +53,7 @@ The GitHub repo is public. Before committing:
 
 ## Deployment
 
-- **Vercel** — two projects connected to this repo, Root Directory `backend` and `website` respectively, each set to skip builds when its directory is unchanged.
+- **Vercel** — two projects connected to this repo, Root Directory `backend` and `website` respectively. This isn't an npm-workspaces monorepo, so Vercel's automatic "skip unaffected projects" doesn't apply; each project instead has a custom **Ignored Build Step** (runs inside the root directory, exit 0 = skip): `[ -n "$VERCEL_GIT_PREVIOUS_SHA" ] && git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- .`
 - **Xcode Cloud** — builds `ios/hi.xcodeproj`; `ios/ci_scripts/ci_post_clone.sh` (must stay next to the `.xcodeproj`) stamps the build number.
 - **Supabase** — migrations in `backend/supabase/migrations/`; run the Supabase CLI from `backend/`. Dev vs prod workflow in `backend/CLAUDE.md`.
 - **QStash** — schedules `backend`'s `/api/cron/cleanup` every 15 minutes and delivers `/api/worker` jobs.
