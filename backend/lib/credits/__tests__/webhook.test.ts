@@ -15,6 +15,12 @@ vi.mock('@/lib/profile/profile', () => ({
   getProfile: (...args: unknown[]) => getProfileMock(...args),
 }));
 
+const grantReferralBonusMock = vi.fn();
+
+vi.mock('@/lib/referrals/service', () => ({
+  grantReferralBonus: (...args: unknown[]) => grantReferralBonusMock(...args),
+}));
+
 const upsertMock = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -48,6 +54,7 @@ beforeEach(() => {
   grantMock.mockReset();
   resetSubMock.mockReset();
   upsertMock.mockReset().mockResolvedValue({ error: null });
+  grantReferralBonusMock.mockReset().mockResolvedValue(true);
   currentProfile = { ...defaultProfile };
   getProfileMock.mockReset().mockImplementation(async () => currentProfile);
 });
@@ -530,6 +537,66 @@ describe('handleRevenueCatEvent', () => {
       expect(out.handled).toBe(false);
       expect(grantMock).not.toHaveBeenCalled();
       expect(resetSubMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('referral bonus', () => {
+    const REFERRER_ID = 'referrer-xyz';
+
+    beforeEach(() => {
+      grantMock.mockResolvedValue(emptyBalance);
+      resetSubMock.mockResolvedValue(emptyBalance);
+    });
+
+    it.each([
+      ['trial start', 'INITIAL_PURCHASE', 'super.weekly', 'TRIAL'],
+      ['sub purchase', 'INITIAL_PURCHASE', 'starter.weekly', 'NORMAL'],
+      ['pack purchase', 'NON_RENEWING_PURCHASE', 'pack.mini', undefined],
+      ['renewal', 'RENEWAL', 'plus.weekly', 'NORMAL'],
+    ] as const)(
+      'pays the pending bonus on %s for referred users',
+      async (_, type, product_id, period_type) => {
+        currentProfile = { ...currentProfile, referred_by: REFERRER_ID };
+        const out = await handleRevenueCatEvent({
+          id: EVENT_ID,
+          type,
+          app_user_id: USER_ID,
+          product_id,
+          period_type,
+        });
+        expect(grantReferralBonusMock).toHaveBeenCalledWith(USER_ID);
+        expect(out.summary).toContain('+referral bonus');
+      }
+    );
+
+    it('does not touch referrals for users who were not referred', async () => {
+      await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'starter.weekly',
+      });
+      expect(grantReferralBonusMock).not.toHaveBeenCalled();
+    });
+
+    it('does not pay on expiration', async () => {
+      currentProfile = { ...currentProfile, referred_by: REFERRER_ID };
+      await handleRevenueCatEvent({ id: EVENT_ID, type: 'EXPIRATION', app_user_id: USER_ID });
+      expect(grantReferralBonusMock).not.toHaveBeenCalled();
+    });
+
+    it('still handles the purchase when the bonus grant fails', async () => {
+      currentProfile = { ...currentProfile, referred_by: REFERRER_ID };
+      grantReferralBonusMock.mockRejectedValue(new Error('db down'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const out = await handleRevenueCatEvent({
+        id: EVENT_ID,
+        type: 'INITIAL_PURCHASE',
+        app_user_id: USER_ID,
+        product_id: 'starter.weekly',
+      });
+      expect(out.handled).toBe(true);
+      expect(out.summary).toContain('referral bonus failed');
     });
   });
 });

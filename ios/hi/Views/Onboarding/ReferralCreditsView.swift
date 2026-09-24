@@ -5,6 +5,9 @@ struct ReferralCreditsView: View {
 
     @State private var referralCode: String = OnboardingManager.shared.referrerCode ?? ""
     @State private var codeApplied: Bool = OnboardingManager.shared.referralApplied
+    // Onboarding runs before the paywall, so the bonus is almost always still
+    // pending here; the redeem response corrects it for users who already paid.
+    @State private var bonusPending: Bool = true
     @State private var errorMessage: String? = nil
     @State private var isProcessing: Bool = false
 
@@ -21,7 +24,7 @@ struct ReferralCreditsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, HiTheme.spacingMD)
 
-            Text("Enter it now and you'll both get 50 free credits.")
+            Text("Enter it now and you'll both get 50 bonus credits when you start your free trial or buy credits.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -110,7 +113,7 @@ struct ReferralCreditsView: View {
                 errorMessage = nil
             }
 
-            Text("Shared by a friend who already uses hi-key.")
+            Text(footnote)
                 .font(.footnote)
                 .foregroundStyle(HiTheme.textSecondary)
                 .padding(.leading, HiTheme.spacingMD)
@@ -126,6 +129,13 @@ struct ReferralCreditsView: View {
     }
 
     // MARK: - Helpers
+
+    private var footnote: String {
+        guard codeApplied else { return "Shared by a friend who already uses hi-key." }
+        return bonusPending
+            ? "Code applied. Your 50 bonus credits arrive when you start your trial or buy credits."
+            : "Code applied. 50 bonus credits added."
+    }
 
     private var isValidFormat: Bool {
         onboardingManager.isValidReferralCodeFormat(referralCode)
@@ -156,10 +166,11 @@ struct ReferralCreditsView: View {
             // perceptible latency when the response lands.
             generator.prepare()
             do {
-                try await onboardingManager.applyReferralCode(referralCode)
+                let pending = try await onboardingManager.applyReferralCode(referralCode)
                 generator.notificationOccurred(.success)
                 withAnimation(.spring(response: 0.4)) {
                     isProcessing = false
+                    bonusPending = pending
                     codeApplied = true
                 }
             } catch {

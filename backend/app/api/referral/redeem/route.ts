@@ -23,13 +23,14 @@ export const POST = withAuth(async (request, user) => {
   }
 
   try {
-    const balance = await redeemReferralCode(user.id, code);
+    const { balance, bonusPending } = await redeemReferralCode(user.id, code);
     return NextResponse.json({
       credits: {
         sub_credits: toDisplayCredits(balance.sub_credits_mills),
         extra_credits: toDisplayCredits(balance.extra_credits_mills),
         next_reset_at: null,
       },
+      bonus_pending: bonusPending,
     });
   } catch (err) {
     if (err instanceof InvalidCodeError) {

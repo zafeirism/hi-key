@@ -40,7 +40,7 @@ Product context and the **Speed Is the Product** principle live in the root `CLA
 
 6. **`/api/referral`** — `POST` creates the user's immutable referral code from a name (`NAME-XXXXXX`, Crockford Base32 suffix). Idempotent: returns the existing code on subsequent calls.
 
-7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code, atomically marks the redeemer's `referred_by`, and grants 500 mills (50 credits) to both sides. One-shot per redeemer (409 on retry with a different code). See `../private/backend-purchases.md` for the redeem flow.
+7. **`/api/referral/redeem`** — `POST` during onboarding. Validates a code and atomically marks the redeemer's `referred_by`. The 500-mill (50 credit) bonus for both sides is **deferred** until the redeemer starts a trial or pays (paid immediately if they already have); the response carries `bonus_pending`. One-shot per redeemer (409 on retry with a different code). See `../private/backend-purchases.md` for the redeem flow.
 
 8. **`/api/me/claim-code`** — `POST` with `{ code }`. Applies a waitlist claim code: marks the waitlist row as claimed, sets `user_profiles.double_credits = true` (all future sub renewals and pack purchases grant 2x), and tops up the current sub balance by one full tier so the remainder of the active cycle is effectively doubled. One-shot per user (409 `already_doubled` on retry with a different code).
 
@@ -59,7 +59,7 @@ Product context and the **Speed Is the Product** principle live in the root `CLA
 - **`lib/qstash/backgroundScheduler.ts`** — QStash client for dispatching background work.
 - **`lib/supabase/`** — Supabase admin client and generated types. Run `npm run types:generate` after schema changes.
 - **`lib/credits/`** — Credits system. `catalog.ts` maps RC product IDs to mill amounts; `balance.ts` wraps the `debit_credits`/`grant_credits`/`reset_sub_credits` RPCs and exposes `InsufficientCreditsError`; `webhook.ts` routes RC events to balance mutations. Mills are the internal unit (1 credit = 10 mills); `toDisplayCredits()` converts for client responses.
-- **`lib/referrals/`** — Referral system. `code.ts` has `sanitizeName` and Crockford Base32 suffix generation; `service.ts` wraps the `redeem_referral` RPC and exposes `InvalidNameError`, `InvalidCodeError`, `CodeNotFoundError`, `SelfReferralError`, `AlreadyRedeemedError`. Referral fields live on `user_profiles` alongside credit balances.
+- **`lib/referrals/`** — Referral system. `code.ts` has `sanitizeName` and Crockford Base32 suffix generation; `service.ts` wraps the `redeem_referral` and `grant_referral_bonus` RPCs and exposes `InvalidNameError`, `InvalidCodeError`, `CodeNotFoundError`, `SelfReferralError`, `AlreadyRedeemedError`. Referral fields live on `user_profiles` alongside credit balances.
 - **`lib/waitlist/`** — Waitlist claim codes. `code.ts` generates/validates `HI-XXXXXXXX` (8-char Crockford Base32) codes; `service.ts` wraps the `claim_waitlist_code` RPC and exposes `InvalidCodeError`, `CodeNotFoundError`, `AlreadyClaimedError`, `AlreadyDoubledError`. Applying a code sets `user_profiles.double_credits = true` (persists forever) and adds one tier's worth of sub credits for immediate impact.
 
 ### External Services
@@ -119,7 +119,7 @@ The full spec — credits, RevenueCat events, the debit/refund flow, upgrade/dow
 
 ## Referrals
 
-Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford Base32 suffix) via `POST /api/referral`. A new user redeems via `POST /api/referral/redeem` during onboarding; both sides get 50 non-expiring credits (500 mills on `extra_credits_mills`). The atomic work happens inside the `redeem_referral` Supabase RPC — see `../private/backend-purchases.md` (Referrals) and `supabase/migrations/20260423120000_add_referrals.sql` for the ledger + locking details. `user_profiles.referral_code` is covered by a partial unique index (`WHERE referral_code IS NOT NULL`) which is both the uniqueness gate and the code → user lookup path.
+Each user mints one immutable code of the form `NAME-XXXXXX` (6-char Crockford Base32 suffix) via `POST /api/referral`. A new user redeems via `POST /api/referral/redeem` during onboarding, which only records `referred_by`. Both sides get 50 non-expiring credits (500 mills on `extra_credits_mills`) once the redeemer's first `INITIAL_PURCHASE` / `NON_RENEWING_PURCHASE` / `RENEWAL` webhook arrives (`grant_referral_bonus` RPC, called from `lib/credits/webhook.ts`; idempotent via the ledger). **Why deferred:** anonymous sign-ups are free and scriptable, so an instant bonus let throwaway accounts farm credits — keep any new free-credit grant behind a paid/trial event for the same reason. See `../private/backend-purchases.md` (Referrals) and `supabase/migrations/20260924010000_defer_referral_bonus.sql` for the ledger + locking details. `user_profiles.referral_code` is covered by a partial unique index (`WHERE referral_code IS NOT NULL`) which is both the uniqueness gate and the code → user lookup path.
 
 ## Waitlist
 

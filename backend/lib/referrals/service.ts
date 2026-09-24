@@ -1,12 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { Balance } from '@/lib/credits/balance';
 import { getProfile } from '@/lib/profile/profile';
-import {
-  REFERRAL_CODE_REGEX,
-  buildReferralCode,
-  normalizeCodeInput,
-  sanitizeName,
-} from './code';
+import { REFERRAL_CODE_REGEX, buildReferralCode, normalizeCodeInput, sanitizeName } from './code';
 
 export const REFERRAL_BONUS_MILLS = 500;
 const MAX_CODE_GENERATION_ATTEMPTS = 5;
@@ -102,10 +97,16 @@ export async function getOrCreateReferralCode(
   throw new Error('Could not generate a unique referral code after multiple attempts');
 }
 
+export type RedeemResult = {
+  balance: Balance;
+  /** True until the redeemer's first purchase/trial pays out the bonus to both sides. */
+  bonusPending: boolean;
+};
+
 export async function redeemReferralCode(
   redeemerId: string,
   rawCode: string
-): Promise<Balance> {
+): Promise<RedeemResult> {
   const code = normalizeCodeInput(rawCode);
   if (!REFERRAL_CODE_REGEX.test(code)) {
     throw new InvalidCodeError();
@@ -132,6 +133,7 @@ export async function redeemReferralCode(
   const result = data as unknown as {
     success: boolean;
     reason?: string;
+    bonus_pending?: boolean;
     sub_credits_mills: number;
     extra_credits_mills: number;
   };
@@ -148,6 +150,19 @@ export async function redeemReferralCode(
     throw new Error(`redeem_referral failed: ${result.reason ?? 'unknown'}`);
   }
 
-  return balance;
+  return { balance, bonusPending: result.bonus_pending ?? false };
 }
 
+/**
+ * Pays the referral bonus to both the redeemer and their referrer, once. Called from the
+ * RevenueCat webhook when the redeemer starts a trial or pays, so throwaway anonymous
+ * accounts can't farm credits. No-op if the user wasn't referred or was already paid out.
+ */
+export async function grantReferralBonus(redeemerId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin.rpc('grant_referral_bonus', {
+    p_redeemer_id: redeemerId,
+    p_bonus_mills: REFERRAL_BONUS_MILLS,
+  });
+  if (error) throw error;
+  return (data as unknown as { granted: boolean }).granted;
+}

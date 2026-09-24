@@ -15,7 +15,7 @@ struct ReferralCodeSheet: View {
         VStack(spacing: 0) {
             HiSheetHeader(title: "Invite friends", onClose: { dismiss() })
 
-            Text("Earn 50 credits for each friend who joins using your code.")
+            Text("Earn 50 credits for each friend who joins with your code and starts a trial or buys credits. They get 50 too.")
                 .font(.body.weight(.medium))
                 .foregroundStyle(HiTheme.textSecondary)
                 .multilineTextAlignment(.leading)
@@ -178,7 +178,7 @@ struct ReferralCodeSheet: View {
     }
 
     private func shareText(code: String) -> String {
-        "Try hi-key! Generate AI images right from your keyboard. Use my code \(code) and we both get 50 free credits! Download: https://apps.apple.com/app/hi-key"
+        "Try hi-key! Generate AI images right from your keyboard. Use my code \(code) and we both get 50 bonus credits when you start your free trial. Download: https://apps.apple.com/app/hi-key"
     }
 }
 

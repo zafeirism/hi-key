@@ -39,7 +39,7 @@ hi-key uses a credit system. 1 credit = 1 prompt = 4 images.
 
 ### Referral program
 
-Refer a friend and you both get 5 extra credits.
+Refer a friend and you both get 50 bonus credits when they start a free trial or buy credits.
 
 ## How hi-key is different
 

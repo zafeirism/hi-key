@@ -81,6 +81,9 @@ class APIClient {
 
     struct ReferralRedeemResponse: Codable {
         let credits: CreditsBalance
+        /// True until this user starts a trial or buys credits, which pays the
+        /// bonus to both sides. Optional for backends that predate the field.
+        let bonus_pending: Bool?
     }
 
     private struct ReferralErrorPayload: Codable {
@@ -388,7 +391,7 @@ class APIClient {
         }
     }
 
-    func redeemReferralCode(code: String) async throws -> CreditsBalance {
+    func redeemReferralCode(code: String) async throws -> ReferralRedeemResponse {
         let accessToken = try await getValidAccessToken()
         do {
             return try await performRedeemReferralCode(code: code, accessToken: accessToken)
@@ -398,7 +401,7 @@ class APIClient {
         }
     }
 
-    private func performRedeemReferralCode(code: String, accessToken: String) async throws -> CreditsBalance {
+    private func performRedeemReferralCode(code: String, accessToken: String) async throws -> ReferralRedeemResponse {
         guard let url = URL(string: "\(baseURL)/api/referral/redeem") else {
             throw APIError.invalidURL
         }
@@ -416,8 +419,7 @@ class APIClient {
         }
 
         if httpResponse.statusCode == 200 {
-            let decoded = try JSONDecoder().decode(ReferralRedeemResponse.self, from: data)
-            return decoded.credits
+            return try JSONDecoder().decode(ReferralRedeemResponse.self, from: data)
         }
 
         let payload = try? JSONDecoder().decode(ReferralErrorPayload.self, from: data)

@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 import { getProfile } from '@/lib/profile/profile';
 import { lookupProduct, type SubProduct } from './catalog';
 import { grant, resetSub, type Balance } from './balance';
+import { grantReferralBonus } from '@/lib/referrals/service';
 
 /**
  * Minimal subset of the RC webhook event we care about.
@@ -21,11 +22,6 @@ export type EventOutcome =
   | { handled: true; balance: Balance; summary: string }
   | { handled: false; summary: string };
 
-async function readDoublingMultiplier(userId: string): Promise<number> {
-  const profile = await getProfile(userId);
-  return profile.double_credits ? 2 : 1;
-}
-
 async function readBalance(userId: string): Promise<Balance> {
   const profile = await getProfile(userId);
   return {
@@ -42,6 +38,20 @@ function resolveSubGrant(
   const isTrial = event.period_type === 'TRIAL' && product.trialMills !== undefined;
   const mills = isTrial ? product.trialMills! : product.tierMaxMills * multiplier;
   return { mills, isTrial };
+}
+
+// A paid event (trial start, purchase, pack, renewal) unlocks a pending referral bonus.
+// Failures are logged, not thrown: the purchase grant already landed, and the next
+// renewal retries the (idempotent) payout.
+async function payPendingReferralBonus(userId: string): Promise<string> {
+  try {
+    return (await grantReferralBonus(userId)) ? ' +referral bonus' : '';
+  } catch (err) {
+    console.error(
+      `${new Date().toISOString()} Referral bonus grant failed for ${userId}: ${JSON.stringify(err)}`
+    );
+    return ' (referral bonus failed)';
+  }
 }
 
 async function setActiveSubProduct(userId: string, productId: string | null): Promise<void> {
@@ -63,7 +73,10 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
   }
 
   const product = lookupProduct(event.product_id);
-  const multiplier = await readDoublingMultiplier(userId);
+  const profile = await getProfile(userId);
+  const multiplier = profile.double_credits ? 2 : 1;
+  const referralSuffix = () =>
+    profile.referred_by ? payPendingReferralBonus(userId) : Promise.resolve('');
 
   switch (event.type) {
     case 'INITIAL_PURCHASE':
@@ -81,10 +94,11 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
           sourceId: event.id,
         });
         await setActiveSubProduct(userId, event.product_id ?? null);
+        const referral = await referralSuffix();
         return {
           handled: true,
           balance,
-          summary: `${reason} sub +${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+          summary: `${reason} sub +${subMills}${multiplier > 1 ? ' (x2)' : ''}${referral}`,
         };
       }
       const packMills = product.amountMills * multiplier;
@@ -94,10 +108,11 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         reason: 'pack',
         sourceId: event.id,
       });
+      const referral = await referralSuffix();
       return {
         handled: true,
         balance,
-        summary: `pack +${packMills}${multiplier > 1 ? ' (x2)' : ''}`,
+        summary: `pack +${packMills}${multiplier > 1 ? ' (x2)' : ''}${referral}`,
       };
     }
 
@@ -112,10 +127,11 @@ export async function handleRevenueCatEvent(event: RevenueCatEvent): Promise<Eve
         sourceId: event.id,
       });
       await setActiveSubProduct(userId, event.product_id ?? null);
+      const referral = await referralSuffix();
       return {
         handled: true,
         balance,
-        summary: `${reason} sub=${subMills}${multiplier > 1 ? ' (x2)' : ''}`,
+        summary: `${reason} sub=${subMills}${multiplier > 1 ? ' (x2)' : ''}${referral}`,
       };
     }
 

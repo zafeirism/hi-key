@@ -113,12 +113,16 @@ class CreditsManager: ObservableObject {
         return response.code
     }
 
-    /// Redeem a friend's referral code. Backend grants 50 credits to both
-    /// sides and stamps `referred_by` on this user. One-shot — a second call
-    /// with a different code returns `alreadyRedeemed`.
-    func redeemReferralCode(_ code: String) async throws {
-        let balance = try await APIClient.shared.redeemReferralCode(code: code)
-        apply(balance: balance)
+    /// Redeem a friend's referral code. Backend stamps `referred_by` on this
+    /// user; the 50-credit bonus for both sides is paid when this user starts a
+    /// trial or buys credits (immediately if they already have). One-shot — a
+    /// second call with a different code returns `alreadyRedeemed`.
+    /// Returns whether the bonus is still pending.
+    @discardableResult
+    func redeemReferralCode(_ code: String) async throws -> Bool {
+        let response = try await APIClient.shared.redeemReferralCode(code: code)
+        apply(balance: response.credits)
+        return response.bonus_pending ?? false
     }
 
     // MARK: - Waitlist Claim Code

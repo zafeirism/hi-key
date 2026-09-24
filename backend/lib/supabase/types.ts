@@ -221,6 +221,10 @@ export type Database = {
         }
         Returns: Json
       }
+      grant_referral_bonus: {
+        Args: { p_bonus_mills: number; p_redeemer_id: string }
+        Returns: Json
+      }
       redeem_referral: {
         Args: {
           p_bonus_mills: number

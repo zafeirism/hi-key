@@ -44,7 +44,7 @@ private let faqItems: [FAQItem] = [
     ),
     FAQItem(
         question: "Can I use hi-key for free?",
-        answer: "You get free credits when you sign up to try hi-key. After that, you can earn more by inviting friends — you both get 50 free credits for every friend who joins."
+        answer: "You get free credits when you sign up to try hi-key. After that, you can earn more by inviting friends — when a friend joins with your code and starts a free trial or buys credits, you both get 50 bonus credits."
     ),
     FAQItem(
         question: "Where can I learn more?",

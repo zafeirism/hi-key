@@ -72,7 +72,7 @@ struct KeyboardMenuView: View {
             MenuRow(
                 icon: "person.2",
                 title: "Set up referral code",
-                description: "Get 50 credits per friend who joins",
+                description: "Get 50 credits per friend who subscribes",
                 trailingLabel: nil,
                 action: { openURL("hi-key://referral") }
             )

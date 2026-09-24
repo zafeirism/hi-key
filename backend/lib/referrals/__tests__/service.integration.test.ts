@@ -9,11 +9,11 @@ import {
   REFERRAL_BONUS_MILLS,
   SelfReferralError,
   getOrCreateReferralCode,
+  grantReferralBonus,
   redeemReferralCode,
 } from '../service';
 
-const shouldRunTests =
-  !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
+const shouldRunTests = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
 
 const prefix = `test-referral-${Date.now()}`;
 
@@ -101,33 +101,88 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
     await expect(redeemReferralCode(user, code)).rejects.toBeInstanceOf(SelfReferralError);
   });
 
-  it('redeems happy path: both sides get bonus, referred_by set, ledger rows written', async () => {
+  async function referralTxs(users: string[]) {
+    const { data } = await supabaseAdmin
+      .from('credit_transactions')
+      .select('user_id, delta_extra_mills')
+      .eq('reason', 'referral')
+      .in('user_id', users);
+    return data ?? [];
+  }
+
+  it('redeem records referred_by but defers the bonus until the redeemer pays', async () => {
     const referrer = track(`${prefix}-hr-referrer`);
     const redeemer = track(`${prefix}-hr-redeemer`);
     await cleanup(referrer);
     await cleanup(redeemer);
 
     const { code } = await getOrCreateReferralCode(referrer, 'Alice');
-    const balance = await redeemReferralCode(redeemer, code);
+    const result = await redeemReferralCode(redeemer, code);
 
-    expect(balance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
-
-    const referrerProfile = await getProfile(referrer);
-    expect(referrerProfile.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
-
-    const redeemerProfile = await getProfile(redeemer);
-    expect(redeemerProfile.referred_by).toBe(referrer);
-
-    const { data: txs } = await supabaseAdmin
-      .from('credit_transactions')
-      .select('user_id, delta_extra_mills, source_id, reason')
-      .eq('reason', 'referral')
-      .in('user_id', [referrer, redeemer]);
-    expect(txs?.length).toBe(2);
-    expect(txs?.every((t) => t.delta_extra_mills === REFERRAL_BONUS_MILLS)).toBe(true);
+    expect(result.bonusPending).toBe(true);
+    expect(result.balance.extra_credits_mills).toBe(0);
+    expect((await getProfile(redeemer)).referred_by).toBe(referrer);
+    expect((await getProfile(referrer)).extra_credits_mills).toBe(0);
+    expect(await referralTxs([referrer, redeemer])).toHaveLength(0);
   });
 
-  it('second redemption by the same redeemer is rejected and does not double-grant', async () => {
+  it('grantReferralBonus pays both sides exactly once', async () => {
+    const referrer = track(`${prefix}-pay-referrer`);
+    const redeemer = track(`${prefix}-pay-redeemer`);
+    await cleanup(referrer);
+    await cleanup(redeemer);
+
+    const { code } = await getOrCreateReferralCode(referrer, 'Paula');
+    await redeemReferralCode(redeemer, code);
+
+    expect(await grantReferralBonus(redeemer)).toBe(true);
+    expect(await grantReferralBonus(redeemer)).toBe(false);
+
+    expect((await getProfile(redeemer)).extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+    expect((await getProfile(referrer)).extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+    const txs = await referralTxs([referrer, redeemer]);
+    expect(txs).toHaveLength(2);
+    expect(txs.every((t) => t.delta_extra_mills === REFERRAL_BONUS_MILLS)).toBe(true);
+
+    // Replaying the redemption after payout reports the bonus as no longer pending.
+    const replayed = await redeemReferralCode(redeemer, code);
+    expect(replayed.bonusPending).toBe(false);
+    expect(replayed.balance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+  });
+
+  it('grantReferralBonus is a no-op for users who were not referred', async () => {
+    const user = track(`${prefix}-unreferred`);
+    await cleanup(user);
+    await supabaseAdmin.from('user_profiles').insert({ user_id: user });
+
+    expect(await grantReferralBonus(user)).toBe(false);
+    expect((await getProfile(user)).extra_credits_mills).toBe(0);
+  });
+
+  it('pays out immediately when the redeemer has already paid', async () => {
+    const referrer = track(`${prefix}-paid-referrer`);
+    const redeemer = track(`${prefix}-paid-redeemer`);
+    await cleanup(referrer);
+    await cleanup(redeemer);
+
+    await supabaseAdmin.from('user_profiles').insert({ user_id: redeemer });
+    await supabaseAdmin.from('credit_transactions').insert({
+      user_id: redeemer,
+      delta_sub_mills: 0,
+      delta_extra_mills: 0,
+      reason: 'initial_purchase',
+      source_id: `${prefix}-paid-evt`,
+    });
+
+    const { code } = await getOrCreateReferralCode(referrer, 'Quinn');
+    const result = await redeemReferralCode(redeemer, code);
+
+    expect(result.bonusPending).toBe(false);
+    expect(result.balance.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+    expect((await getProfile(referrer)).extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
+  });
+
+  it('second redemption by the same redeemer is rejected', async () => {
     const refA = track(`${prefix}-dup-a`);
     const refB = track(`${prefix}-dup-b`);
     const redeemer = track(`${prefix}-dup-redeemer`);
@@ -138,12 +193,7 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
 
     await redeemReferralCode(redeemer, codeA);
     await expect(redeemReferralCode(redeemer, codeB)).rejects.toBeInstanceOf(AlreadyRedeemedError);
-
-    const redeemerProfile = await getProfile(redeemer);
-    expect(redeemerProfile.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
-
-    const profileB = await getProfile(refB);
-    expect(profileB.extra_credits_mills).toBe(0);
+    expect((await getProfile(redeemer)).referred_by).toBe(refA);
   });
 
   it('replaying the same redemption is idempotent', async () => {
@@ -155,17 +205,8 @@ describe.skipIf(!shouldRunTests)('referrals service integration', () => {
     const { code } = await getOrCreateReferralCode(referrer, 'Rex');
 
     await redeemReferralCode(redeemer, code);
-    // Second call for the same (redeemer, referrer) pair: the fast-path in
-    // redeem_referral detects the existing ledger row and returns idempotent success,
-    // so the service returns the same balance rather than throwing.
     const replayed = await redeemReferralCode(redeemer, code);
-    expect(replayed.extra_credits_mills).toBe(REFERRAL_BONUS_MILLS);
-
-    const { data: txs } = await supabaseAdmin
-      .from('credit_transactions')
-      .select('id')
-      .eq('reason', 'referral')
-      .in('user_id', [referrer, redeemer]);
-    expect(txs?.length).toBe(2);
+    expect(replayed.bonusPending).toBe(true);
+    expect(await referralTxs([referrer, redeemer])).toHaveLength(0);
   });
 });

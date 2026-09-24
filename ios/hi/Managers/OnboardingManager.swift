@@ -162,20 +162,24 @@ class OnboardingManager: ObservableObject {
     /// Redeem a friend's referral code against the backend. Persists the code
     /// locally on success so the onboarding step can re-render in the applied
     /// state without a network round-trip. Errors propagate to the caller for
-    /// user-facing messaging.
-    func applyReferralCode(_ code: String) async throws {
+    /// user-facing messaging. Returns whether the referral bonus is still
+    /// pending (paid once the user starts a trial or buys credits).
+    @discardableResult
+    func applyReferralCode(_ code: String) async throws -> Bool {
         guard isValidReferralCodeFormat(code) else {
             throw APIClient.APIError.invalidReferralCode
         }
 
         let normalized = code.uppercased()
-        try await CreditsManager.shared.redeemReferralCode(normalized)
+        let bonusPending = try await CreditsManager.shared.redeemReferralCode(normalized)
         referrerCode = normalized
         referralApplied = true
         // PostHog: Track successful referral code redemption
         PostHogSDK.shared.capture("referral_code_redeemed", properties: [
             "referrer_code": normalized,
+            "bonus_pending": bonusPending,
         ])
+        return bonusPending
     }
 
     /// Client-side shape check for the Apply button's enabled state. Actual

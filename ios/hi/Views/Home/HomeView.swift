@@ -409,7 +409,7 @@ struct HomeView: View {
                                 .foregroundStyle(HiTheme.textPrimary)
                         }
 
-                        Text("Get 50 free credits for every friend who joins")
+                        Text("Get 50 credits for every friend who joins and subscribes or buys credits")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(HiTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
