@@ -5,13 +5,6 @@ import type { GenerationStatus } from '@/lib/supabase/helpers';
 import { uploadImage } from '@/lib/storage/r2';
 import { refundGeneration } from '@/lib/credits/balance';
 
-function isBypassUserId(userId: string | null | undefined): boolean {
-  if (!userId) return true;
-  return (
-    userId.startsWith('demo-') || userId.startsWith('warmup-') || userId.startsWith('social-')
-  );
-}
-
 async function refundGenerationSafe(
   userId: string,
   requestId: string,
@@ -77,13 +70,9 @@ export async function POST(request: NextRequest) {
     console.error(
       `${new Date().toISOString()} Replicate failed:  ${generationId}: ${status} - error: ${JSON.stringify(error)}`
     );
-    if (
-      !isBypassUserId(generation.user_id) &&
-      generation.reserved_usd_mills &&
-      generation.request_id
-    ) {
+    if (generation.user_id && generation.reserved_usd_mills && generation.request_id) {
       await refundGenerationSafe(
-        generation.user_id!,
+        generation.user_id,
         generation.request_id,
         generation.id,
         generation.reserved_usd_mills
@@ -136,7 +125,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (
-    !isBypassUserId(generation.user_id) &&
+    generation.user_id &&
     generation.reserved_usd_mills != null &&
     generation.cost_usd_mills != null &&
     generation.request_id
@@ -144,7 +133,7 @@ export async function POST(request: NextRequest) {
     const refundMills = generation.reserved_usd_mills - generation.cost_usd_mills;
     if (refundMills > 0) {
       await refundGenerationSafe(
-        generation.user_id!,
+        generation.user_id,
         generation.request_id,
         generation.id,
         refundMills

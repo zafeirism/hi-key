@@ -7,6 +7,8 @@ const JWKS_URL = new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
 // Create JWKS client - jose will fetch and cache the keys
 const jwks = createRemoteJWKSet(JWKS_URL);
 
+export const WARMUP_TOKEN = 'warmup';
+
 // Supabase JWT payload structure
 interface SupabaseJWTPayload {
   sub: string; // user_id
@@ -58,28 +60,10 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
 
       const token = authHeader.replace('Bearer ', '');
 
-      // 🔥 DEMO MODE: Allow "demo" token for testing
-      if (token === '***REMOVED***') {
-        const demoUser: AuthUser = {
-          id: `demo-${Date.now()}`, // Unique ID per request
-          email: 'hello@hi-key.ai',
-          role: 'authenticated',
-        };
-        return handler(request, demoUser);
-      } else if (token === '***REMOVED***') {
-        const warmupUser: AuthUser = {
-          id: `warmup-${Date.now()}`, // Unique ID per request
-          email: 'hello@hi-key.ai',
-          role: 'authenticated',
-        };
-        return handler(request, warmupUser);
-      } else if (token === '***REMOVED***') {
-        const socialUser: AuthUser = {
-          id: `social-***REMOVED***`, // Unique ID per request
-          email: 'hello@hi-key.ai',
-          role: 'authenticated',
-        };
-        return handler(request, socialUser);
+      // Warmup pings (from /api/warmup) only need the route's function to boot; they never
+      // reach the handler, so this token grants nothing and doesn't need to be secret.
+      if (token === WARMUP_TOKEN) {
+        return NextResponse.json({ success: true, warmup: true });
       }
 
       // Verify JWT using Supabase's JWKS endpoint
@@ -114,16 +98,4 @@ export function withAuth(handler: (request: NextRequest, user: AuthUser) => Prom
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
   };
-}
-
-/**
- * True for demo/warmup/social bypass tokens — credit logic should skip these.
- * Real Supabase user IDs are UUIDs and never match these prefixes.
- */
-export function isBypassUser(user: AuthUser): boolean {
-  return (
-    user.id.startsWith('demo-') ||
-    user.id.startsWith('warmup-') ||
-    user.id.startsWith('social-')
-  );
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isBypassUser, withAuth } from '@/lib/auth/jwt';
+import { withAuth } from '@/lib/auth/jwt';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { GenerationInsert, GenerationStatus } from '@/lib/supabase/helpers';
 import { generateImage } from '@/lib/ai/image-generator';
@@ -81,31 +81,28 @@ export const POST = withAuth(async (request, user) => {
   ];
   const totalReservedMills = reservedPerImage.reduce((a, b) => a + b, 0);
 
-  // 2. Debit credits up-front (bypass tokens skip this).
-  const bypass = isBypassUser(user);
+  // 2. Debit credits up-front.
   let balanceAfterDebit: Balance | null = null;
-  if (!bypass) {
-    try {
-      balanceAfterDebit = await debit(user.id, totalReservedMills, {
-        reason: 'generation_debit',
-        sourceId: request_id,
-        generationId: generationIds[0]!,
-      });
-    } catch (err) {
-      if (err instanceof InsufficientCreditsError) {
-        return NextResponse.json(
-          {
-            error: 'insufficient_credits',
-            balance: {
-              sub_credits: toDisplayCredits(err.balance.sub_credits_mills),
-              extra_credits: toDisplayCredits(err.balance.extra_credits_mills),
-            },
+  try {
+    balanceAfterDebit = await debit(user.id, totalReservedMills, {
+      reason: 'generation_debit',
+      sourceId: request_id,
+      generationId: generationIds[0]!,
+    });
+  } catch (err) {
+    if (err instanceof InsufficientCreditsError) {
+      return NextResponse.json(
+        {
+          error: 'insufficient_credits',
+          balance: {
+            sub_credits: toDisplayCredits(err.balance.sub_credits_mills),
+            extra_credits: toDisplayCredits(err.balance.extra_credits_mills),
           },
-          { status: 402 }
-        );
-      }
-      throw err;
+        },
+        { status: 402 }
+      );
     }
+    throw err;
   }
 
   const records: GenerationInsert[] = generationIds.map((id, idx) => ({
@@ -132,31 +129,29 @@ export const POST = withAuth(async (request, user) => {
     console.error(
       `${new Date().toISOString()} Failed to create generations: ${JSON.stringify(insertError)}`
     );
-    if (!bypass) {
-      // Refund the reservation since no generation rows exist to drive per-image
-      // webhook refunds. Mirror the debit row's split so credits land back in the
-      // same buckets they came from.
-      try {
-        const { data: debitRow } = await supabaseAdmin
-          .from('credit_transactions')
-          .select('delta_sub_mills, delta_extra_mills')
-          .eq('user_id', user.id)
-          .eq('reason', 'generation_debit')
-          .eq('source_id', request_id)
-          .maybeSingle();
-        if (debitRow) {
-          await grant(user.id, {
-            deltaSubMills: -debitRow.delta_sub_mills,
-            deltaExtraMills: -debitRow.delta_extra_mills,
-            reason: 'generation_refund',
-            sourceId: request_id,
-          });
-        }
-      } catch (e) {
-        console.error(
-          `${new Date().toISOString()} Refund-on-insert-failure failed: ${JSON.stringify(e)}`
-        );
+    // Refund the reservation since no generation rows exist to drive per-image
+    // webhook refunds. Mirror the debit row's split so credits land back in the
+    // same buckets they came from.
+    try {
+      const { data: debitRow } = await supabaseAdmin
+        .from('credit_transactions')
+        .select('delta_sub_mills, delta_extra_mills')
+        .eq('user_id', user.id)
+        .eq('reason', 'generation_debit')
+        .eq('source_id', request_id)
+        .maybeSingle();
+      if (debitRow) {
+        await grant(user.id, {
+          deltaSubMills: -debitRow.delta_sub_mills,
+          deltaExtraMills: -debitRow.delta_extra_mills,
+          reason: 'generation_refund',
+          sourceId: request_id,
+        });
       }
+    } catch (e) {
+      console.error(
+        `${new Date().toISOString()} Refund-on-insert-failure failed: ${JSON.stringify(e)}`
+      );
     }
     return NextResponse.json({ error: 'Failed to create generations' }, { status: 500 });
   }
@@ -188,24 +183,22 @@ export const POST = withAuth(async (request, user) => {
       })
       .in('id', generationIds);
 
-    const refundTask: Promise<Balance | null> = bypass
-      ? Promise.resolve(null)
-      : (async () => {
-          const { data: debitRow } = await supabaseAdmin
-            .from('credit_transactions')
-            .select('delta_sub_mills, delta_extra_mills')
-            .eq('user_id', user.id)
-            .eq('reason', 'generation_debit')
-            .eq('source_id', request_id)
-            .maybeSingle();
-          if (!debitRow) return null;
-          return grant(user.id, {
-            deltaSubMills: -debitRow.delta_sub_mills,
-            deltaExtraMills: -debitRow.delta_extra_mills,
-            reason: 'generation_refund',
-            sourceId: request_id,
-          });
-        })();
+    const refundTask: Promise<Balance | null> = (async () => {
+      const { data: debitRow } = await supabaseAdmin
+        .from('credit_transactions')
+        .select('delta_sub_mills, delta_extra_mills')
+        .eq('user_id', user.id)
+        .eq('reason', 'generation_debit')
+        .eq('source_id', request_id)
+        .maybeSingle();
+      if (!debitRow) return null;
+      return grant(user.id, {
+        deltaSubMills: -debitRow.delta_sub_mills,
+        deltaExtraMills: -debitRow.delta_extra_mills,
+        reason: 'generation_refund',
+        sourceId: request_id,
+      });
+    })();
 
     const [blockUpdate, refundedBalance] = await Promise.all([blockUpdateTask, refundTask]);
 

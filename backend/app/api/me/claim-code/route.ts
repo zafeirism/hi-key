@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isBypassUser, withAuth } from '@/lib/auth/jwt';
+import { withAuth } from '@/lib/auth/jwt';
 import { toDisplayCredits } from '@/lib/credits/balance';
 import {
   AlreadyClaimedError,
@@ -10,10 +10,6 @@ import {
 } from '@/lib/waitlist/service';
 
 export const POST = withAuth(async (request, user) => {
-  if (isBypassUser(user)) {
-    return NextResponse.json({ error: 'bypass_user' }, { status: 403 });
-  }
-
   let body: unknown;
   try {
     body = await request.json();
