@@ -30,7 +30,7 @@ async function warmupAutocomplete() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ***REMOVED***`,
+      Authorization: `Bearer ${WARMUP_TOKEN}`,
     },
     body: JSON.stringify({ warmup: true }),
   });
@@ -41,7 +41,7 @@ async function warmupGenerate() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ***REMOVED***`,
+      Authorization: `Bearer ${WARMUP_TOKEN}`,
     },
     body: JSON.stringify({ warmup: true }),
   });
